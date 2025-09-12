@@ -10,7 +10,7 @@ import BuyerMarketplace from './pages/buyermarket';
 import CartPage from './components/cartpage';
 import ProductPage from './components/ProductPage';
 import SellerPage from './components/SellerPage';
-
+import ArtisanDashboardPage from './pages/artisandashboard';
 
 import ScrollToTop from './components/scrolltotop';
 
@@ -31,6 +31,7 @@ function App() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/product/:id" element={<ProductPage />} />
           <Route path="/seller/:sellerName" element={<SellerPage />} />
+          <Route path="/artisan/dashboard" element={<ArtisanDashboardPage />} />
         </Routes>
       </Router>
     </>
