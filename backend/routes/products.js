@@ -35,7 +35,6 @@ router.get('/', [
       sortOrder = 'desc'
     } = req.query;
 
-    // Build filter object
     const filter = { status: 'active' };
 
     if (category) filter.category = category;
@@ -49,11 +48,9 @@ router.get('/', [
       filter.$text = { $search: search };
     }
 
-    // Build sort object
     const sort = {};
     sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
-    // Execute query with pagination
     const skip = (page - 1) * limit;
     const products = await Product.find(filter)
       .populate('artisan', 'name profile.avatar profile.location.city')
@@ -86,14 +83,15 @@ router.get('/', [
 router.get('/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
-      .populate('artisan', 'name profile email profile.avatar profile.bio profile.location')
+      // --- CORRECTED LINE ---
+      // Select specific fields inside 'profile' instead of the whole object and its children
+      .populate('artisan', 'name email profile.avatar profile.bio profile.location')
       .populate('reviews.user', 'name profile.avatar');
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Increment view count
     product.stats.views += 1;
     await product.save();
 
@@ -155,7 +153,6 @@ router.put('/:id', [auth, authorize('artisan')], async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Check if user owns the product
     if (product.artisan.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Access denied: You can only update your own products' });
     }
@@ -187,7 +184,6 @@ router.delete('/:id', [auth, authorize('artisan')], async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Check if user owns the product
     if (product.artisan.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Access denied: You can only delete your own products' });
     }
@@ -219,7 +215,6 @@ router.post('/:id/reviews', [auth, authorize('buyer')], [
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Check if user already reviewed this product
     const existingReview = product.reviews.find(
       review => review.user.toString() === req.user.id
     );
