@@ -1,57 +1,86 @@
 const express = require('express');
 const { auth } = require('../middleware/auth');
-// In a real application, you would use the Gemini API client here
-// const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const router = express.Router();
 
-// Mock function to simulate a call to the Gemini API
+// Initialize the Google Generative AI client with the API key from environment variables
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+/**
+ * An asynchronous function to get AI-powered trend data from the Gemini API.
+ */
 const getAITrends = async () => {
-    // In a real implementation, you would make a call to the Gemini API here.
-    // For example:
-    // const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    // const prompt = "Generate a report on the latest trends in the artisan and handmade goods market...";
-    // const result = await model.generateContent(prompt);
-    // const response = await result.response;
-    // const text = response.text();
-    // return JSON.parse(text); // Assuming the API returns a JSON string
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    // For now, we return a mock response that mimics the expected structure
-    return Promise.resolve({
-        trendOfMonth: {
-            title: "Sustainable and Eco-Friendly Crafts",
-            summary: "Consumers are increasingly seeking products made from sustainable materials and ethical practices. This is a great opportunity for artisans to highlight their eco-friendly processes.",
-            keywords: ["Sustainable", "Eco-Friendly", "Handmade", "Ethical"]
+    const prompt = `
+      You are a market trend analyst for "KalaGhar," an e-commerce platform for handmade goods.
+      Your task is to generate a concise and actionable trend report for our artisans based on current market data.
+      The report must be returned as a single, valid, parsable JSON object and nothing else.
+      Do not include any text, backticks, or explanations outside of the JSON object itself.
+
+      The JSON object must have the following structure:
+      {
+        "trendOfMonth": {
+          "title": "A short, catchy title for the main trend (e.g., 'Functional Art for the Home Office').",
+          "summary": "A 1-2 sentence summary explaining the trend and its relevance to artisans.",
+          "keywords": ["An", "array", "of", "4", "relevant", "keywords"]
         },
-        actionableTips: [
-            { title: "Highlight Your Materials", description: "Clearly list the sustainable materials you use in your product descriptions." },
-            { title: "Share Your Process", description: "Use videos and stories to show your eco-friendly production methods." },
-            { title: "Collaborate with Eco-Influencers", description: "Partner with influencers who focus on sustainability to reach a wider audience." },
-            { title: "Offer Carbon-Neutral Shipping", description: "Consider offering carbon-neutral shipping options to appeal to environmentally-conscious buyers." }
+        "actionableTips": [
+          {
+            "title": "A short, actionable tip title (e.g., 'Bundle Products for Gifting').",
+            "description": "A brief, data-inspired explanation of how an artisan can apply this tip to increase sales or engagement."
+          },
+          { "title": "A second actionable tip.", "description": "Description for the second tip." },
+          { "title": "A third actionable tip.", "description": "Description for the third tip." },
+          { "title": "A fourth actionable tip.", "description": "Description for the fourth tip." }
         ],
-        categoryDemand: {
-            labels: ['Home Decor', 'Fashion', 'Jewelry', 'Pottery'],
-            data: [40, 25, 20, 15]
+        "categoryDemand": {
+          "labels": ["An array of the top 4 trending product categories based on sales velocity (e.g., 'Pottery', 'Textiles')."],
+          "data": [An array of 4 corresponding numbers representing demand percentages, which MUST sum up to 100]
         },
-        colorPalette: {
-            labels: ['Earthy Green', 'Terracotta', 'Oat Milk', 'Charcoal'],
-            data: [30, 25, 25, 20]
+        "trendingMaterials": {
+          "labels": ["An array of the 4 most popular craft materials right now (e.g., 'Ceramic', 'Linen', 'Recycled Metal', 'Walnut Wood')."],
+          "data": [An array of 4 corresponding numbers representing their popularity in trending items, which MUST sum up to 100]
         }
-    });
-};
+      }
 
+      Generate fresh, creative, and relevant content for today's handmade market.
+    `;
+
+    try {
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
+
+        if (text.startsWith("```json")) {
+            text = text.substring(7, text.length - 3).trim();
+        }
+
+        try {
+            // Now, parse the cleaned text
+            return JSON.parse(text);
+        } catch (e) {
+            console.error("Error parsing JSON from Gemini after cleaning:", text);
+            throw new Error("Failed to parse AI response.");
+        }
+
+    } catch (error) {
+        console.error("Error calling Gemini API:", error);
+        throw new Error("Could not fetch trends from the AI model.");
+    }
+};
 
 // @route   GET /api/ai/trends
 // @desc    Get AI-powered trend analysis for artisans
-// @access  Private
+// @access  Private (requires authentication)
 router.get('/trends', auth, async (req, res) => {
     try {
         const trends = await getAITrends();
         res.json(trends);
     } catch (error) {
-        console.error('AI trends error:', error);
-        res.status(500).json({ message: 'Server error while fetching AI trends' });
+        console.error('AI trends route error:', error.message);
+        res.status(500).json({ message: 'Server error while fetching AI trends.' });
     }
 });
 

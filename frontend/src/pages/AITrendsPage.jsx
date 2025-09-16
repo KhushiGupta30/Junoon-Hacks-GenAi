@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Link, NavLink } from 'react-router-dom';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
-import api from '../api/axiosConfig'; // Import the api instance
+import api from '../api/axiosConfig';
 
 // Register the components
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
@@ -41,7 +41,7 @@ const AnimatedSection = ({ children, className = "" }) => {
   );
 };
 
-// --- (Icons, Header, Footer, and Chart components remain unchanged) ---
+// --- (Icons, Header, and Footer components remain unchanged) ---
 const SparklesIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-google-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 12l-2.293 2.293a1 1 0 01-1.414 0L4 12m13 1.414l2.293 2.293a1 1 0 010 1.414L14 20l-2.293-2.293a1 1 0 010-1.414l4.586-4.586z" />
@@ -159,6 +159,7 @@ const Footer = () => (
   </footer>
 );
 
+// --- Chart Components ---
 const CategoryChart = ({ data }) => {
     const chartData = {
         labels: data.labels,
@@ -180,13 +181,13 @@ const CategoryChart = ({ data }) => {
     return <Bar options={options} data={chartData} />;
 };
 
-const ColorPaletteChart = ({ data }) => {
+const TrendingMaterialsChart = ({ data }) => {
     const chartData = {
         labels: data.labels,
         datasets: [{
             label: 'Popularity',
             data: data.data,
-            backgroundColor: ['#556B2F', '#CD853F', '#F5DEB3', '#FFDB58'],
+            backgroundColor: ['#0F9D58', '#DB4437', '#4285F4', '#F4B400'],
             borderColor: '#ffffff',
             borderWidth: 2,
         }],
@@ -195,12 +196,11 @@ const ColorPaletteChart = ({ data }) => {
         responsive: true,
         plugins: {
             legend: { position: 'top' },
-            title: { display: true, text: 'Popular Color Palettes', font: { size: 16 } },
+            title: { display: true, text: 'Trending Craft Materials', font: { size: 16 } },
         }
     };
     return <Doughnut data={chartData} options={options} />;
 };
-
 
 // --- Main AI Trends Page ---
 const AITrendsPage = () => {
@@ -312,8 +312,14 @@ const AITrendsPage = () => {
 
         {/* Graphs Section */}
         <AnimatedSection className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white p-6 rounded-2xl shadow-lg"><CategoryChart data={trends.categoryDemand} /></div>
-          <div className="bg-white p-6 rounded-2xl shadow-lg"><ColorPaletteChart data={trends.colorPalette} /></div>
+          {/* MODIFICATION: Added flex classes to center the chart */}
+          <div className="bg-white p-6 rounded-2xl shadow-lg flex justify-center items-center">
+            <CategoryChart data={trends.categoryDemand} />
+          </div>
+          {/* MODIFICATION: Added flex classes to center the chart */}
+          <div className="bg-white p-6 rounded-2xl shadow-lg flex justify-center items-center">
+            <TrendingMaterialsChart data={trends.trendingMaterials} />
+          </div>
         </AnimatedSection>
       </main>
       <Footer />
