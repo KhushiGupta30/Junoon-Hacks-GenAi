@@ -1,29 +1,26 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from './App.jsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.jsx';
+import './index.css';
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
-
-ReactDOM.createRoot(document.getElementById("root")).render(
+// This is the only createRoot call needed.
+ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
 );
 
+// The code below was a duplicate and has been removed.
+
 const fontFamily = import.meta.env.VITE_FONT_FAMILY;
 
-// Dynamically load Google Font
-const link = document.createElement("link");
-link.rel = "stylesheet";
-link.href = `https://fonts.googleapis.com/css2?family=${fontFamily}:wght@400;500;700&display=swap`;
-document.head.appendChild(link);
+if (fontFamily) {
+  // Dynamically load Google Font
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(' ', '+')}:wght@400;500;700&display=swap`;
+  document.head.appendChild(link);
 
-// Apply it as CSS variable
-document.documentElement.style.setProperty("--app-font", fontFamily);
+  // Apply it as CSS variable
+  document.documentElement.style.setProperty("--app-font", fontFamily);
+}

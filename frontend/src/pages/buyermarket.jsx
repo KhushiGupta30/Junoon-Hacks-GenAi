@@ -1,104 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-// --- MOCK DATA ---
-// In a real app, this would come from an API
-const mockProducts = [
-  {
-    id: 1,
-    name: "Jaipur Blue Pottery Vase",
-    artisan: "Ramesh Kumar",
-    price: 45.0,
-    imageUrl: "/3.png",
-    category: "Pottery",
-  },
-  {
-    id: 2,
-    name: "Handwoven Pashmina Shawl",
-    artisan: "Fatima Begum",
-    price: 120.0,
-    imageUrl: "/4.png",
-    category: "Textiles",
-  },
-  {
-    id: 3,
-    name: "Madhubani 'Tree of Life'",
-    artisan: "Sita Devi",
-    price: 85.0,
-    imageUrl: "/5.png",
-    category: "Painting",
-  },
-  {
-    id: 4,
-    name: "Terracotta Horse Statue",
-    artisan: "Mani Selvam",
-    price: 60.0,
-    imageUrl: "/6.png",
-    category: "Sculpture",
-  },
-  {
-    id: 5,
-    name: "Chikankari Kurta",
-    artisan: "Aisha Khan",
-    price: 75.0,
-    imageUrl: "/7.png",
-    category: "Textiles",
-  },
-  {
-    id: 6,
-    name: "Bidriware Silver Coasters",
-    artisan: "Irfan Husain",
-    price: 95.0,
-    imageUrl: "/8.png",
-    category: "Metalwork",
-  },
-  {
-    id: 7,
-    name: "Warli Village Life Canvas",
-    artisan: "Jivya Soma Mashe",
-    price: 110.0,
-    imageUrl: "/9.png",
-    category: "Painting",
-  },
-  {
-    id: 8,
-    name: "Kondapalli Wooden Toys",
-    artisan: "Anusha Reddy",
-    price: 35.0,
-    imageUrl: "/10.png",
-    category: "Woodwork",
-  },
-];
-
-const mockIdeas = [
-  {
-    id: 101,
-    title: "Eco-Dyed Yoga Mats",
-    artisan: "Priya S.",
-    description:
-      "Handwoven mats using natural dyes from marigold and indigo. Would you buy this?",
-    imageUrl: "/11.png",
-    votes: 1247,
-  },
-  {
-    id: 102,
-    title: "Modern Warli Art Lamps",
-    artisan: "Rohan D.",
-    description:
-      "Minimalist lamps featuring traditional Warli art on recycled paper shades.",
-    imageUrl: "/12.png",
-    votes: 832,
-  },
-  {
-    id: 103,
-    title: "3D Printed Terracotta Jewelry",
-    artisan: "Anjali Varma",
-    description:
-      "Combining modern 3D printing with classic terracotta finishing for unique jewelry designs.",
-    imageUrl: "/13.png",
-    votes: 971,
-  },
-];
+import api from '../api/axiosConfig';
 
 // --- ICONS ---
 const SearchIcon = () => (
@@ -207,78 +109,79 @@ export const BuyerHeader = () => (
 );
 
 const ProductCard = ({ product }) => (
-  <div className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-transparent hover:border-google-blue h-full flex flex-col">
-    <div className="relative">
-      <img
-        src={product.imageUrl}
-        alt={product.name}
-        className="w-full h-64 object-cover"
-      />
-      <div className="absolute top-3 right-3 bg-white/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-        <HeartIcon />
-      </div>
-    </div>
-    <div className="p-5 flex flex-col flex-grow">
-      {/* --- MODIFICATION START --- */}
-      <p className="text-sm text-gray-500 mb-1">
-        <Link
-          to={`/seller/${encodeURIComponent(product.artisan)}`}
-          className="hover:underline hover:text-google-blue"
-          onClick={(e) => e.stopPropagation()} // Stop click from propagating to the parent Link
-        >
-          {product.artisan}
-        </Link>
-      </p>
-      {/* --- MODIFICATION END --- */}
-      <h3 className="text-lg font-bold text-gray-800 truncate">
-        {product.name}
-      </h3>
-      <div className="flex justify-between items-center mt-4 flex-grow items-end">
-        <p className="text-xl font-semibold text-google-green">
-          ${product.price.toFixed(2)}
+    <div className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-transparent hover:border-google-blue h-full flex flex-col">
+      <Link to={`/product/${product._id}`} className="block">
+        <div className="relative">
+          <img
+            src={product.images[0]?.url || "/placeholder.png"}
+            alt={product.name}
+            className="w-full h-64 object-cover"
+          />
+          <div className="absolute top-3 right-3 bg-white/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+            <HeartIcon />
+          </div>
+        </div>
+      </Link>
+      <div className="p-5 flex flex-col flex-grow">
+        <p className="text-sm text-gray-500 mb-1">
+          <Link
+            to={`/seller/${product.artisan._id}`}
+            className="hover:underline hover:text-google-blue"
+          >
+            {product.artisan.name}
+          </Link>
         </p>
-        <button className="bg-google-blue text-white font-semibold px-5 py-2 rounded-lg hover:bg-google-red transition-colors duration-300 transform group-hover:scale-105">
-          Add to Cart
-        </button>
+        <h3 className="text-lg font-bold text-gray-800 truncate">
+          <Link to={`/product/${product._id}`} className="hover:text-google-blue transition-colors">
+            {product.name}
+          </Link>
+        </h3>
+        <div className="flex justify-between items-center mt-4 flex-grow items-end">
+          <p className="text-xl font-semibold text-google-green">
+            ${product.price.toFixed(2)}
+          </p>
+          <button className="bg-google-blue text-white font-semibold px-5 py-2 rounded-lg hover:bg-google-red transition-colors duration-300 transform group-hover:scale-105">
+            Add to Cart
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+  
 
 const IdeaCard = ({ idea }) => {
-  const [vote, setVote] = useState(null); // 'up' or null
-  const [currentVotes, setCurrentVotes] = useState(idea.votes);
+  const [vote, setVote] = useState(null);
+  const [currentVotes, setCurrentVotes] = useState(idea.votes.upvotes);
 
-  const handleVote = useCallback(() => {
-    if (vote === null) {
-      setVote("up");
-      setCurrentVotes((v) => v + 1);
-    } else {
-      setVote(null);
-      setCurrentVotes((v) => v - 1);
+  const handleVote = useCallback(async () => {
+    try {
+      const response = await api.post(`/ideas/${idea._id}/vote`, { vote: 'up' });
+      setCurrentVotes(response.data.votes.upvotes);
+      setVote('up');
+    } catch (error) {
+      console.error("Voting failed:", error);
+      alert("You need to be logged in to vote.");
     }
-  }, [vote]);
+  }, [idea._id]);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col min-w-[320px] snap-start border-2 border-transparent hover:border-google-yellow transition-all duration-300">
       <img
-        src={idea.imageUrl}
+        src={idea.images[0]?.url || '/placeholder.png'}
         alt={idea.title}
         className="w-full h-48 object-cover"
       />
       <div className="p-6 flex flex-col flex-grow">
         <h4 className="text-xl font-bold text-gray-800">{idea.title}</h4>
-        {/* --- MODIFICATION START --- */}
         <p className="text-sm text-gray-500 mb-3">
           by{" "}
           <Link
-            to={`/seller/${encodeURIComponent(idea.artisan)}`}
+            to={`/seller/${idea.artisan._id}`}
             className="hover:underline hover:text-google-blue"
           >
-            {idea.artisan}
+            {idea.artisan.name}
           </Link>
         </p>
-        {/* --- MODIFICATION END --- */}
         <p className="text-gray-600 text-sm flex-grow">{idea.description}</p>
         <div className="flex justify-between items-center mt-6">
           <button
@@ -305,19 +208,40 @@ const IdeaCard = ({ idea }) => {
 // --- MAIN MARKETPLACE COMPONENT ---
 export default function BuyerMarketplace() {
   const categories = [
-    "All",
-    "Textiles",
-    "Pottery",
-    "Painting",
-    "Woodwork",
-    "Metalwork",
-    "Sculpture",
+    "All", "Textiles", "Pottery", "Painting", "Woodwork", "Metalwork", "Sculpture",
   ];
   const [activeCategory, setActiveCategory] = useState("All");
+  const [products, setProducts] = useState([]);
+  const [ideas, setIdeas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const filteredProducts = mockProducts.filter(
-    (p) => activeCategory === "All" || p.category === active-Category
-  );
+  useEffect(() => {
+    const fetchMarketplaceData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const productParams = {
+          category: activeCategory === "All" ? undefined : activeCategory,
+        };
+        
+        const [productsResponse, ideasResponse] = await Promise.all([
+          api.get('/products', { params: productParams }),
+          api.get('/ideas')
+        ]);
+        
+        setProducts(productsResponse.data.products);
+        setIdeas(ideasResponse.data.ideas);
+      } catch (err) {
+        console.error("Failed to fetch marketplace data:", err);
+        setError("Could not load data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMarketplaceData();
+  }, [activeCategory]);
 
   return (
     <div className="font-sans bg-gray-50">
@@ -367,14 +291,15 @@ export default function BuyerMarketplace() {
           {/* Part 2: Product Grid without Background */}
           <div className="py-16">
             <div className="container mx-auto px-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                {filteredProducts.map((product) => (
-                  // Wrap ProductCard with Link and move the key to the Link
-                  <Link to={`/product/${product.id}`} key={product.id}>
-                    <ProductCard product={product} />
-                  </Link>
-                ))}
-              </div>
+              {loading && <p className="text-center text-gray-600">Loading products...</p>}
+              {error && <p className="text-center text-red-500">{error}</p>}
+              {!loading && !error && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                  {products.map((product) => (
+                    <ProductCard product={product} key={product._id} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -397,17 +322,16 @@ export default function BuyerMarketplace() {
               </p>
             </div>
 
-            {/* Horizontal Scrolling Container */}
             <div className="flex space-x-8 pb-4 overflow-x-auto snap-x snap-mandatory">
-              {mockIdeas.map((idea) => (
-                <IdeaCard key={idea.id} idea={idea} />
+              {loading && <p className="text-center text-gray-600">Loading ideas...</p>}
+              {!loading && !error && ideas.map((idea) => (
+                <IdeaCard key={idea._id} idea={idea} />
               ))}
             </div>
           </div>
         </section>
       </main>
 
-      {/* Re-using the footer from your landing page */}
       <footer className="bg-google-blue text-white">
         <div className="container mx-auto px-6 py-12">
           <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
