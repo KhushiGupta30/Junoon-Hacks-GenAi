@@ -1,4 +1,3 @@
-
 import './App.css'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';  
 import LandingPage from './pages/landing';
@@ -11,15 +10,16 @@ import SellerPage from './components/SellerPage';
 import ArtisanDashboardPage from './pages/artisandashboard';
 import ScrollToTop from './components/scrolltotop';
 import { AuthProvider } from './context/AuthContext.jsx';
-import { CartProvider } from './context/CartContext.jsx'; // Import CartProvider
+import { CartProvider } from './context/CartContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import MyProductsPage from './pages/MyProductsPage.jsx'; // Import the new page
 
 function App() {
 
   return (
     <Router>
       <AuthProvider>
-        <CartProvider> {/* Wrap routes with CartProvider */}
+        <CartProvider>
           <ScrollToTop />
           <Routes>
             {/* Public Routes */}
@@ -31,12 +31,20 @@ function App() {
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/seller/:artisanId" element={<SellerPage />} />
 
-            {/* Protected Routes */}
+            {/* Protected Artisan Routes */}
             <Route 
               path="/artisan/dashboard" 
               element={
                 <ProtectedRoute roles={['artisan']}>
                   <ArtisanDashboardPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/artisan/products" 
+              element={
+                <ProtectedRoute roles={['artisan']}>
+                  <MyProductsPage />
                 </ProtectedRoute>
               } 
             />
