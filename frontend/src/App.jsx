@@ -19,7 +19,7 @@ import IdeaSubmissionPage from './pages/IdeaSubmissionPage.jsx'; // Import the n
 import Aitrendpage from './pages/AITrendsPage.jsx';
 import GrantsPage from './pages/GrantsPage.jsx';
 import LogiPage from './pages/LogiPage.jsx';
-
+import CommunityPage from './pages/CommunityPage.jsx';
 
 function App() {
 
@@ -47,7 +47,7 @@ function App() {
             <Route path="artisan/trends" element={ <ProtectedRoute roles={['artisan']}><Aitrendpage/></ProtectedRoute>} />
             <Route path="artisan/grant" element={ <ProtectedRoute roles={['artisan']}><GrantsPage/></ProtectedRoute>} />
             <Route path="artisan/logistics" element={ <ProtectedRoute roles={['artisan']}><LogiPage/></ProtectedRoute>} />
-            
+            <Route path="artisan/community" element={ <ProtectedRoute roles={['artisan']}><CommunityPage/></ProtectedRoute>} />
             {/* --- NEW ROUTE --- */}
             <Route path="/artisan/ideas/new" element={ <ProtectedRoute roles={['artisan']}> <IdeaSubmissionPage /> </ProtectedRoute> } />
           </Routes>

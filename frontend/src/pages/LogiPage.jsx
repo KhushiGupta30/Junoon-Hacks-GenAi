@@ -212,27 +212,36 @@ const LogisticsPage = () => {
       <main className="pt-24 bg-white font-sans container mx-auto px-6 py-16">
         {/* --- HERO SECTION --- */}
         <AnimatedSection>
-          <div className="relative p-8 rounded-2xl shadow-xl mb-16 overflow-hidden text-white bg-google-red">
-            <div className="absolute inset-0 z-0 opacity-10 bg-[url('https://www.toptal.com/designers/subtlepatterns/uploads/topography.png')]"></div>
-            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
-              <div className="flex-1 text-center lg:text-left">
-                <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-3" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                  Logistics & <span className="text-google-yellow">Shipping Hub</span>
-                </h1>
-                <p className="text-lg max-w-lg mx-auto lg:mx-0 text-white/90" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                  Streamline your deliveries with our trusted partners and expert tips.
-                </p>
-              </div>
-              <div className="flex-shrink-0 w-64 lg:w-80 bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-center items-center">
-                <p className="text-sm font-semibold text-google-red uppercase tracking-wider text-center mb-2">
-                  Featured Partner
-                </p>
-                <img src={logisticsData.featuredPartner.logo} alt="Blue Dart Logo" className="h-10 object-contain my-2" />
-                <p className="text-gray-600 text-sm mt-2 text-center">{logisticsData.featuredPartner.summary}</p>
-              </div>
-            </div>
-          </div>
-        </AnimatedSection>
+  <div className="relative p-8 rounded-2xl shadow-xl mb-16 overflow-hidden text-white bg-google-red">
+    <div className="absolute inset-0 z-0 opacity-10 bg-[url('https://www.toptal.com/designers/subtlepatterns/uploads/topography.png')]"></div>
+    <div className="relative z-10 flex flex-col lg:flex-row items-stretch justify-between gap-8">
+
+  {/* Left Text Section (Centered Vertically) */}
+  <div className="flex-1 flex flex-col justify-center text-center lg:text-left">
+    <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-3" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+      Logistics & <span className="text-google-yellow">Shipping Hub</span>
+    </h1>
+    <p className="text-lg max-w-lg mx-auto lg:mx-0 text-white/90" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+      Streamline your deliveries with our trusted partners and expert tips.
+    </p>
+  </div>
+
+  {/* Fixed Height Featured Partner Card */}
+  <div className="flex-shrink-0 w-64 lg:w-80 bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-center items-center text-center" style={{ minHeight: '240px' }}>
+    <p className="text-sm font-semibold text-google-red uppercase tracking-wider mb-2">
+      Featured Partner
+    </p>
+    <img src={logisticsData.featuredPartner.logo} alt="Blue Dart Logo" className="h-10 object-contain my-2" />
+    <p className="text-gray-600 text-sm mt-2">
+      {logisticsData.featuredPartner.summary}
+    </p>
+  </div>
+
+
+    </div>
+  </div>
+</AnimatedSection>
+
 
         {/* --- AI BEST FIT SUGGESTION --- */}
         <AnimatedSection className="mb-16">
