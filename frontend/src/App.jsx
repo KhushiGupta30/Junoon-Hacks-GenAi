@@ -20,6 +20,7 @@ import Aitrendpage from './pages/AITrendsPage.jsx';
 import GrantsPage from './pages/GrantsPage.jsx';
 import LogiPage from './pages/LogiPage.jsx';
 import CommunityPage from './pages/CommunityPage.jsx';
+import AmbassadorDashboardPage from './pages/ambassadordashboard.jsx';
 
 function App() {
 
@@ -48,6 +49,7 @@ function App() {
             <Route path="artisan/grant" element={ <ProtectedRoute roles={['artisan']}><GrantsPage/></ProtectedRoute>} />
             <Route path="artisan/logistics" element={ <ProtectedRoute roles={['artisan']}><LogiPage/></ProtectedRoute>} />
             <Route path="artisan/community" element={ <ProtectedRoute roles={['artisan']}><CommunityPage/></ProtectedRoute>} />
+            <Route path="/ambassador/dashboard" element={<AmbassadorDashboardPage />} />
             {/* --- NEW ROUTE --- */}
             <Route path="/artisan/ideas/new" element={ <ProtectedRoute roles={['artisan']}> <IdeaSubmissionPage /> </ProtectedRoute> } />
           </Routes>
