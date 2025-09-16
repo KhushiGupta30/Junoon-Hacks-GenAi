@@ -202,12 +202,60 @@ const TrendingMaterialsChart = ({ data }) => {
     return <Doughnut data={chartData} options={options} />;
 };
 
+
+// --- MODIFICATION: New Modal Component for Trend Details ---
+const TrendDetailModal = ({ trend, onClose }) => {
+    // Effect for smooth entrance/exit animations
+    const [show, setShow] = useState(false);
+    useEffect(() => {
+        setShow(true);
+    }, []);
+
+    const handleClose = () => {
+        setShow(false);
+        setTimeout(onClose, 300); // Wait for animation to finish
+    };
+
+    return (
+        <div
+            className={`fixed inset-0 z-[100] flex justify-center items-center p-4 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+            onClick={handleClose}
+        >
+            <div
+                className={`relative bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 transform transition-all duration-300 ${show ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button onClick={handleClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition-colors">
+                    <XIcon />
+                </button>
+                <div className="flex items-center justify-center mb-4">
+                    <SparklesIcon />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">{trend.title}</h2>
+                <p className="text-center text-sm font-semibold text-google-blue uppercase tracking-wider mb-4">
+                    Trend of the Month
+                </p>
+                <p className="text-gray-600 text-base mb-6 text-center">{trend.summary}</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                    {trend.keywords.map((kw, idx) => (
+                        <span key={idx} className="text-sm font-medium bg-gray-200 text-gray-800 px-3 py-1 rounded-full">{kw}</span>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 // --- Main AI Trends Page ---
 const AITrendsPage = () => {
   const { user, logout } = useAuth();
   const [trends, setTrends] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // MODIFICATION: State to control the modal visibility
+  const [isTrendDetailOpen, setIsTrendDetailOpen] = useState(false);
 
   useEffect(() => {
     const fetchTrends = async () => {
@@ -271,7 +319,12 @@ const AITrendsPage = () => {
                   Stay ahead of the curve with AI-driven insights to grow your craft business.
                 </p>
               </div>
-              <div className="flex-shrink-0 w-64 lg:w-80 bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-center">
+
+              {/* MODIFICATION: Clickable card that opens modal */}
+              <div
+                 onClick={() => setIsTrendDetailOpen(true)}
+                 className="flex-shrink-0 w-64 lg:w-80 bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-center cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+              >
                 <div className="flex items-center justify-center mb-4">
                   <SparklesIcon />
                 </div>
@@ -279,13 +332,9 @@ const AITrendsPage = () => {
                   Trend of the Month
                 </p>
                 <h3 className="text-lg font-bold text-gray-800 text-center">{trends.trendOfMonth.title}</h3>
-                <p className="text-gray-600 text-sm mt-2 text-center">{trends.trendOfMonth.summary}</p>
-                <div className="flex flex-wrap justify-center gap-2 mt-3">
-                  {trends.trendOfMonth.keywords.map((kw, idx) => (
-                    <span key={idx} className="text-xs font-medium bg-gray-200/80 text-gray-800 px-2 py-1 rounded-full">{kw}</span>
-                  ))}
-                </div>
+                <p className="text-gray-500 text-sm mt-4 text-center italic">Click to see details</p>
               </div>
+              
             </div>
           </div>
         </AnimatedSection>
@@ -312,16 +361,23 @@ const AITrendsPage = () => {
 
         {/* Graphs Section */}
         <AnimatedSection className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* MODIFICATION: Added flex classes to center the chart */}
           <div className="bg-white p-6 rounded-2xl shadow-lg flex justify-center items-center">
             <CategoryChart data={trends.categoryDemand} />
           </div>
-          {/* MODIFICATION: Added flex classes to center the chart */}
           <div className="bg-white p-6 rounded-2xl shadow-lg flex justify-center items-center">
             <TrendingMaterialsChart data={trends.trendingMaterials} />
           </div>
         </AnimatedSection>
       </main>
+
+      {/* MODIFICATION: Conditionally render the modal */}
+      {isTrendDetailOpen && (
+        <TrendDetailModal
+          trend={trends.trendOfMonth}
+          onClose={() => setIsTrendDetailOpen(false)}
+        />
+      )}
+      
       <Footer />
     </>
   );
