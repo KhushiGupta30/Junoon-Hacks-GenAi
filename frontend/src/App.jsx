@@ -14,7 +14,8 @@ import { CartProvider } from './context/CartContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import MyProductsPage from './pages/MyProductsPage.jsx';
 import ProductEditPage from './pages/ProductEditPage.jsx';
-import MyOrdersPage from './pages/MyOrdersPage.jsx'; // Import the new page
+import MyOrdersPage from './pages/MyOrdersPage.jsx';
+import IdeaSubmissionPage from './pages/IdeaSubmissionPage.jsx'; // Import the new page
 
 function App() {
 
@@ -34,27 +35,13 @@ function App() {
             <Route path="/seller/:artisanId" element={<SellerPage />} />
 
             {/* Protected Artisan Routes */}
-            <Route 
-              path="/artisan/dashboard" 
-              element={ <ProtectedRoute roles={['artisan']}> <ArtisanDashboardPage /> </ProtectedRoute> } 
-            />
-            <Route 
-              path="/artisan/products" 
-              element={ <ProtectedRoute roles={['artisan']}> <MyProductsPage /> </ProtectedRoute> } 
-            />
-            <Route 
-              path="/artisan/products/new" 
-              element={ <ProtectedRoute roles={['artisan']}> <ProductEditPage /> </ProtectedRoute> } 
-            />
-            <Route 
-              path="/artisan/products/edit/:productId" 
-              element={ <ProtectedRoute roles={['artisan']}> <ProductEditPage /> </ProtectedRoute> } 
-            />
+            <Route path="/artisan/dashboard" element={ <ProtectedRoute roles={['artisan']}> <ArtisanDashboardPage /> </ProtectedRoute> } />
+            <Route path="/artisan/products" element={ <ProtectedRoute roles={['artisan']}> <MyProductsPage /> </ProtectedRoute> } />
+            <Route path="/artisan/products/new" element={ <ProtectedRoute roles={['artisan']}> <ProductEditPage /> </ProtectedRoute> } />
+            <Route path="/artisan/products/edit/:productId" element={ <ProtectedRoute roles={['artisan']}> <ProductEditPage /> </ProtectedRoute> } />
+            <Route path="/artisan/orders" element={ <ProtectedRoute roles={['artisan']}> <MyOrdersPage /> </ProtectedRoute> } />
             {/* --- NEW ROUTE --- */}
-            <Route 
-              path="/artisan/orders" 
-              element={ <ProtectedRoute roles={['artisan']}> <MyOrdersPage /> </ProtectedRoute> } 
-            />
+            <Route path="/artisan/ideas/new" element={ <ProtectedRoute roles={['artisan']}> <IdeaSubmissionPage /> </ProtectedRoute> } />
           </Routes>
         </CartProvider>
       </AuthProvider>
