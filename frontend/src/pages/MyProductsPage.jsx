@@ -10,7 +10,7 @@ const MyProductsPage = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const { user } = useAuth(); // To greet the user
+    const { user } = useAuth();
 
     const fetchProducts = useCallback(async () => {
         setLoading(true);
@@ -30,11 +30,9 @@ const MyProductsPage = () => {
     }, [fetchProducts]);
 
     const handleDelete = async (productId) => {
-        // Ask for confirmation before deleting
         if (window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
             try {
                 await api.delete(`/products/${productId}`);
-                // Refresh the product list after deleting
                 fetchProducts();
             } catch (err) {
                 setError('Failed to delete product.');
@@ -55,10 +53,9 @@ const MyProductsPage = () => {
                         Manage My Products
                     </h1>
                     <div className='flex items-center gap-4'>
-                        {/* This button will be implemented in the next step */}
-                        <button className="bg-google-green text-white font-semibold px-5 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        <Link to="/artisan/products/new" className="bg-google-green text-white font-semibold px-5 py-2 rounded-lg hover:bg-green-700 transition-colors">
                             + Add New Product
-                        </button>
+                        </Link>
                          <Link to="/artisan/dashboard" className="text-sm text-google-blue hover:underline">
                             &larr; Back to Dashboard
                         </Link>
@@ -92,11 +89,7 @@ const MyProductsPage = () => {
                                         <tr key={product._id} className="border-b hover:bg-gray-50">
                                             <td className="p-4 font-medium">{product.name}</td>
                                             <td className="p-4">
-                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                                    product.status === 'active' ? 'bg-green-100 text-green-800' :
-                                                    product.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-gray-100 text-gray-800'
-                                                }`}>
+                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${ product.status === 'active' ? 'bg-green-100 text-green-800' : product.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800' }`}>
                                                     {product.status}
                                                 </span>
                                             </td>
@@ -104,8 +97,7 @@ const MyProductsPage = () => {
                                             <td className="p-4">{product.inventory.isUnlimited ? 'Unlimited' : product.inventory.quantity}</td>
                                             <td className="p-4">
                                                 <div className="flex space-x-3">
-                                                    {/* Edit button will be implemented next */}
-                                                    <button className="text-gray-500 hover:text-blue-600"><EditIcon /></button>
+                                                    <Link to={`/artisan/products/edit/${product._id}`} className="text-gray-500 hover:text-blue-600"><EditIcon /></Link>
                                                     <button onClick={() => handleDelete(product._id)} className="text-gray-500 hover:text-red-600"><TrashIcon /></button>
                                                 </div>
                                             </td>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axiosConfig';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link } from 'react-router-dom';
 
 // --- Reusable Animated Section (No changes) ---
 const AnimatedSection = ({ children, className = "" }) => {
@@ -27,10 +27,8 @@ const TruckIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-8
 const BellIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}> <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /> </svg> );
 const MicIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}> <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-14 0m14 0a7 7 0 11-14 0m14 0v2a7 7 0 01-14 0v-2m14 0H5M19 11V9a2 2 0 00-2-2H7a2 2 0 00-2 2v2m14 0V9a2 2 0 00-2-2H7a2 2 0 00-2 2v2m7 11a2 2 0 01-2-2v-2a2 2 0 012-2h0a2 2 0 012 2v2a2 2 0 01-2 2h0z" /> </svg> );
 
-// --- Footer Component (No changes) ---
 const Footer = () => ( <footer className="bg-google-blue text-white py-6 mt-12"> <div className="container mx-auto text-center text-sm text-white/80"> &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved. </div> </footer> );
 
-// --- Main Artisan Dashboard Component ---
 const ArtisanDashboardPage = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ orders: 0, lowInventory: 0 });
@@ -52,9 +50,9 @@ const ArtisanDashboardPage = () => {
   }, []);
 
   const statsData = [
-    { title: 'Current Orders', value: stats.orders, icon: <ArchiveIcon />, color: 'text-google-blue', borderColor: 'border-google-blue', bgColor: 'bg-google-blue'},
-    { title: 'New Trend Alert', value: 'Indigo Dyes', icon: <SparklesIcon />, color: 'text-google-red', borderColor: 'border-google-red', bgColor: 'bg-google-red'},
-    { title: 'Inventory Status', value: `${stats.lowInventory} items low`, icon: <TrendingUpIcon />, color: 'text-google-yellow', borderColor: 'border-google-yellow', bgColor: 'bg-google-yellow'},
+    { title: 'Current Orders', value: stats.orders, icon: <ArchiveIcon />, color: 'text-google-blue', borderColor: 'border-google-blue', bgColor: 'bg-google-blue', link: '/artisan/orders'},
+    { title: 'New Trend Alert', value: 'Indigo Dyes', icon: <SparklesIcon />, color: 'text-google-red', borderColor: 'border-google-red', bgColor: 'bg-google-red', link: '#'},
+    { title: 'Inventory Status', value: `${stats.lowInventory} items low`, icon: <TrendingUpIcon />, color: 'text-google-yellow', borderColor: 'border-google-yellow', bgColor: 'bg-google-yellow', link: '/artisan/products'},
   ];
 
   const featureCards = [
@@ -67,6 +65,16 @@ const ArtisanDashboardPage = () => {
   ];
 
   if (loading || !user) { return <div>Loading Dashboard...</div>; }
+
+  const StatCard = ({ stat }) => (
+    <div className={`bg-white p-6 rounded-2xl shadow-lg flex items-center space-x-4 border-l-8 ${stat.borderColor} transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl`}>
+      <div className={`p-3 rounded-full ${stat.bgColor}/10 ${stat.color}`}>{stat.icon}</div>
+      <div>
+        <p className="text-gray-500 text-sm font-medium">{stat.title}</p>
+        <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -96,7 +104,11 @@ const ArtisanDashboardPage = () => {
             </AnimatedSection>
             <AnimatedSection>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                {statsData.map((stat, index) => ( <div key={index} className={`bg-white p-6 rounded-2xl shadow-lg flex items-center space-x-4 border-l-8 ${stat.borderColor} transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl`} > <div className={`p-3 rounded-full ${stat.bgColor}/10 ${stat.color}`}>{stat.icon}</div> <div> <p className="text-gray-500 text-sm font-medium">{stat.title}</p> <p className="text-2xl font-bold text-gray-800">{stat.value}</p> </div> </div> ))}
+                    {statsData.map((stat, index) => ( 
+                        stat.link.startsWith('/') ? 
+                        <Link key={index} to={stat.link}><StatCard stat={stat} /></Link> :
+                        <a key={index} href={stat.link}><StatCard stat={stat} /></a>
+                    ))}
                 </div>
             </AnimatedSection>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

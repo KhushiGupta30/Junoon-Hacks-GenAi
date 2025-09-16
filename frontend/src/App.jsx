@@ -12,7 +12,9 @@ import ScrollToTop from './components/scrolltotop';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { CartProvider } from './context/CartContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
-import MyProductsPage from './pages/MyProductsPage.jsx'; // Import the new page
+import MyProductsPage from './pages/MyProductsPage.jsx';
+import ProductEditPage from './pages/ProductEditPage.jsx';
+import MyOrdersPage from './pages/MyOrdersPage.jsx'; // Import the new page
 
 function App() {
 
@@ -34,19 +36,24 @@ function App() {
             {/* Protected Artisan Routes */}
             <Route 
               path="/artisan/dashboard" 
-              element={
-                <ProtectedRoute roles={['artisan']}>
-                  <ArtisanDashboardPage />
-                </ProtectedRoute>
-              } 
+              element={ <ProtectedRoute roles={['artisan']}> <ArtisanDashboardPage /> </ProtectedRoute> } 
             />
             <Route 
               path="/artisan/products" 
-              element={
-                <ProtectedRoute roles={['artisan']}>
-                  <MyProductsPage />
-                </ProtectedRoute>
-              } 
+              element={ <ProtectedRoute roles={['artisan']}> <MyProductsPage /> </ProtectedRoute> } 
+            />
+            <Route 
+              path="/artisan/products/new" 
+              element={ <ProtectedRoute roles={['artisan']}> <ProductEditPage /> </ProtectedRoute> } 
+            />
+            <Route 
+              path="/artisan/products/edit/:productId" 
+              element={ <ProtectedRoute roles={['artisan']}> <ProductEditPage /> </ProtectedRoute> } 
+            />
+            {/* --- NEW ROUTE --- */}
+            <Route 
+              path="/artisan/orders" 
+              element={ <ProtectedRoute roles={['artisan']}> <MyOrdersPage /> </ProtectedRoute> } 
             />
           </Routes>
         </CartProvider>
