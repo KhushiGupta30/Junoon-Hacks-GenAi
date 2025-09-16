@@ -1,6 +1,10 @@
 const express = require('express');
-const { auth } = require('../middleware/auth');
+const { auth, authorize } = require('../middleware/auth');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const User = require('../models/User');
+const Product = require('../models/Product');
+const Idea = require('../models/Idea');
+
 
 const router = express.Router();
 
@@ -81,6 +85,74 @@ router.get('/trends', auth, async (req, res) => {
     } catch (error) {
         console.error('AI trends route error:', error.message);
         res.status(500).json({ message: 'Server error while fetching AI trends.' });
+    }
+});
+router.post('/funding-report', [auth, authorize('artisan')], async (req, res) => {
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        // 1. Fetch all necessary data from the database for personalization
+        const artisan = await User.findById(req.user.id).select('name artisanProfile');
+        const products = await Product.find({ artisan: req.user.id }).select('name category stats averageRating');
+        const ideas = await Idea.find({ artisan: req.user.id }).select('title description votes preOrders');
+        const investors = await User.find({ role: 'investor' }).select('name investorProfile');
+        
+        // A generic list of schemes for the AI to analyze and recommend from
+        const governmentSchemes = [
+            { name: 'Pradhan Mantri MUDRA Yojana (PMMY)', offeredBy: 'Govt. of India', description: 'Provides loans up to ₹10 lakh to non-corporate, non-farm small/micro enterprises.', eligibility: 'All Indian citizens with a viable business plan.' },
+            { name: 'Artisan Credit Card (ACC) Scheme', offeredBy: 'Ministry of Textiles', description: 'Provides timely credit to artisans for investment and working capital.', eligibility: 'Artisans in the textile sector.' },
+            { name: 'Stand-Up India Scheme', offeredBy: 'Govt. of India', description: 'Facilitates bank loans between ₹10 lakh and ₹1 Crore to SC/ST or Women entrepreneurs.', eligibility: 'SC/ST and/or Women entrepreneurs.' }
+        ];
+
+        // 2. Create the master prompt for Gemini
+        const prompt = `
+            You are a financial advisor on "KalaGhar," an e-commerce platform for artisans.
+            Analyze the following artisan's data to generate a personalized funding report.
+            Return a single, valid, parsable JSON object and nothing else.
+
+            ARTISAN'S DATA:
+            - Profile: ${JSON.stringify(artisan)}
+            - Products: ${JSON.stringify(products)}
+            - Ideas: ${JSON.stringify(ideas)}
+
+            AVAILABLE INVESTORS ON THE PLATFORM:
+            ${JSON.stringify(investors)}
+
+            AVAILABLE GOVERNMENT SCHEMES:
+            ${JSON.stringify(governmentSchemes)}
+
+            Based on all this data, generate a JSON object with the following structure:
+            {
+              "fundingReadiness": {
+                "score": A score from 0 to 100 indicating how attractive the artisan is to investors. Base this on profile completeness, product performance (views, ratings), and idea validation (votes).,
+                "summary": "A 1-2 sentence summary explaining the score and giving one key area for improvement."
+              },
+              "matchedInvestors": [
+                An array of the TOP 3 investors from the provided list. For each investor, include their id, name, type, focus, range, a matchScore, and a "reasonForMatch".
+                IMPORTANT: If the 'AVAILABLE INVESTORS' list is empty or no investors are a good match, return an empty array [].
+              ],
+              "recommendedSchemes": [ An array of the TOP 2 most relevant schemes from the list for this artisan. ],
+              "applicationTips": [
+                An array of 3 personalized and actionable tips to improve funding readiness. Each tip MUST be an object with a "title" and a "description".
+              ]
+            }
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
+
+        // Clean markdown from the response
+        if (text.startsWith("```json")) {
+            text = text.substring(7, text.length - 3).trim();
+        }
+
+        const report = JSON.parse(text);
+        res.json(report);
+
+    } catch (error) {
+        console.error('AI funding report error:', error);
+        res.status(500).json({ message: 'Server error while generating funding report' });
     }
 });
 
