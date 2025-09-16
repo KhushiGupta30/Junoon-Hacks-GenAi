@@ -1,6 +1,3 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';  
 import LandingPage from './pages/landing';
@@ -13,17 +10,15 @@ import SellerPage from './components/SellerPage';
 import ArtisanDashboardPage from './pages/artisandashboard';
 
 import ScrollToTop from './components/scrolltotop';
+import { AuthProvider } from './context/AuthContext.jsx';
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
-    <>
-      
-      <Router>
+    <Router>
+      <AuthProvider>
         <ScrollToTop />
         <Routes>
-          {/* Make sure the name matches */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/artisan" element={<ArtisanPage />} />
           <Route path="/ambassador" element={<AmbassadorPage />} />
@@ -33,8 +28,8 @@ function App() {
           <Route path="/seller/:artisanId" element={<SellerPage />} />
           <Route path="/artisan/dashboard" element={<ArtisanDashboardPage />} />
         </Routes>
-      </Router>
-    </>
+      </AuthProvider>
+    </Router>
   )
 }
 
