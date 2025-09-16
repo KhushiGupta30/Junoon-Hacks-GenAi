@@ -154,11 +154,55 @@ const Footer = () => (
 );
 
 
+// --- MODIFICATION: New Modal Component for Opportunity Details ---
+const OpportunityDetailModal = ({ opportunity, onClose }) => {
+    const [show, setShow] = useState(false);
+    useEffect(() => {
+        setShow(true);
+    }, []);
+
+    const handleClose = () => {
+        setShow(false);
+        setTimeout(onClose, 300); // Wait for animation
+    };
+
+    return (
+        <div
+            className={`fixed inset-0 z-[100] flex justify-center items-center p-4 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+            onClick={handleClose}
+        >
+            <div
+                className={`relative bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 transform transition-all duration-300 ${show ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button onClick={handleClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition-colors">
+                    <XIcon />
+                </button>
+                <div className="flex items-center justify-center mb-4 text-google-green">
+                    <BriefcaseIcon />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">{opportunity.name}</h2>
+                <p className="text-center text-sm font-semibold text-google-green uppercase tracking-wider mb-4">
+                    Featured Opportunity
+                </p>
+                <p className="text-gray-600 text-base mb-6 text-center">{opportunity.summary}</p>
+                <div className="flex justify-center">
+                    <span className="text-sm font-medium bg-gray-200 text-gray-800 px-3 py-1 rounded-full">{opportunity.type}</span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 // --- MAIN GRANTS PAGE COMPONENT ---
 const GrantsPage = () => {
   const { user, logout } = useAuth();
   const [grantsData, setGrantsData] = useState(null);
   const [loading, setLoading] = useState(true);
+  // MODIFICATION: State to control the modal visibility
+  const [isOpportunityDetailOpen, setIsOpportunityDetailOpen] = useState(false);
 
   const mockGrantsData = {
     featuredOpportunity: {
@@ -240,16 +284,19 @@ const GrantsPage = () => {
                   Discover AI-matched investors and government schemes to fuel your creative business.
                 </p>
               </div>
-              <div className="flex-shrink-0 w-64 lg:w-80 bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-center">
+              
+              {/* MODIFICATION: Clickable card that opens modal */}
+              <div
+                onClick={() => setIsOpportunityDetailOpen(true)}
+                className="flex-shrink-0 w-64 lg:w-80 bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-center cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+              >
                 <p className="text-sm font-semibold text-google-green uppercase tracking-wider text-center mb-2">
                   Featured Opportunity
                 </p>
                 <h3 className="text-lg font-bold text-gray-800 text-center">{grantsData.featuredOpportunity.name}</h3>
-                <p className="text-gray-600 text-sm mt-2 text-center">{grantsData.featuredOpportunity.summary}</p>
-                <div className="flex justify-center mt-3">
-                  <span className="text-xs font-medium bg-gray-200/80 text-gray-800 px-2 py-1 rounded-full">{grantsData.featuredOpportunity.type}</span>
-                </div>
+                <p className="text-gray-500 text-sm mt-4 text-center italic">Click to see details</p>
               </div>
+
             </div>
           </div>
         </AnimatedSection>
@@ -321,6 +368,15 @@ const GrantsPage = () => {
           </div>
         </AnimatedSection>
       </main>
+      
+      {/* MODIFICATION: Conditionally render the modal */}
+      {isOpportunityDetailOpen && (
+        <OpportunityDetailModal
+            opportunity={grantsData.featuredOpportunity}
+            onClose={() => setIsOpportunityDetailOpen(false)}
+        />
+      )}
+
       <Footer />
     </>
   );
