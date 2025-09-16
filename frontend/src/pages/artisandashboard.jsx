@@ -2,26 +2,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axiosConfig';
 import { Link, NavLink } from 'react-router-dom';
+import Mic from '../components/Mic'; // 👈 1. IMPORT THE NEW COMPONENT
 
-// --- (Icon and AnimatedSection components remain unchanged) ---
+// --- (All other components like Icons, AnimatedSection, Header, Footer, StatCard remain unchanged) ---
 const AnimatedSection = ({ children, className = "" }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); } },
-      { threshold: 0.1 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => { if (ref.current) observer.unobserve(ref.current); };
-  }, []);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); } },
+      { threshold: 0.1 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => { if (ref.current) observer.unobserve(ref.current); };
+  }, []);
 
-  return (
-    <div ref={ref} className={`transition-all duration-1000 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"} ${className}`}>
-      {children}
-    </div>
-  );
+  return (
+    <div ref={ref} className={`transition-all duration-1000 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"} ${className}`}>
+      {children}
+    </div>
+  );
 };
 
 const TrendingUpIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}> <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /> </svg> );
@@ -31,123 +32,119 @@ const GiftIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-8 
 const TagIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}> <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5a2 2 0 012 2v5a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2zm0 0v11a2 2 0 002 2h5a2 2 0 002-2V5a2 2 0 00-2-2H7z" /> </svg> );
 const SupportIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}> <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /> </svg> );
 const TruckIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}> <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /> <path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h8a1 1 0 001-1z" /> <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h2a1 1 0 001-1V7.5a2.5 2.5 0 015 0V16a1 1 0 01-1 1h-2.5" /> </svg> );
-const MicIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}> <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-14 0m14 0a7 7 0 11-14 0m14 0v2a7 7 0 01-14 0v-2m14 0H5M19 11V9a2 2 0 00-2-2H7a2 2 0 00-2 2v2m14 0V9a2 2 0 00-2-2H7a2 2 0 00-2 2v2m7 11a2 2 0 01-2-2v-2a2 2 0 012-2h0a2 2 0 012 2v2a2 2 0 01-2 2h0z" /> </svg> );
 const LightBulbIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}> <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /> </svg> );
 const MenuIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>);
 const XIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>);
 const LogoutIcon = () => (<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>);
 
-// --- HEADER COMPONENT ---
 const ArtisanHeader = ({ user, logout }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const profileRef = useRef(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) setIsProfileOpen(false);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) setIsProfileOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const navLinks = [
-    { name: 'Dashboard', href: '/artisan/dashboard' },
-    { name: 'My Products', href: '/artisan/products' },
-    { name: 'Orders', href: '/artisan/orders' },
-    { name: 'New Idea', href: '/artisan/ideas/new' },
-  ];
+  const navLinks = [
+    { name: 'Dashboard', href: '/artisan/dashboard' },
+    { name: 'My Products', href: '/artisan/products' },
+    { name: 'Orders', href: '/artisan/orders' },
+    { name: 'New Idea', href: '/artisan/ideas/new' },
+  ];
 
-  const activeLinkStyle = "text-google-blue border-b-2 border-google-blue pb-1";
-  const inactiveLinkStyle = "hover:text-google-blue transition";
+  const activeLinkStyle = "text-google-blue border-b-2 border-google-blue pb-1";
+  const inactiveLinkStyle = "hover:text-google-blue transition";
 
-  return (
-    <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link to="/artisan/dashboard" className="flex items-center space-x-3">
-          <img src="/logo.png" alt="KalaGhar Logo" className="h-10 w-10 object-contain" />
-          <h1 className="text-3xl font-bold text-gray-800 tracking-tighter">
-            Kala<span className="text-google-blue">Ghar</span>
-            <span className="text-lg font-medium text-gray-500 ml-3">Artisan Hub</span>
-          </h1>
-        </Link>
+  return (
+    <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
+      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+        <Link to="/artisan/dashboard" className="flex items-center space-x-3">
+          <img src="/logo.png" alt="KalaGhar Logo" className="h-10 w-10 object-contain" />
+          <h1 className="text-3xl font-bold text-gray-800 tracking-tighter">
+            Kala<span className="text-google-blue">Ghar</span>
+            <span className="text-lg font-medium text-gray-500 ml-3">Artisan Hub</span>
+          </h1>
+        </Link>
 
-        <nav className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">
-          {navLinks.map(link => (
-            <NavLink key={link.name} to={link.href} className={({ isActive }) => isActive ? activeLinkStyle : inactiveLinkStyle}>
-              {link.name}
-            </NavLink>
-          ))}
-        </nav>
+        <nav className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">
+          {navLinks.map(link => (
+            <NavLink key={link.name} to={link.href} className={({ isActive }) => isActive ? activeLinkStyle : inactiveLinkStyle}>
+              {link.name}
+            </NavLink>
+          ))}
+        </nav>
 
-        <div className="flex items-center space-x-4">
-          <div className="relative" ref={profileRef}>
-            <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center space-x-2 focus:outline-none">
-              <img src={user.profile?.avatar || 'https://placehold.co/100x100/4285F4/FFFFFF?text=A&font=roboto'} alt="Profile" className="h-10 w-10 rounded-full border-2 border-google-blue/50" />
-            </button>
-            {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 animate-fade-in-down">
-                <div className="px-4 py-2 border-b">
-                  <p className="font-semibold text-gray-800 text-sm">{user.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                </div>
-                <button onClick={logout} className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
-                  <LogoutIcon /> Logout
-                </button>
-              </div>
-            )}
-          </div>
-          <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-gray-700">
-            <MenuIcon />
-          </button>
-        </div>
-      </div>
+        <div className="flex items-center space-x-4">
+          <div className="relative" ref={profileRef}>
+            <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center space-x-2 focus:outline-none">
+              <img src={user.profile?.avatar || 'https://placehold.co/100x100/4285F4/FFFFFF?text=A&font=roboto'} alt="Profile" className="h-10 w-10 rounded-full border-2 border-google-blue/50" />
+            </button>
+            {isProfileOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 animate-fade-in-down">
+                <div className="px-4 py-2 border-b">
+                  <p className="font-semibold text-gray-800 text-sm">{user.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                </div>
+                <button onClick={logout} className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
+                  <LogoutIcon /> Logout
+                </button>
+              </div>
+            )}
+          </div>
+          <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-gray-700">
+            <MenuIcon />
+          </button>
+        </div>
+      </div>
 
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="fixed top-0 right-0 h-full w-64 bg-white shadow-xl p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-google-blue">Menu</h2>
-              <button onClick={() => setIsMobileMenuOpen(false)}><XIcon /></button>
-            </div>
-            <nav className="flex flex-col space-y-4">
-              {navLinks.map(link => (
-                <NavLink key={link.name} to={link.href} onClick={() => setIsMobileMenuOpen(false)}
-                  className={({ isActive }) => `px-3 py-2 rounded-md font-medium ${isActive ? 'bg-google-blue/10 text-google-blue' : 'text-gray-700 hover:bg-gray-100'}`}>
-                  {link.name}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-        </div>
-      )}
-    </header>
-  );
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/40 z-50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="fixed top-0 right-0 h-full w-64 bg-white shadow-xl p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold text-google-blue">Menu</h2>
+              <button onClick={() => setIsMobileMenuOpen(false)}><XIcon /></button>
+            </div>
+            <nav className="flex flex-col space-y-4">
+              {navLinks.map(link => (
+                <NavLink key={link.name} to={link.href} onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) => `px-3 py-2 rounded-md font-medium ${isActive ? 'bg-google-blue/10 text-google-blue' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  {link.name}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
+    </header>
+  );
 };
 
-// --- Footer Component ---
 const Footer = () => (
-  <footer className="bg-google-blue text-white">
-    <div className="container mx-auto px-6 py-12">
-      <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
-        &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.
-      </div>
-    </div>
-  </footer>
+  <footer className="bg-google-blue text-white">
+    <div className="container mx-auto px-6 py-12">
+      <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
+        &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.
+      </div>
+    </div>
+  </footer>
 );
 
-// --- StatCard Component ---
 const StatCard = ({ stat }) => (
-  <div className={`bg-white p-6 rounded-2xl shadow-lg flex flex-col justify-between h-full border-l-8 ${stat.borderColor} transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl`}>
-    <div className="flex items-center justify-between mb-4">
-      <div className={`p-3 rounded-full ${stat.bgColor}/10 ${stat.color}`}>{stat.icon}</div>
-      <p className="text-gray-500 text-sm font-medium">{stat.title}</p>
-    </div>
-    <div>
-      <p className="text-3xl font-extrabold text-gray-800 mb-1">{stat.value}</p>
-      <p className="text-sm text-gray-600">{stat.description}</p>
-    </div>
-  </div>
+  <div className={`bg-white p-6 rounded-2xl shadow-lg flex flex-col justify-between h-full border-l-8 ${stat.borderColor} transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl`}>
+    <div className="flex items-center justify-between mb-4">
+      <div className={`p-3 rounded-full ${stat.bgColor}/10 ${stat.color}`}>{stat.icon}</div>
+      <p className="text-gray-500 text-sm font-medium">{stat.title}</p>
+    </div>
+    <div>
+      <p className="text-3xl font-extrabold text-gray-800 mb-1">{stat.value}</p>
+      <p className="text-sm text-gray-600">{stat.description}</p>
+    </div>
+  </div>
 );
 
 // --- Main Artisan Dashboard Component ---
@@ -255,6 +252,7 @@ const ArtisanDashboardPage = () => {
         </div>
       </main>
       <Footer />
+      <Mic /> {/* 👈 2. ADD THE COMPONENT HERE */}
     </>
   );
 };
