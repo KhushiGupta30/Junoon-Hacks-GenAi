@@ -85,7 +85,7 @@ const ArtisanHeader = ({ user, logout }) => {
   const navLinks = [
     { name: 'Dashboard', href: '/artisan/dashboard' },
     { name: 'My Products', href: '/artisan/products' },
-    { name: 'Funding', href: '/artisan/grants' },
+    { name: 'Funding', href: '/artisan/grant' },
     { name: 'Logistics', href: '/artisan/logistics' },
   ];
   const activeLinkStyle = "text-google-blue border-b-2 border-google-blue pb-1";
