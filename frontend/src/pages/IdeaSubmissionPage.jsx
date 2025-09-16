@@ -202,7 +202,7 @@ const IdeaSubmissionPage = () => {
       
       <main className="pt-24 bg-gray-50 font-sans container mx-auto px-6 py-16 min-h-screen">
         <AnimatedSection className="mb-12">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-6 bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
+           <div className="flex flex-col md:flex-row justify-center items-center text-center gap-6 bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
             <div className="flex items-center gap-6">
               <div className="text-google-yellow hidden sm:block"><LightBulbIcon /></div>
               <div >
