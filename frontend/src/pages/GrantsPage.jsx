@@ -155,47 +155,76 @@ const Footer = () => (
 
 
 // --- MAIN GRANTS PAGE COMPONENT ---
-// --- (Keep all code before the main GrantsPage component the same) ---
-
-
-// --- MAIN GRANTS PAGE COMPONENT ---
 const GrantsPage = () => {
-  const { user, logout } = useAuth();
-  const [grantsData, setGrantsData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, logout } = useAuth();
+  const [grantsData, setGrantsData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const mockGrantsData = {
-    // ... (mock data remains unchanged)
-  };
+  const mockGrantsData = {
+    featuredOpportunity: {
+      name: "Artisan Growth Fund",
+      summary: "An exclusive fund dedicated to helping traditional artisans scale their business with modern tools and marketing strategies.",
+      type: "Venture Capital"
+    },
+    aiMatchedInvestors: [
+      {
+        id: 1, name: 'Creative Ventures', type: 'Angel Investor', avatar: 'https://placehold.co/100x100/34A853/FFFFFF?text=CV',
+        focus: 'Sustainable & Eco-friendly Crafts', investmentRange: '$1,000 - $10,000', matchScore: 92
+      },
+      {
+        id: 2, name: 'Heritage Capital', type: 'Micro-VC', avatar: 'https://placehold.co/100x100/EA4335/FFFFFF?text=HC',
+        focus: 'Preserving Traditional Art Forms', investmentRange: '$5,000 - $25,000', matchScore: 88
+      },
+      {
+        id: 3, name: 'Ritu Sharma', type: 'Individual Investor', avatar: 'https://placehold.co/100x100/FBBC05/FFFFFF?text=RS',
+        focus: 'Female Artisan Empowerment', investmentRange: '$500 - $5,000', matchScore: 81
+      },
+      {
+        id: 4, name: 'InnovateCraft', type: 'Seed Fund', avatar: 'https://placehold.co/100x100/4285F4/FFFFFF?text=IC',
+        focus: 'Tech-Enabled Artistry', investmentRange: '$10,000 - $50,000', matchScore: 75
+      }
+    ],
+    governmentSchemes: [
+      {
+        id: 1, name: 'Pradhan Mantri MUDRA Yojana (PMMY)', offeredBy: 'Govt. of India',
+        description: 'Provides loans up to ₹10 lakh to non-corporate, non-farm small/micro enterprises for income generating activities.',
+        eligibility: 'All Indian citizens with a viable business plan.', link: 'https://www.mudra.org.in/'
+      },
+      {
+        id: 2, name: 'Artisan Credit Card (ACC) Scheme', offeredBy: 'Ministry of Textiles',
+        description: 'Provides timely and adequate credit to artisans to meet their credit requirements for investment and working capital.',
+        eligibility: 'Artisans engaged in production/manufacturing process.', link: '#'
+      }
+    ]
+  };
 
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      setGrantsData(mockGrantsData);
-      setLoading(false);
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, []);
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => {
+      setGrantsData(mockGrantsData);
+      setLoading(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const getMatchScoreColor = (score) => {
-    if (score >= 90) return 'bg-google-green text-white';
-    if (score >= 80) return 'bg-google-yellow text-gray-800';
-    return 'bg-google-blue/20 text-google-blue';
-  };
+  const getMatchScoreColor = (score) => {
+    if (score >= 90) return 'bg-google-green text-white';
+    if (score >= 80) return 'bg-google-yellow text-gray-800';
+    return 'bg-google-blue/20 text-google-blue';
+  };
 
-  if (loading || !user) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <div className="text-google-blue text-xl font-semibold">Finding Funding Opportunities...</div>
-      </div>
-    );
-  }
+  if (loading || !user) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="text-google-blue text-xl font-semibold">Finding Funding Opportunities...</div>
+      </div>
+    );
+  }
 
-  return (
-    <>
-      <ArtisanHeader user={user} logout={logout} />
-      {/* MODIFICATION: Combined classes into <main> and removed the inner div */}
-      <main className="pt-24 bg-gray-50 font-sans container mx-auto px-6 py-16">
+  return (
+    <>
+      <ArtisanHeader user={user} logout={logout} />
+      <main className="pt-24 bg-gray-50 font-sans container mx-auto px-6 py-16">
         {/* --- HERO SECTION --- */}
         <AnimatedSection>
           <div className="relative p-8 rounded-2xl shadow-xl mb-12 overflow-hidden text-white bg-google-green">
@@ -291,10 +320,10 @@ const GrantsPage = () => {
             </div>
           </div>
         </AnimatedSection>
-      </main>
-      <Footer />
-    </>
-  );
+      </main>
+      <Footer />
+    </>
+  );
 };
 
 export default GrantsPage;
