@@ -188,7 +188,7 @@ const ArtisanDashboardPage = () => {
     { title: 'Manage Products', description: 'Add, edit, or remove your listings.', icon: <TagIcon />, imageUrl: 'https://placehold.co/400x200/F0F8FF/4285F4?text=Products&font=roboto&ts=28', link: '/artisan/products' },
     { title: 'Submit a New Idea', description: 'Get feedback from the community.', icon: <LightBulbIcon />, imageUrl: 'https://placehold.co/400x200/FFFAF0/F4B400?text=New+Idea&font=roboto&ts=28', link: '/artisan/ideas/new' },
     { title: 'AI Trend Reports', description: 'Insights, graphs, and tips.', icon: <TrendingUpIcon />, imageUrl: 'https://placehold.co/400x200/E8F0FE/DB4437?text=Trends&font=roboto&ts=28', link: '/artisan/trends' },
-    { title: 'Grants & Investors', description: 'Find funding for your ideas.', icon: <GiftIcon />, imageUrl: 'https://placehold.co/400x200/F0FFF0/0F9D58?text=Funding&font=roboto&ts=28', link: '#' },
+    { title: 'Grants & Investors', description: 'Find funding for your ideas.', icon: <GiftIcon />, imageUrl: 'https://placehold.co/400x200/F0FFF0/0F9D58?text=Funding&font=roboto&ts=28', link: '/artisan/grant' },
     { title: 'Community Support', description: 'Connect with fellow artisans.', icon: <SupportIcon />, imageUrl: 'https://placehold.co/400x200/FFF0F5/DB4437?text=Community&font=roboto&ts=28', link: '#' },
     { title: 'Logistics Hub', description: 'Handle shipping with ease.', icon: <TruckIcon />, imageUrl: 'https://placehold.co/400x200/E6E6FA/4285F4?text=Logistics&font=roboto&ts=28', link: '#' },
   ];
