@@ -13,6 +13,7 @@ const orderRoutes = require('./routes/orders');
 const ideaRoutes = require('./routes/ideas');
 const investmentRoutes = require('./routes/investments');
 const userRoutes = require('./routes/users');
+const aiRoutes = require('./routes/ai');
 
 // Initialize Express App
 const app = express();
@@ -48,7 +49,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/ideas', ideaRoutes);
 app.use('/api/investments', investmentRoutes);
 app.use('/api/users', userRoutes);
-
+app.use('/api/ai', aiRoutes);
 // --- Start Server ---
 const PORT = process.env.PORT || 5000;
 

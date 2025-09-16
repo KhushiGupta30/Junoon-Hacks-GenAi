@@ -3,11 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import { Link, NavLink } from 'react-router-dom';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
+import api from '../api/axiosConfig'; // Import the api instance
 
 // Register the components
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
-// --- Animated Section ---
+// --- (AnimatedSection and Icon components remain unchanged) ---
 const AnimatedSection = ({ children, className = "" }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
@@ -40,7 +41,7 @@ const AnimatedSection = ({ children, className = "" }) => {
   );
 };
 
-// --- Icons ---
+// --- (Icons, Header, Footer, and Chart components remain unchanged) ---
 const SparklesIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-google-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 12l-2.293 2.293a1 1 0 01-1.414 0L4 12m13 1.414l2.293 2.293a1 1 0 010 1.414L14 20l-2.293-2.293a1 1 0 010-1.414l4.586-4.586z" />
@@ -63,7 +64,6 @@ const MenuIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColo
 const XIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>);
 const LogoutIcon = () => (<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>);
 
-// --- Header & Footer ---
 const ArtisanHeader = ({ user, logout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -159,7 +159,6 @@ const Footer = () => (
   </footer>
 );
 
-// --- Chart Components ---
 const CategoryChart = ({ data }) => {
     const chartData = {
         labels: data.labels,
@@ -202,44 +201,29 @@ const ColorPaletteChart = ({ data }) => {
     return <Doughnut data={chartData} options={options} />;
 };
 
-// --- Main AI Trends Page ---
-// --- (Keep all code before the main AITrendsPage component the same) ---
 
 // --- Main AI Trends Page ---
 const AITrendsPage = () => {
   const { user, logout } = useAuth();
   const [trends, setTrends] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const mockTrendsData = {
-    // ... (mock data remains unchanged)
-    trendOfMonth: {
-      title: "Handcrafted Ceramic Mugs",
-      summary: "Ceramic mugs with personalized designs are trending for gifts and home décor.",
-      keywords: ["Handmade", "Personalized", "Ceramic", "Eco-friendly"]
-    },
-    actionableTips: [
-      { title: "Use Social Media Ads", description: "Target your local audience on Instagram and Facebook to boost sales." },
-      { title: "Offer Limited Editions", description: "Create urgency by offering limited-edition designs every month." },
-      { title: "Collaborate with Influencers", description: "Partner with micro-influencers in home décor to expand reach." },
-      { title: "Bundle Products", description: "Increase order value by creating gift bundles with complementary items." }
-    ],
-    categoryDemand: {
-        labels: ['Home Decor', 'Gifts', 'Apparel', 'Jewelry'],
-        data: [45, 30, 15, 10]
-    },
-    colorPalette: {
-        labels: ['Forest Green', 'Terracotta', 'Beige', 'Mustard Yellow'],
-        data: [35, 28, 22, 15]
-    }
-  };
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setTrends(mockTrendsData);
-      setLoading(false);
-    }, 1200);
+    const fetchTrends = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/ai/trends');
+        setTrends(response.data);
+      } catch (err) {
+        setError("Failed to load AI trends. Please try again later.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrends();
   }, []);
 
   if (loading || !user) {
@@ -250,10 +234,17 @@ const AITrendsPage = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="text-red-500 text-xl font-semibold">{error}</div>
+      </div>
+    );
+  }
+
   return (
     <>
       <ArtisanHeader user={user} logout={logout} />
-      {/* MODIFICATION: The extra div was removed from here to match ArtisanDashboardPage */}
       <main className="pt-24 bg-gray-50 font-sans container mx-auto px-6 py-16">
         {/* --- HERO SECTION --- */}
         <AnimatedSection>
