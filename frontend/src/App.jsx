@@ -16,6 +16,7 @@ import MyProductsPage from './pages/MyProductsPage.jsx';
 import ProductEditPage from './pages/ProductEditPage.jsx';
 import MyOrdersPage from './pages/MyOrdersPage.jsx';
 import IdeaSubmissionPage from './pages/IdeaSubmissionPage.jsx'; // Import the new page
+import Aitrendpage from './pages/AITrendsPage.jsx';
 
 function App() {
 
@@ -40,6 +41,8 @@ function App() {
             <Route path="/artisan/products/new" element={ <ProtectedRoute roles={['artisan']}> <ProductEditPage /> </ProtectedRoute> } />
             <Route path="/artisan/products/edit/:productId" element={ <ProtectedRoute roles={['artisan']}> <ProductEditPage /> </ProtectedRoute> } />
             <Route path="/artisan/orders" element={ <ProtectedRoute roles={['artisan']}> <MyOrdersPage /> </ProtectedRoute> } />
+            <Route path="artisan/trends" element={ <ProtectedRoute roles={['artisan']}><Aitrendpage/></ProtectedRoute>} />
+
             {/* --- NEW ROUTE --- */}
             <Route path="/artisan/ideas/new" element={ <ProtectedRoute roles={['artisan']}> <IdeaSubmissionPage /> </ProtectedRoute> } />
           </Routes>
