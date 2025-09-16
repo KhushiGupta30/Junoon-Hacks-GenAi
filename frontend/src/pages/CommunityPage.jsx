@@ -152,11 +152,58 @@ const Footer = () => (
 );
 
 
+// --- MODAL COMPONENT for Ambassador Details ---
+const AmbassadorDetailModal = ({ ambassador, onClose }) => {
+    const [show, setShow] = useState(false);
+    useEffect(() => {
+        setShow(true);
+    }, []);
+
+    const handleClose = () => {
+        setShow(false);
+        setTimeout(onClose, 300); // Wait for animation
+    };
+
+    return (
+        <div
+            className={`fixed inset-0 z-[100] flex justify-center items-center p-4 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+            onClick={handleClose}
+        >
+            <div
+                className={`relative bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 text-center transform transition-all duration-300 ${show ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button onClick={handleClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition-colors">
+                    <XIcon />
+                </button>
+                <img src={ambassador.avatar} alt={ambassador.name} className="h-28 w-28 rounded-full border-4 border-white shadow-lg mb-2 mx-auto" />
+                <h3 className="text-2xl font-bold text-gray-900">{ambassador.name}</h3>
+                <p className="text-sm text-gray-600 font-medium mb-4">{ambassador.title}</p>
+                <p className="text-gray-700 text-base">{ambassador.bio}</p>
+                <div className="mt-6 border-t pt-4">
+                     <h4 className="font-semibold text-gray-800 text-center mb-3">Specialties</h4>
+                     <div className="flex flex-wrap justify-center gap-2">
+                         {ambassador.specialties.map((specialty, index) => (
+                             <span key={index} className="text-sm font-medium bg-google-blue/10 text-google-blue px-3 py-1 rounded-full">{specialty}</span>
+                         ))}
+                     </div>
+                </div>
+                <button className="mt-6 w-full max-w-xs bg-google-blue text-white font-semibold py-2.5 rounded-lg hover:bg-opacity-90 transition-colors shadow">
+                    Contact for Help
+                </button>
+            </div>
+        </div>
+    );
+};
+
+
 // --- MAIN COMMUNITY PAGE COMPONENT ---
 const CommunityPage = () => {
   const { user, logout } = useAuth();
   const [communityData, setCommunityData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAmbassadorDetailOpen, setIsAmbassadorDetailOpen] = useState(false);
 
   const mockCommunityData = {
     location: "New Delhi, Delhi",
@@ -210,7 +257,7 @@ const CommunityPage = () => {
 
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
 
-              {/* Left Text Section (hidden on small screens) */}
+              {/* Left Text Section */}
               <div className="hidden md:block w-1/2 text-center lg:text-left">
                 <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-3 text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.4)' }}>
                   KalaGhar Connect
@@ -221,17 +268,17 @@ const CommunityPage = () => {
                 </p>
               </div>
 
-              {/* Ambassador Card (always shown, takes full width on small screens) */}
-              <div className="w-full md:w-1/2 flex justify-center">
-                <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl p-6 flex flex-col items-center text-center border border-white max-w-sm">
+              {/* MODIFICATION: Ambassador Card container is now right-aligned on desktop */}
+              <div className="w-full md:w-1/2 flex justify-center md:justify-end">
+                <div 
+                  onClick={() => setIsAmbassadorDetailOpen(true)}
+                  className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl p-6 flex flex-col items-center text-center border border-white max-w-sm cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                >
                   <p className="text-sm font-semibold text-google-blue uppercase tracking-wider mb-3">Your Area Ambassador</p>
                   <img src={communityData.areaAmbassador.avatar} alt={communityData.areaAmbassador.name} className="h-24 w-24 rounded-full border-4 border-white shadow-lg mb-2" />
                   <h3 className="text-xl font-bold text-gray-900">{communityData.areaAmbassador.name}</h3>
                   <p className="text-xs text-gray-600 font-medium">{communityData.areaAmbassador.title}</p>
-                  <p className="text-gray-700 text-sm mt-3">{communityData.areaAmbassador.bio}</p>
-                  <button className="mt-4 w-full max-w-xs bg-google-blue text-white font-semibold py-2.5 rounded-lg hover:bg-opacity-90 transition-colors shadow">
-                    Contact for Help
-                  </button>
+                  <p className="text-gray-500 text-xs mt-3 italic">Click to view details</p>
                 </div>
               </div>
 
@@ -322,6 +369,14 @@ const CommunityPage = () => {
           </div>
         </AnimatedSection>
       </main>
+
+      {isAmbassadorDetailOpen && (
+        <AmbassadorDetailModal
+          ambassador={communityData.areaAmbassador}
+          onClose={() => setIsAmbassadorDetailOpen(false)}
+        />
+      )}
+
       <Footer />
     </>
   );
