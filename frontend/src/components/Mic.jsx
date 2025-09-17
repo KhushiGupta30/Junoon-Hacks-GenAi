@@ -24,8 +24,7 @@ const Mic = () => {
   const [statusText, setStatusText] = useState("Click the mic to start");
   const [showSpeakHint, setShowSpeakHint] = useState(true);
 
-  // --- FIX: Use a ref to hold the recognition instance ---
-  // This ensures it persists across re-renders and is not re-created.
+  // Use a ref to hold the recognition instance
   const recognitionRef = useRef(null);
 
   useEffect(() => {
@@ -33,7 +32,7 @@ const Mic = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // --- FIX: Initialize the recognition object and its event handlers once ---
+  // Initialize the recognition object and its event handlers once
   useEffect(() => {
     if (!SpeechRecognition) {
       console.error("SpeechRecognition API not supported in this browser.");
@@ -58,11 +57,21 @@ const Mic = () => {
       setStatusText("Click the mic to start");
     };
 
+    // --- UPDATED: Improved error handling ---
     recognition.onerror = (event) => {
-      // THIS IS THE LINE THAT WAS FIRING
       console.error("Speech recognition error:", event.error);
       setIsListening(false);
-      setStatusText(`Error: ${event.error}`);
+
+      let errorMessage = event.error;
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        errorMessage = "Microphone access denied. Please allow it in your browser settings and ensure you are on a secure (HTTPS) connection.";
+      } else if (event.error === 'no-speech') {
+        errorMessage = "No speech was detected. Please try again.";
+      } else if (event.error === 'network') {
+        errorMessage = "Network error. Ensure you are on HTTPS and have a stable connection.";
+      }
+      
+      setStatusText(`Error: ${errorMessage}`);
     };
 
     recognition.onresult = async (event) => {
@@ -93,6 +102,8 @@ const Mic = () => {
 
   const speak = (text) => {
     if ('speechSynthesis' in window) {
+      // Cancel any previous speech to prevent overlap
+      window.speechSynthesis.cancel(); 
       const utterance = new SpeechSynthesisUtterance(text);
       window.speechSynthesis.speak(utterance);
     }
@@ -111,6 +122,17 @@ const Mic = () => {
       recognitionRef.current.start();
     }
   };
+  
+  const closePanel = () => {
+    setIsPanelOpen(false);
+    // Stop listening and speaking if the panel is closed
+    if (recognitionRef.current && isListening) {
+        recognitionRef.current.stop();
+    }
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+  }
 
   return (
     <>
@@ -136,7 +158,7 @@ const Mic = () => {
       >
         <div className="flex justify-between items-center p-4 bg-gray-50 border-b">
           <h3 className="font-bold text-gray-800 text-lg">KalaGhar AI Assistant</h3>
-          <button onClick={() => setIsPanelOpen(false)} className="text-gray-500 hover:text-gray-800">
+          <button onClick={closePanel} className="text-gray-500 hover:text-gray-800">
             <XIcon />
           </button>
         </div>
@@ -166,7 +188,7 @@ const Mic = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
               )}
             </button>
-            <p className="mt-4 text-gray-600 text-sm font-medium">{statusText}</p>
+            <p className="mt-4 text-gray-600 text-sm font-medium text-center">{statusText}</p>
           </div>
         </div>
       </div>

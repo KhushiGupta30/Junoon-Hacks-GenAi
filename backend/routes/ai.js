@@ -5,6 +5,7 @@ const User = require('../models/User');
 const Product = require('../models/Product');
 const Idea = require('../models/Idea');
 const { body, validationResult } = require('express-validator');
+const Order = require('../models/Order'); 
 
 const router = express.Router();
 
@@ -42,7 +43,7 @@ const extractJson = (text) => {
  * An asynchronous function to get AI-powered trend data from the Gemini API.
  */
 const getAITrends = async () => {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const prompt = `
       You are a market trend analyst for "KalaGhar," an e-commerce platform for handmade goods.
       Your task is to generate a concise and actionable trend report for our artisans based on current market data.
@@ -94,7 +95,7 @@ router.post('/generate-description', [auth, authorize('artisan')], [
 
     try {
         const { name, category, materials, inspiration } = req.body;
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const prompt = `
             You are a master storyteller for "KalaGhar," an e-commerce platform for handmade crafts.
             Write an evocative product description.
@@ -156,7 +157,7 @@ router.post('/suggest-price', [auth, authorize('artisan')], [
     try {
         const { name, category, description } = req.body;
         const similarProducts = await Product.find({ category: category, status: 'active' }, { name: 1, price: 1, _id: 0 }).limit(5);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const prompt = `
             You are an expert e-commerce pricing analyst for "KalaGhar," a marketplace for handmade goods.
             Suggest a competitive price for a new product.
@@ -217,7 +218,7 @@ router.post('/suggest-price', [auth, authorize('artisan')], [
 // @access  Private (Artisan only)
 router.post('/funding-report', [auth, authorize('artisan')], async (req, res) => {
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const artisan = await User.findById(req.user.id).select('name artisanProfile');
         const products = await Product.find({ artisan: req.user.id }).select('name category stats averageRating');
@@ -293,7 +294,7 @@ router.post('/personal-insights', [auth, authorize('artisan')], async (req, res)
             .sort({ 'stats.views': -1 }); // Sort by most viewed
 
         // Step 3: Create a detailed prompt for the AI model
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const prompt = `
             You are an expert e-commerce business coach for "KalaGhar," a marketplace for handmade goods.
             Your task is to provide personalized, actionable insights for an artisan based on their performance and current market trends.
@@ -380,85 +381,98 @@ router.post('/assistant', [auth, authorize('artisan')], async (req, res) => {
     }
 
     try {
-        // --- Define the "Tools" our AI can use ---
+        // --- MODIFIED: Expanded Toolbelt for the AI ---
         const tools = [{
             functionDeclarations: [
                 {
                     name: "getArtisanPerformanceDashboard",
-                    description: "Get key performance indicators for the currently logged-in artisan, like total sales, product views, and top-performing products.",
+                    description: "Get key performance indicators for the artisan, like total sales, product views, and top products.",
+                    parameters: { type: "OBJECT", properties: {} } // No params needed as it's for the logged-in user
+                },
+                {
+                    name: "getPlatformUpdates",
+                    description: "Retrieves internal platform updates for the artisan, including the latest market trends, new funding opportunities, and community highlights.",
+                    parameters: { type: "OBJECT", properties: {} }
+                },
+                {
+                    name: "searchInternetForLocalEvents",
+                    description: "Searches the internet for real-time, local events like handicraft workshops, markets, or exhibitions based on a query and a location.",
                     parameters: {
                         type: "OBJECT",
                         properties: {
-                            timePeriod: {
+                            query: {
                                 type: "STRING",
-                                description: "The period to analyze, e.g., 'last_7_days', 'last_30_days', 'all_time'. Defaults to 'last_30_days'."
+                                description: "The specific search term, e.g., 'pottery workshops' or 'textile fairs'."
+                            },
+                            location: {
+                                type: "STRING",
+                                description: "The city or region to search in, e.g., 'New Delhi' or 'Rajasthan'."
                             }
-                        }
+                        },
+                        required: ["query", "location"]
                     }
-                },
-                // We can add more tools here later, like 'searchTheInternet'
+                }
             ]
         }];
 
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", tools });
 
-        // Retrieve or start a new chat session for the user
-        const chat = model.startChat({
-            history: conversationHistories[userId] || [],
-        });
+        // --- NEW: Enhanced Persona and Instructions for the AI ---
+        const personaInstructions = {
+            role: "user",
+            parts: [{ text: `
+                System Instruction: You are 'Kala', a friendly, encouraging, and insightful AI assistant for artisans on the KalaGhar platform. 
+                Your goal is to provide comprehensive, easy-to-understand updates and advice.
+                When you present data, synthesize it into a natural, human-like paragraph.
+                Do not just list out the raw data.
+                Always start your response by directly addressing the user's request.
+            `}],
+        };
+        
+        const history = conversationHistories[userId] || [personaInstructions];
+
+        const chat = model.startChat({ history });
 
         const result = await chat.sendMessage(prompt);
         const response = result.response;
         
-        // Update conversation history
-        conversationHistories[userId] = await chat.getHistory();
-
         const functionCalls = response.functionCalls();
 
         if (functionCalls && functionCalls.length > 0) {
-            // The model wants to call a function
-            const call = functionCalls[0]; // Handle one call at a time for simplicity
-            
+            const call = functionCalls[0];
             let functionResponse;
 
+            console.log(`AI is calling tool: ${call.name}`); // For debugging
+
             if (call.name === 'getArtisanPerformanceDashboard') {
-                // Execute our database function
-                const products = await Product.find({ artisan: userId }).select('stats.views stats.likes');
+                const products = await Product.find({ artisan: userId }).select('stats.views');
                 const orders = await Order.find({ 'items.artisan': userId, status: 'delivered' }).select('pricing.total');
-
-                const totalViews = products.reduce((sum, p) => sum + (p.stats.views || 0), 0);
-                const totalLikes = products.reduce((sum, p) => sum + (p.stats.likes || 0), 0);
                 const totalSales = orders.reduce((sum, o) => sum + (o.pricing.total || 0), 0);
+                const dashboardData = { totalSales: `$${totalSales.toFixed(2)}`, totalProducts: products.length, totalOrders: orders.length };
+                functionResponse = { name: call.name, content: { result: `Performance Summary: ${JSON.stringify(dashboardData)}` } };
+            
+            } else if (call.name === 'getPlatformUpdates') {
+                const updates = await getInternalPlatformUpdates(userId);
+                functionResponse = { name: call.name, content: { result: `Platform Updates: ${JSON.stringify(updates)}` } };
 
-                const dashboardData = {
-                    totalSales: `$${totalSales.toFixed(2)}`,
-                    totalViews: totalViews.toLocaleString(),
-                    totalLikes: totalLikes.toLocaleString(),
-                    totalProducts: products.length,
-                    totalOrders: orders.length,
-                };
-                
-                functionResponse = {
-                    name: call.name,
-                    content: { result: `Here is the performance summary: ${JSON.stringify(dashboardData)}` }
-                };
+            } else if (call.name === 'searchInternetForLocalEvents') {
+                const { query, location } = call.args;
+                const events = await searchWebForEvents(query, location);
+                functionResponse = { name: call.name, content: { result: `External Events Found: ${JSON.stringify(events)}` } };
 
             } else {
-                // Function not implemented
                 functionResponse = { name: call.name, content: { result: "Sorry, I can't do that yet." } };
             }
 
-            // Send the function's result back to the model
+            // Send the function's result back to the model to get a natural language response
             const result2 = await chat.sendMessage(JSON.stringify(functionResponse));
             const finalResponse = await result2.response;
-            
-             // Update history again with the final response
-            conversationHistories[userId] = await chat.getHistory();
-
+            conversationHistories[userId] = await chat.getHistory(); // Update history
             res.json({ reply: finalResponse.text() });
 
         } else {
-            // It's a direct text response from the model
+            // It's a direct text response, update history and send
+            conversationHistories[userId] = await chat.getHistory();
             res.json({ reply: response.text() });
         }
 
