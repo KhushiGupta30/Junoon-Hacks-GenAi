@@ -23,6 +23,14 @@ const api = {
   post: async (url, data) => {
     console.log(`Mock POST to ${url} with data:`, data);
     await new Promise(resolve => setTimeout(resolve, 1000));
+    // --- MOCK AI RESPONSE ---
+    if (url === '/ai/generate-description') {
+        return {
+            data: {
+                description: `Breathe in the aroma of freshly brewed coffee from a mug that's as unique as you are. This ${data.name} isn't just a piece of pottery; it's a small piece of art, lovingly handcrafted in the ${data.category} tradition. Each brushstroke tells a story, a testament to the artisan's skill and passion.\n\nCrafted from high-quality ceramic, its sturdy build and comfortable handle make it your perfect companion for cozy mornings and relaxing evenings. The vibrant, hand-painted design ensures that no two mugs are exactly alike, bringing a touch of individuality to your daily routine.\n\nWhether you're gifting it to a loved one or treating yourself, this mug is more than just a vessel—it's an experience, a celebration of craftsmanship that warms both your hands and your heart.`
+            }
+        };
+    }
     return { data: { ...data, _id: 'new-product-id' } };
   },
   put: async (url, data) => {
@@ -31,6 +39,7 @@ const api = {
     return { data };
   },
 };
+
 
 const useAuth = () => ({
   user: {
@@ -70,6 +79,8 @@ const MenuIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColo
 const XIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>);
 const LogoutIcon = () => (<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>);
 const PencilAltIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>);
+const SparklesIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm6 0h1v1h1a1 1 0 110 2h-1v1h-1V3a1 1 0 011-1zM3 9a1 1 0 011-1h1v1a1 1 0 11-2 0V9zm1-4h1v1H4V5zm6 4a1 1 0 011-1h1v1a1 1 0 11-2 0V9zm1-4h1v1h-1V5z" clipRule="evenodd" /><path d="M9 11a1 1 0 011-1h1v1a1 1 0 11-2 0v-1zm-4 4a1 1 0 011-1h1v1a1 1 0 11-2 0v-1zm1-4a1 1 0 011-1h1v1a1 1 0 11-2 0v-1zm6 4a1 1 0 011-1h1v1a1 1 0 11-2 0v-1zm1-4a1 1 0 011-1h1v1a1 1 0 11-2 0v-1z" /></svg>);
+
 
 // --- SHARED HEADER & FOOTER COMPONENTS ---
 const ArtisanHeader = ({ user, logout }) => {
@@ -136,6 +147,7 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
         images: initialData?.images || [{ url: '', alt: '' }],
     });
     const [loading, setLoading] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false); // New state for AI generation
     const [error, setError] = useState('');
 
     const categories = ['Pottery', 'Textiles', 'Painting', 'Woodwork', 'Metalwork', 'Sculpture', 'Jewelry', 'Other'];
@@ -150,6 +162,29 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
     };
+    
+    // --- NEW FUNCTION ---
+    const handleGenerateDescription = async () => {
+        if (!formData.name || !formData.category) {
+            alert('Please enter a Product Name and select a Category first.');
+            return;
+        }
+        setIsGenerating(true);
+        setError('');
+        try {
+            const response = await api.post('/ai/generate-description', {
+                name: formData.name,
+                category: formData.category,
+            });
+            setFormData(prev => ({ ...prev, description: response.data.description }));
+        } catch (err) {
+            setError('Failed to generate description. Please try again.');
+            console.error(err);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -186,7 +221,19 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
                 <div className="pb-5 border-b border-gray-200"><h2 className="text-xl font-bold text-google-blue">Core Details</h2><p className="mt-1 text-sm text-gray-500">This is the essential information for your product listing.</p></div>
                 <FormInput label="Product Name" id="name" name="name" type="text" value={formData.name} onChange={handleChange} required placeholder="e.g., Hand-Painted Ceramic Mug" />
                 <div>
-                    <label htmlFor="description" className="block text-sm font-bold text-gray-700 mb-1">Description</label>
+                    {/* --- UPDATED LABEL AND BUTTON --- */}
+                    <div className="flex justify-between items-center mb-1">
+                        <label htmlFor="description" className="block text-sm font-bold text-gray-700">Description</label>
+                        <button
+                            type="button"
+                            onClick={handleGenerateDescription}
+                            disabled={isGenerating}
+                            className="flex items-center gap-1 text-xs font-semibold text-white bg-google-blue px-2 py-1 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                        >
+                            <SparklesIcon />
+                            {isGenerating ? 'Generating...' : 'Generate with AI'}
+                        </button>
+                    </div>
                     <textarea id="description" name="description" value={formData.description} onChange={handleChange} required rows="5" placeholder="Tell a story about your product, its inspiration, and the creation process." className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-google-blue focus:border-google-blue sm:text-sm"></textarea>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

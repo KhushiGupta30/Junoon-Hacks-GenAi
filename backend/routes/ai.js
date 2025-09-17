@@ -4,75 +4,67 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const User = require('../models/User');
 const Product = require('../models/Product');
 const Idea = require('../models/Idea');
-
+const { body, validationResult } = require('express-validator');
 
 const router = express.Router();
 
 // Initialize the Google Generative AI client with the API key from environment variables
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// --- HELPER FUNCTIONS ---
+
+// Helper function to add a delay for retries
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function to reliably extract a JSON object from a string
+const extractJson = (text) => {
+    // This regex looks for a ```json block or the first occurrence of a valid JSON object.
+    const jsonMatch = text.match(/```json\s*(\{[\s\S]*?\})\s*```|(\{[\s\S]*?\})/);
+    if (jsonMatch) {
+        // The first captured group (jsonMatch) is prioritized if it exists (the ```json block)
+        // Otherwise, it falls back to the second captured group (jsonMatch[2]), which is the brace-to-brace match.
+        // We need to check both because one will be undefined.
+        const jsonString = jsonMatch[1] || jsonMatch[2];
+        try {
+            // Final check to ensure what we extracted is actually valid JSON
+            JSON.parse(jsonString);
+            return jsonString;
+        } catch (e) {
+            console.error("Could not parse extracted JSON string:", jsonString);
+            return null;
+        }
+    }
+    return null;
+};
+
+
 /**
  * An asynchronous function to get AI-powered trend data from the Gemini API.
  */
 const getAITrends = async () => {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `
       You are a market trend analyst for "KalaGhar," an e-commerce platform for handmade goods.
       Your task is to generate a concise and actionable trend report for our artisans based on current market data.
       The report must be returned as a single, valid, parsable JSON object and nothing else.
       Do not include any text, backticks, or explanations outside of the JSON object itself.
-
       The JSON object must have the following structure:
       {
-        "trendOfMonth": {
-          "title": "A short, catchy title for the main trend (e.g., 'Functional Art for the Home Office').",
-          "summary": "A 1-2 sentence summary explaining the trend and its relevance to artisans.",
-          "keywords": ["An", "array", "of", "4", "relevant", "keywords"]
-        },
-        "actionableTips": [
-          {
-            "title": "A short, actionable tip title (e.g., 'Bundle Products for Gifting').",
-            "description": "A brief, data-inspired explanation of how an artisan can apply this tip to increase sales or engagement."
-          },
-          { "title": "A second actionable tip.", "description": "Description for the second tip." },
-          { "title": "A third actionable tip.", "description": "Description for the third tip." },
-          { "title": "A fourth actionable tip.", "description": "Description for the fourth tip." }
-        ],
-        "categoryDemand": {
-          "labels": ["An array of the top 4 trending product categories based on sales velocity (e.g., 'Pottery', 'Textiles')."],
-          "data": [An array of 4 corresponding numbers representing demand percentages, which MUST sum up to 100]
-        },
-        "trendingMaterials": {
-          "labels": ["An array of the 4 most popular craft materials right now (e.g., 'Ceramic', 'Linen', 'Recycled Metal', 'Walnut Wood')."],
-          "data": [An array of 4 corresponding numbers representing their popularity in trending items, which MUST sum up to 100]
-        }
+        "trendOfMonth": {"title": "A short, catchy title.", "summary": "A 1-2 sentence summary.", "keywords": ["An", "array", "of", "4", "keywords"]},
+        "actionableTips": [{"title": "A short, actionable tip title.", "description": "A brief explanation."}, {"title": "Tip 2.", "description": "Desc 2."}, {"title": "Tip 3.", "description": "Desc 3."}, {"title": "Tip 4.", "description": "Desc 4."}],
+        "categoryDemand": {"labels": ["Top 4 categories"], "data": [Array of 4 numbers summing to 100]},
+        "trendingMaterials": {"labels": ["Top 4 materials"], "data": [Array of 4 numbers summing to 100]}
       }
-
-      Generate fresh, creative, and relevant content for today's handmade market.
     `;
-
-    try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let text = response.text();
-
-        if (text.startsWith("```json")) {
-            text = text.substring(7, text.length - 3).trim();
-        }
-
-        try {
-            // Now, parse the cleaned text
-            return JSON.parse(text);
-        } catch (e) {
-            console.error("Error parsing JSON from Gemini after cleaning:", text);
-            throw new Error("Failed to parse AI response.");
-        }
-
-    } catch (error) {
-        console.error("Error calling Gemini API:", error);
-        throw new Error("Could not fetch trends from the AI model.");
+    // Note: The retry logic can also be applied here if this route becomes critical.
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const rawText = response.text();
+    const jsonString = extractJson(rawText);
+    if (!jsonString) {
+        throw new Error("Failed to get valid JSON trend data from AI.");
     }
+    return JSON.parse(jsonString);
 };
 
 // @route   GET /api/ai/trends
@@ -87,24 +79,157 @@ router.get('/trends', auth, async (req, res) => {
         res.status(500).json({ message: 'Server error while fetching AI trends.' });
     }
 });
+
+// @route   POST /api/ai/generate-description
+// @desc    Generate a product description with AI
+// @access  Private (Artisan only)
+router.post('/generate-description', [auth, authorize('artisan')], [
+    body('name').trim().notEmpty().withMessage('Product name is required.'),
+    body('category').trim().notEmpty().withMessage('Product category is required.')
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        const { name, category, materials, inspiration } = req.body;
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const prompt = `
+            You are a master storyteller for "KalaGhar," an e-commerce platform for handmade crafts.
+            Write an evocative product description.
+            Product Details:
+            - Name: "${name}"
+            - Category: "${category}"
+            ${materials ? `- Materials: "${materials}"` : ''}
+            ${inspiration ? `- Inspiration: "${inspiration}"` : ''}
+            Instructions:
+            - Start with a captivating opening sentence.
+            - Tell a short story about the product, its handcrafted nature, and skill involved.
+            - Describe how it can fit into the buyer's life.
+            - The tone must be warm, authentic, and personal.
+            - The description should be 3-4 paragraphs.
+            - *** IMPORTANT: The final description MUST be under 1900 characters in total. ***
+            - Return only the description text. Do not use markdown.
+        `;
+
+        let result;
+        let retries = 3;
+        while (retries > 0) {
+            try {
+                result = await model.generateContent(prompt);
+                break;
+            } catch (error) {
+                if (error.status === 503 && retries > 1) {
+                    console.log(`AI model overloaded (503) on description generation. Retrying...`);
+                    retries--;
+                    await delay(1000);
+                } else {
+                    throw error;
+                }
+            }
+        }
+        
+        const response = await result.response;
+        const description = response.text();
+        res.json({ description });
+
+    } catch (error) {
+        console.error('AI description generation error:', error);
+        res.status(500).json({ message: 'The AI service is currently busy. Please try again in a moment.' });
+    }
+});
+
+// @route   POST /api/ai/suggest-price
+// @desc    Get an AI-powered price suggestion for a product
+// @access  Private (Artisan only)
+router.post('/suggest-price', [auth, authorize('artisan')], [
+    body('name').trim().notEmpty().withMessage('Product name is required.'),
+    body('category').trim().notEmpty().withMessage('Product category is required.'),
+    body('description').trim().notEmpty().withMessage('Product description is required.')
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        const { name, category, description } = req.body;
+        const similarProducts = await Product.find({ category: category, status: 'active' }, { name: 1, price: 1, _id: 0 }).limit(5);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const prompt = `
+            You are an expert e-commerce pricing analyst for "KalaGhar," a marketplace for handmade goods.
+            Suggest a competitive price for a new product.
+            Product Details:
+            - Name: "${name}"
+            - Category: "${category}"
+            - Description: "${description}"
+            Market Data (similar products in USD):
+            ${similarProducts.length > 0 ? JSON.stringify(similarProducts, null, 2) : "No comparable products found."}
+            Instructions:
+            - Analyze the product description for complexity and artistic value.
+            - Compare it with the market data.
+            - Provide a suggested price range (e.g., "45-60").
+            - Provide a short justification (1-2 sentences).
+            
+            - Return the response as a single, valid, parsable JSON object, and nothing else.
+            Example Response:
+            { "suggestedPriceRange": "45-60", "justification": "This price is competitive, with the intricate hand-painting justifying the higher end." }
+        `;
+
+        let result;
+        let retries = 3;
+        while (retries > 0) {
+            try {
+                result = await model.generateContent(prompt);
+                break;
+            } catch (error) {
+                if (error.status === 503 && retries > 1) {
+                    console.log(`AI model overloaded (503) on price suggestion. Retrying...`);
+                    retries--;
+                    await delay(1000);
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        const response = await result.response;
+        const rawText = response.text();
+        const jsonString = extractJson(rawText);
+
+        if (!jsonString) {
+            console.error("Failed to extract JSON from AI price response:", rawText);
+            throw new Error("The AI returned an invalid format. Please try again.");
+        }
+        
+        const suggestion = JSON.parse(jsonString);
+        res.json(suggestion);
+
+    } catch (error) {
+        console.error('AI price suggestion error:', error);
+        res.status(500).json({ message: error.message || 'The AI service is currently busy. Please try again.' });
+    }
+});
+
+// @route   POST /api/ai/funding-report
+// @desc    Generate a personalized funding report for an artisan
+// @access  Private (Artisan only)
 router.post('/funding-report', [auth, authorize('artisan')], async (req, res) => {
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        // 1. Fetch all necessary data from the database for personalization
         const artisan = await User.findById(req.user.id).select('name artisanProfile');
         const products = await Product.find({ artisan: req.user.id }).select('name category stats averageRating');
         const ideas = await Idea.find({ artisan: req.user.id }).select('title description votes preOrders');
         const investors = await User.find({ role: 'investor' }).select('name investorProfile');
         
-        // A generic list of schemes for the AI to analyze and recommend from
         const governmentSchemes = [
             { name: 'Pradhan Mantri MUDRA Yojana (PMMY)', offeredBy: 'Govt. of India', description: 'Provides loans up to ₹10 lakh to non-corporate, non-farm small/micro enterprises.', eligibility: 'All Indian citizens with a viable business plan.' },
             { name: 'Artisan Credit Card (ACC) Scheme', offeredBy: 'Ministry of Textiles', description: 'Provides timely credit to artisans for investment and working capital.', eligibility: 'Artisans in the textile sector.' },
             { name: 'Stand-Up India Scheme', offeredBy: 'Govt. of India', description: 'Facilitates bank loans between ₹10 lakh and ₹1 Crore to SC/ST or Women entrepreneurs.', eligibility: 'SC/ST and/or Women entrepreneurs.' }
         ];
 
-        // 2. Create the master prompt for Gemini
         const prompt = `
             You are a financial advisor on "KalaGhar," an e-commerce platform for artisans.
             Analyze the following artisan's data to generate a personalized funding report.
@@ -121,33 +246,33 @@ router.post('/funding-report', [auth, authorize('artisan')], async (req, res) =>
             AVAILABLE GOVERNMENT SCHEMES:
             ${JSON.stringify(governmentSchemes)}
 
-            Based on all this data, generate a JSON object with the following structure:
+            Based on all this data, generate a JSON object with this structure:
             {
               "fundingReadiness": {
-                "score": A score from 0 to 100 indicating how attractive the artisan is to investors. Base this on profile completeness, product performance (views, ratings), and idea validation (votes).,
-                "summary": "A 1-2 sentence summary explaining the score and giving one key area for improvement."
+                "score": "A score from 0-100 on investor attractiveness (profile completeness, product performance, idea validation).",
+                "summary": "A 1-2 sentence summary explaining the score and one key area for improvement."
               },
               "matchedInvestors": [
-                An array of the TOP 3 investors from the provided list. For each investor, include their id, name, type, focus, range, a matchScore, and a "reasonForMatch".
-                IMPORTANT: If the 'AVAILABLE INVESTORS' list is empty or no investors are a good match, return an empty array [].
+                "An array of the TOP 3 investors. Include id, name, type, focus, range, a matchScore, and a 'reasonForMatch'. If none, return empty array []."
               ],
-              "recommendedSchemes": [ An array of the TOP 2 most relevant schemes from the list for this artisan. ],
+              "recommendedSchemes": [ "An array of the TOP 2 most relevant schemes." ],
               "applicationTips": [
-                An array of 3 personalized and actionable tips to improve funding readiness. Each tip MUST be an object with a "title" and a "description".
+                "An array of 3 personalized, actionable tips to improve funding readiness. Each tip must be an object with 'title' and 'description'."
               ]
             }
         `;
-
+        
+        // Applying retry logic and robust parsing here is also recommended for production.
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        let text = response.text();
+        const rawText = response.text();
+        const jsonString = extractJson(rawText);
 
-        // Clean markdown from the response
-        if (text.startsWith("```json")) {
-            text = text.substring(7, text.length - 3).trim();
+        if (!jsonString) {
+             throw new Error("The AI returned an invalid format for the funding report.");
         }
 
-        const report = JSON.parse(text);
+        const report = JSON.parse(jsonString);
         res.json(report);
 
     } catch (error) {
@@ -155,5 +280,193 @@ router.post('/funding-report', [auth, authorize('artisan')], async (req, res) =>
         res.status(500).json({ message: 'Server error while generating funding report' });
     }
 });
+
+router.post('/personal-insights', [auth, authorize('artisan')], async (req, res) => {
+    try {
+        // Step 1: Fetch General Market Trends
+        // We reuse the function we already have.
+        const marketTrends = await getAITrends();
+
+        // Step 2: Fetch Artisan-Specific Data
+        const artisanProducts = await Product.find({ artisan: req.user.id })
+            .select('name category price stats.views stats.likes averageRating')
+            .sort({ 'stats.views': -1 }); // Sort by most viewed
+
+        // Step 3: Create a detailed prompt for the AI model
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const prompt = `
+            You are an expert e-commerce business coach for "KalaGhar," a marketplace for handmade goods.
+            Your task is to provide personalized, actionable insights for an artisan based on their performance and current market trends.
+
+            GENERAL MARKET TRENDS:
+            ${JSON.stringify(marketTrends, null, 2)}
+
+            THIS ARTISAN'S CURRENT PRODUCTS (sorted by views):
+            ${artisanProducts.length > 0 ? JSON.stringify(artisanProducts, null, 2) : "This artisan has not listed any products yet."}
+
+            Instructions:
+            1.  Analyze the artisan's products. Identify their top-performing item and any clear strengths (e.g., "High views on Pottery items," "Excellent average ratings").
+            2.  Compare the artisan's product categories with the "categoryDemand" from the market trends. Identify their biggest opportunity (e.g., "The market demand for Textiles is high, and you have a popular textile product. You should focus more on this.").
+            3.  Provide three concrete, actionable tips tailored to this specific artisan to help them increase sales and visibility. The tips should be creative and reference both their products and the market trends.
+            4.  Return the response as a single, valid, parsable JSON object, and nothing else.
+
+            Example JSON Response:
+            {
+              "keyStrength": "Your 'Handwoven Pashmina Shawl' is getting significant attention, indicating a strong appeal in the high-end textile market.",
+              "keyOpportunity": "Market trends show a huge demand for 'Textiles'. Since your shawl is a top performer, creating variations or complementary products (like scarves or throws) could capture this demand.",
+              "actionableTips": [
+                {
+                  "title": "Launch a 'Luxe Winter Collection'",
+                  "description": "Bundle your popular shawl with a new, smaller item like a matching handwoven scarf. Market it as a premium gift set, leveraging the 'gifting' trend."
+                },
+                {
+                  "title": "Refresh Your 'Jaipur Blue Pottery' Listing",
+                  "description": "This item has a good rating but low views. Update its title and tags using keywords from the trend report like 'functional art' and 'home office decor' to attract new buyers."
+                },
+                {
+                  "title": "Create an 'Idea' for Eco-Dyed Products",
+                  "description": "The trend report shows 'Linen' is a popular material. Submit an 'Idea' on the platform for 'Hand-Dyed Linen Table Runners' to gauge customer interest before investing time and materials."
+                }
+              ]
+            }
+        `;
+
+        // Using the retry logic we implemented
+        let result;
+        let retries = 3;
+        while (retries > 0) {
+            try {
+                result = await model.generateContent(prompt);
+                break;
+            } catch (error) {
+                if (error.status === 503 && retries > 1) {
+                    console.log(`AI model overloaded (503) on insights. Retrying...`);
+                    retries--;
+                    await delay(1000);
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        const response = await result.response;
+        const rawText = response.text();
+        const jsonString = extractJson(rawText);
+
+        if (!jsonString) {
+            console.error("Failed to extract JSON from AI insights response:", rawText);
+            throw new Error("The AI returned an invalid format.");
+        }
+        
+        const insights = JSON.parse(jsonString);
+        res.json(insights);
+
+    } catch (error) {
+        console.error('AI personal insights error:', error);
+        res.status(500).json({ message: error.message || 'The AI service is currently busy. Please try again.' });
+    }
+});
+const conversationHistories = {};
+
+// @route   POST /api/ai/assistant
+// @desc    Handles conversational AI requests from the voice assistant
+// @access  Private (Artisan only)
+router.post('/assistant', [auth, authorize('artisan')], async (req, res) => {
+    const { prompt } = req.body;
+    const userId = req.user.id;
+
+    if (!prompt) {
+        return res.status(400).json({ message: 'Prompt is required.' });
+    }
+
+    try {
+        // --- Define the "Tools" our AI can use ---
+        const tools = [{
+            functionDeclarations: [
+                {
+                    name: "getArtisanPerformanceDashboard",
+                    description: "Get key performance indicators for the currently logged-in artisan, like total sales, product views, and top-performing products.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            timePeriod: {
+                                type: "STRING",
+                                description: "The period to analyze, e.g., 'last_7_days', 'last_30_days', 'all_time'. Defaults to 'last_30_days'."
+                            }
+                        }
+                    }
+                },
+                // We can add more tools here later, like 'searchTheInternet'
+            ]
+        }];
+
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", tools });
+
+        // Retrieve or start a new chat session for the user
+        const chat = model.startChat({
+            history: conversationHistories[userId] || [],
+        });
+
+        const result = await chat.sendMessage(prompt);
+        const response = result.response;
+        
+        // Update conversation history
+        conversationHistories[userId] = await chat.getHistory();
+
+        const functionCalls = response.functionCalls();
+
+        if (functionCalls && functionCalls.length > 0) {
+            // The model wants to call a function
+            const call = functionCalls[0]; // Handle one call at a time for simplicity
+            
+            let functionResponse;
+
+            if (call.name === 'getArtisanPerformanceDashboard') {
+                // Execute our database function
+                const products = await Product.find({ artisan: userId }).select('stats.views stats.likes');
+                const orders = await Order.find({ 'items.artisan': userId, status: 'delivered' }).select('pricing.total');
+
+                const totalViews = products.reduce((sum, p) => sum + (p.stats.views || 0), 0);
+                const totalLikes = products.reduce((sum, p) => sum + (p.stats.likes || 0), 0);
+                const totalSales = orders.reduce((sum, o) => sum + (o.pricing.total || 0), 0);
+
+                const dashboardData = {
+                    totalSales: `$${totalSales.toFixed(2)}`,
+                    totalViews: totalViews.toLocaleString(),
+                    totalLikes: totalLikes.toLocaleString(),
+                    totalProducts: products.length,
+                    totalOrders: orders.length,
+                };
+                
+                functionResponse = {
+                    name: call.name,
+                    content: { result: `Here is the performance summary: ${JSON.stringify(dashboardData)}` }
+                };
+
+            } else {
+                // Function not implemented
+                functionResponse = { name: call.name, content: { result: "Sorry, I can't do that yet." } };
+            }
+
+            // Send the function's result back to the model
+            const result2 = await chat.sendMessage(JSON.stringify(functionResponse));
+            const finalResponse = await result2.response;
+            
+             // Update history again with the final response
+            conversationHistories[userId] = await chat.getHistory();
+
+            res.json({ reply: finalResponse.text() });
+
+        } else {
+            // It's a direct text response from the model
+            res.json({ reply: response.text() });
+        }
+
+    } catch (error) {
+        console.error('AI Assistant error:', error);
+        res.status(500).json({ message: 'The AI assistant is having trouble. Please try again.' });
+    }
+});
+
 
 module.exports = router;
