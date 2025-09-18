@@ -15,26 +15,28 @@ const aiRoutes = require('./routes/ai');
 
 const app = express();
 
+// Trust proxy (Cloud Run is behind Google’s proxy)
+app.set('trust proxy', 1);
+
+// CORS
 app.use(cors({
-  origin: process.env.FRONTEND_URL
+  origin: '*', // change to specific frontend URL if you need credentials
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
 }));
+
 app.use(express.json());
 
-const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGODB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-        console.log('MongoDB Connected...');
-    } catch (err) {
-        console.error('Database connection error:', err.message);
-        process.exit(1);
-    }
-};
+// Mongo connect (don’t block server start)
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 10000
+}).then(() => {
+  console.log('✅ MongoDB connected');
+}).catch(err => {
+  console.error('❌ MongoDB connection error:', err.message);
+});
 
-connectDB();
-
+// Routes
 app.get('/', (req, res) => res.send('KalaGhar API is running...'));
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
@@ -43,8 +45,11 @@ app.use('/api/ideas', ideaRoutes);
 app.use('/api/investments', investmentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
-const PORT = process.env.PORT;
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+// Start server
+const PORT = process.env.PORT || 8080;
+const HOST = '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
 });
