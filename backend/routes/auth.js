@@ -6,14 +6,10 @@ const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Generate JWT token
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
-// @route   POST /api/auth/register
-// @desc    Register a new user
-// @access  Public
 router.post('/register', [
   body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
@@ -28,13 +24,11 @@ router.post('/register', [
 
     const { name, email, password, role } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // Create new user
     const user = new User({
       name,
       email,
@@ -44,7 +38,6 @@ router.post('/register', [
 
     await user.save();
 
-    // Generate token
     const token = generateToken(user._id);
 
     res.status(201).json({
@@ -63,9 +56,6 @@ router.post('/register', [
   }
 });
 
-// @route   POST /api/auth/login
-// @desc    Login user
-// @access  Public
 router.post('/login', [
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
   body('password').exists().withMessage('Password is required')
@@ -78,23 +68,19 @@ router.post('/login', [
 
     const { email, password } = req.body;
 
-    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Update last active
     user.stats.lastActive = new Date();
     await user.save();
 
-    // Generate token
     const token = generateToken(user._id);
 
     res.json({
@@ -114,9 +100,6 @@ router.post('/login', [
   }
 });
 
-// @route   GET /api/auth/me
-// @desc    Get current user
-// @access  Private
 router.get('/me', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -127,13 +110,8 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
-// @route   POST /api/auth/logout
-// @desc    Logout user (mainly for token blacklisting in production)
-// @access  Private
 router.post('/logout', auth, async (req, res) => {
   try {
-    // In a production environment, you might want to blacklist the token
-    // For now, we'll just send a success response
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
     console.error('Logout error:', error);

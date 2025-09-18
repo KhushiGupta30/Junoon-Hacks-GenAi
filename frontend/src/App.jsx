@@ -30,7 +30,6 @@ function App() {
         <CartProvider>
           <ScrollToTop />
           <Routes>
-            {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/artisan" element={<ArtisanPage />} />
             <Route path="/ambassador" element={<AmbassadorPage />} />
@@ -38,8 +37,6 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/seller/:artisanId" element={<SellerPage />} />
-
-            {/* Protected Artisan Routes */}
             <Route path="/artisan/dashboard" element={ <ProtectedRoute roles={['artisan']}> <ArtisanDashboardPage /> </ProtectedRoute> } />
             <Route path="/artisan/products" element={ <ProtectedRoute roles={['artisan']}> <MyProductsPage /> </ProtectedRoute> } />
             <Route path="/artisan/products/new" element={ <ProtectedRoute roles={['artisan']}> <ProductEditPage /> </ProtectedRoute> } />
@@ -50,7 +47,6 @@ function App() {
             <Route path="artisan/logistics" element={ <ProtectedRoute roles={['artisan']}><LogiPage/></ProtectedRoute>} />
             <Route path="artisan/community" element={ <ProtectedRoute roles={['artisan']}><CommunityPage/></ProtectedRoute>} />
             <Route path="/ambassador/dashboard" element={<AmbassadorDashboardPage />} />
-            {/* --- NEW ROUTE --- */}
             <Route path="/artisan/ideas/new" element={ <ProtectedRoute roles={['artisan']}> <IdeaSubmissionPage /> </ProtectedRoute> } />
           </Routes>
         </CartProvider>
