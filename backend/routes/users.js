@@ -6,9 +6,6 @@ const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// @route   GET /api/users/profile
-// @desc    Get current user's profile
-// @access  Private
 router.get('/profile', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -19,16 +16,13 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
-// @route   PUT /api/users/profile
-// @desc    Update user profile
-// @access  Private
 router.put('/profile', auth, async (req, res) => {
   try {
     const allowedUpdates = [
       'name', 'profile', 'artisanProfile', 'investorProfile', 
       'ambassadorProfile', 'settings'
     ];
-    
+
     const updates = {};
     Object.keys(req.body).forEach(key => {
       if (allowedUpdates.includes(key)) {
@@ -52,9 +46,6 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/users/artisans
-// @desc    Get all artisans
-// @access  Public
 router.get('/artisans', async (req, res) => {
   try {
     const { page = 1, limit = 12, location, specialty } = req.query;
@@ -85,13 +76,10 @@ router.get('/artisans', async (req, res) => {
   }
 });
 
-// @route   GET /api/users/artisans/:id
-// @desc    Get artisan profile and their products
-// @access  Public
 router.get('/artisans/:id', async (req, res) => {
   try {
     const artisan = await User.findById(req.params.id).select('-password');
-    
+
     if (!artisan || artisan.role !== 'artisan') {
       return res.status(404).json({ message: 'Artisan not found' });
     }
@@ -101,7 +89,6 @@ router.get('/artisans/:id', async (req, res) => {
       status: 'active' 
     }).select('name images price category averageRating totalReviews');
 
-    // Increment profile views
     artisan.stats.profileViews += 1;
     await artisan.save();
 
@@ -118,9 +105,6 @@ router.get('/artisans/:id', async (req, res) => {
   }
 });
 
-// @route   GET /api/users/my-products
-// @desc    Get current user's products (artisans only)
-// @access  Private (Artisan only)
 router.get('/my-products', [auth, authorize('artisan')], async (req, res) => {
   try {
     const { page = 1, limit = 12, status } = req.query;

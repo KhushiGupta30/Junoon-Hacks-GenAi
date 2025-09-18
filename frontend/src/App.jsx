@@ -15,7 +15,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import MyProductsPage from './pages/MyProductsPage.jsx';
 import ProductEditPage from './pages/ProductEditPage.jsx';
 import MyOrdersPage from './pages/MyOrdersPage.jsx';
-import IdeaSubmissionPage from './pages/IdeaSubmissionPage.jsx'; // Import the new page
+import IdeaSubmissionPage from './pages/IdeaSubmissionPage.jsx';
 import Aitrendpage from './pages/AITrendsPage.jsx';
 import GrantsPage from './pages/GrantsPage.jsx';
 import LogiPage from './pages/LogiPage.jsx';

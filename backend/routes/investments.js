@@ -6,9 +6,6 @@ const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// @route   POST /api/investments
-// @desc    Create a new investment
-// @access  Private (Investor only)
 router.post('/', [auth, authorize('investor')], [
   body('artisan').isMongoId().withMessage('Invalid artisan ID'),
   body('type').isIn(['grant', 'micro_loan', 'equity_investment', 'pre_order_funding']).withMessage('Invalid investment type'),
@@ -21,7 +18,6 @@ router.post('/', [auth, authorize('investor')], [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Verify artisan exists
     const artisan = await User.findById(req.body.artisan);
     if (!artisan || artisan.role !== 'artisan') {
       return res.status(400).json({ message: 'Invalid artisan' });
@@ -48,9 +44,6 @@ router.post('/', [auth, authorize('investor')], [
   }
 });
 
-// @route   GET /api/investments
-// @desc    Get investments (filtered by user role)
-// @access  Private
 router.get('/', auth, async (req, res) => {
   try {
     const { page = 1, limit = 10, status, type } = req.query;
