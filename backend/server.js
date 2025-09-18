@@ -41,7 +41,7 @@ app.use('/api/ideas', ideaRoutes);
 app.use('/api/investments', investmentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
