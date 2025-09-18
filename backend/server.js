@@ -15,7 +15,9 @@ const aiRoutes = require('./routes/ai');
 
 const app = express();
 
-app.use();
+app.use(cors({
+  origin: process.env.FRONTEND_URL
+}));
 app.use(express.json());
 
 const connectDB = async () => {
