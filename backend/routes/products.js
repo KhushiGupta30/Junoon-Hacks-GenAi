@@ -6,9 +6,6 @@ const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// @route   GET /api/products
-// @desc    Get all products with filtering and pagination
-// @access  Public
 router.get('/', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
@@ -77,14 +74,10 @@ router.get('/', [
   }
 });
 
-// @route   GET /api/products/:id
-// @desc    Get single product by ID
-// @access  Public
 router.get('/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
-      // --- CORRECTED LINE ---
-      // Select specific fields inside 'profile' instead of the whole object and its children
+
       .populate('artisan', 'name email profile.avatar profile.bio profile.location')
       .populate('reviews.user', 'name profile.avatar');
 
@@ -105,9 +98,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// @route   POST /api/products
-// @desc    Create a new product
-// @access  Private (Artisan only)
 router.post('/', [auth, authorize('artisan')], [
   body('name').trim().isLength({ min: 1, max: 200 }).withMessage('Product name is required and must be under 200 characters'),
   body('description').isLength({ min: 10, max: 2000 }).withMessage('Description must be between 10 and 2000 characters'),
@@ -142,9 +132,6 @@ router.post('/', [auth, authorize('artisan')], [
   }
 });
 
-// @route   PUT /api/products/:id
-// @desc    Update a product
-// @access  Private (Artisan - own products only)
 router.put('/:id', [auth, authorize('artisan')], async (req, res) => {
   try {
     let product = await Product.findById(req.params.id);
@@ -173,9 +160,6 @@ router.put('/:id', [auth, authorize('artisan')], async (req, res) => {
   }
 });
 
-// @route   DELETE /api/products/:id
-// @desc    Delete a product
-// @access  Private (Artisan - own products only)
 router.delete('/:id', [auth, authorize('artisan')], async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -197,9 +181,6 @@ router.delete('/:id', [auth, authorize('artisan')], async (req, res) => {
   }
 });
 
-// @route   POST /api/products/:id/reviews
-// @desc    Add a review to a product
-// @access  Private (Buyers only)
 router.post('/:id/reviews', [auth, authorize('buyer')], [
   body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
   body('comment').optional().isLength({ max: 1000 }).withMessage('Comment must be under 1000 characters')

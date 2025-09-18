@@ -4,9 +4,7 @@ const User = require('../models/User');
 const Product = require('../models/Product');
 const Idea = require('../models/Idea');
 
-dotenv.config({ path: './.env' }); // Make sure the path to your .env is correct
-
-// --- MOCK DATA TO BE INSERTED ---
+dotenv.config({ path: './.env' }); 
 
 const sampleArtisans = [
     { name: "Ramesh Kumar", email: "ramesh.k@example.com", password: "password123", role: "artisan" },
@@ -59,14 +57,13 @@ const seedDatabase = async () => {
         console.log('--- Clearing existing data ---');
         await Product.deleteMany({});
         await Idea.deleteMany({});
-        // Be careful with deleting users in a real environment!
-        // Here, we only delete the specific sample artisans.
+
         await User.deleteMany({ email: { $in: sampleArtisans.map(a => a.email) } });
 
         console.log('--- Creating sample artisans ---');
         const createdUsers = await User.insertMany(sampleArtisans);
         const userMap = new Map(createdUsers.map(user => [user.name, user._id]));
-        
+
         console.log('--- Creating sample products ---');
         const productsToCreate = sampleProducts.map(p => ({
             ...p,
@@ -81,7 +78,7 @@ const seedDatabase = async () => {
         }));
         await Idea.insertMany(ideasToCreate);
 
-        console.log('✅ Database seeded successfully!');
+        console.log('Database seeded successfully!');
     } catch (error) {
         console.error('Error seeding database:', error);
     } finally {

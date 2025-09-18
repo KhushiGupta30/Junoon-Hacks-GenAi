@@ -9,25 +9,18 @@ const Order = require('../models/Order');
 
 const router = express.Router();
 
-// Initialize the Google Generative AI client with the API key from environment variables
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// --- HELPER FUNCTIONS ---
-
-// Helper function to add a delay for retries
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Helper function to reliably extract a JSON object from a string
 const extractJson = (text) => {
-    // This regex looks for a ```json block or the first occurrence of a valid JSON object.
+
     const jsonMatch = text.match(/```json\s*(\{[\s\S]*?\})\s*```|(\{[\s\S]*?\})/);
     if (jsonMatch) {
-        // The first captured group (jsonMatch) is prioritized if it exists (the ```json block)
-        // Otherwise, it falls back to the second captured group (jsonMatch[2]), which is the brace-to-brace match.
-        // We need to check both because one will be undefined.
+
         const jsonString = jsonMatch[1] || jsonMatch[2];
         try {
-            // Final check to ensure what we extracted is actually valid JSON
+
             JSON.parse(jsonString);
             return jsonString;
         } catch (e) {
@@ -38,10 +31,6 @@ const extractJson = (text) => {
     return null;
 };
 
-
-/**
- * An asynchronous function to get AI-powered trend data from the Gemini API.
- */
 const getAITrends = async () => {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const prompt = `
@@ -57,7 +46,7 @@ const getAITrends = async () => {
         "trendingMaterials": {"labels": ["Top 4 materials"], "data": [Array of 4 numbers summing to 100]}
       }
     `;
-    // Note: The retry logic can also be applied here if this route becomes critical.
+
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const rawText = response.text();
@@ -68,9 +57,6 @@ const getAITrends = async () => {
     return JSON.parse(jsonString);
 };
 
-// @route   GET /api/ai/trends
-// @desc    Get AI-powered trend analysis for artisans
-// @access  Private (requires authentication)
 router.get('/trends', auth, async (req, res) => {
     try {
         const trends = await getAITrends();
@@ -81,9 +67,6 @@ router.get('/trends', auth, async (req, res) => {
     }
 });
 
-// @route   POST /api/ai/generate-description
-// @desc    Generate a product description with AI
-// @access  Private (Artisan only)
 router.post('/generate-description', [auth, authorize('artisan')], [
     body('name').trim().notEmpty().withMessage('Product name is required.'),
     body('category').trim().notEmpty().withMessage('Product category is required.')
@@ -130,7 +113,7 @@ router.post('/generate-description', [auth, authorize('artisan')], [
                 }
             }
         }
-        
+
         const response = await result.response;
         const description = response.text();
         res.json({ description });
@@ -141,9 +124,6 @@ router.post('/generate-description', [auth, authorize('artisan')], [
     }
 });
 
-// @route   POST /api/ai/suggest-price
-// @desc    Get an AI-powered price suggestion for a product
-// @access  Private (Artisan only)
 router.post('/suggest-price', [auth, authorize('artisan')], [
     body('name').trim().notEmpty().withMessage('Product name is required.'),
     body('category').trim().notEmpty().withMessage('Product category is required.'),
@@ -172,7 +152,7 @@ router.post('/suggest-price', [auth, authorize('artisan')], [
             - Compare it with the market data.
             - Provide a suggested price range (e.g., "45-60").
             - Provide a short justification (1-2 sentences).
-            
+
             - Return the response as a single, valid, parsable JSON object, and nothing else.
             Example Response:
             { "suggestedPriceRange": "45-60", "justification": "This price is competitive, with the intricate hand-painting justifying the higher end." }
@@ -203,7 +183,7 @@ router.post('/suggest-price', [auth, authorize('artisan')], [
             console.error("Failed to extract JSON from AI price response:", rawText);
             throw new Error("The AI returned an invalid format. Please try again.");
         }
-        
+
         const suggestion = JSON.parse(jsonString);
         res.json(suggestion);
 
@@ -213,9 +193,6 @@ router.post('/suggest-price', [auth, authorize('artisan')], [
     }
 });
 
-// @route   POST /api/ai/funding-report
-// @desc    Generate a personalized funding report for an artisan
-// @access  Private (Artisan only)
 router.post('/funding-report', [auth, authorize('artisan')], async (req, res) => {
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
@@ -224,7 +201,7 @@ router.post('/funding-report', [auth, authorize('artisan')], async (req, res) =>
         const products = await Product.find({ artisan: req.user.id }).select('name category stats averageRating');
         const ideas = await Idea.find({ artisan: req.user.id }).select('title description votes preOrders');
         const investors = await User.find({ role: 'investor' }).select('name investorProfile');
-        
+
         const governmentSchemes = [
             { name: 'Pradhan Mantri MUDRA Yojana (PMMY)', offeredBy: 'Govt. of India', description: 'Provides loans up to ₹10 lakh to non-corporate, non-farm small/micro enterprises.', eligibility: 'All Indian citizens with a viable business plan.' },
             { name: 'Artisan Credit Card (ACC) Scheme', offeredBy: 'Ministry of Textiles', description: 'Provides timely credit to artisans for investment and working capital.', eligibility: 'Artisans in the textile sector.' },
@@ -262,8 +239,7 @@ router.post('/funding-report', [auth, authorize('artisan')], async (req, res) =>
               ]
             }
         `;
-        
-        // Applying retry logic and robust parsing here is also recommended for production.
+
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const rawText = response.text();
@@ -284,16 +260,13 @@ router.post('/funding-report', [auth, authorize('artisan')], async (req, res) =>
 
 router.post('/personal-insights', [auth, authorize('artisan')], async (req, res) => {
     try {
-        // Step 1: Fetch General Market Trends
-        // We reuse the function we already have.
+
         const marketTrends = await getAITrends();
 
-        // Step 2: Fetch Artisan-Specific Data
         const artisanProducts = await Product.find({ artisan: req.user.id })
             .select('name category price stats.views stats.likes averageRating')
-            .sort({ 'stats.views': -1 }); // Sort by most viewed
+            .sort({ 'stats.views': -1 }); 
 
-        // Step 3: Create a detailed prompt for the AI model
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const prompt = `
             You are an expert e-commerce business coach for "KalaGhar," a marketplace for handmade goods.
@@ -332,7 +305,6 @@ router.post('/personal-insights', [auth, authorize('artisan')], async (req, res)
             }
         `;
 
-        // Using the retry logic we implemented
         let result;
         let retries = 3;
         while (retries > 0) {
@@ -358,7 +330,7 @@ router.post('/personal-insights', [auth, authorize('artisan')], async (req, res)
             console.error("Failed to extract JSON from AI insights response:", rawText);
             throw new Error("The AI returned an invalid format.");
         }
-        
+
         const insights = JSON.parse(jsonString);
         res.json(insights);
 
@@ -369,9 +341,6 @@ router.post('/personal-insights', [auth, authorize('artisan')], async (req, res)
 });
 const conversationHistories = {};
 
-// @route   POST /api/ai/assistant
-// @desc    Handles conversational AI requests from the voice assistant
-// @access  Private (Artisan only)
 router.post('/assistant', [auth, authorize('artisan')], async (req, res) => {
     const { prompt } = req.body;
     const userId = req.user.id;
@@ -381,13 +350,13 @@ router.post('/assistant', [auth, authorize('artisan')], async (req, res) => {
     }
 
     try {
-        // --- MODIFIED: Expanded Toolbelt for the AI ---
+
         const tools = [{
             functionDeclarations: [
                 {
                     name: "getArtisanPerformanceDashboard",
                     description: "Get key performance indicators for the artisan, like total sales, product views, and top products.",
-                    parameters: { type: "OBJECT", properties: {} } // No params needed as it's for the logged-in user
+                    parameters: { type: "OBJECT", properties: {} } 
                 },
                 {
                     name: "getPlatformUpdates",
@@ -417,7 +386,6 @@ router.post('/assistant', [auth, authorize('artisan')], async (req, res) => {
 
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", tools });
 
-        // --- NEW: Enhanced Persona and Instructions for the AI ---
         const personaInstructions = {
             role: "user",
             parts: [{ text: `
@@ -428,21 +396,21 @@ router.post('/assistant', [auth, authorize('artisan')], async (req, res) => {
                 Always start your response by directly addressing the user's request.
             `}],
         };
-        
+
         const history = conversationHistories[userId] || [personaInstructions];
 
         const chat = model.startChat({ history });
 
         const result = await chat.sendMessage(prompt);
         const response = result.response;
-        
+
         const functionCalls = response.functionCalls();
 
         if (functionCalls && functionCalls.length > 0) {
             const call = functionCalls[0];
             let functionResponse;
 
-            console.log(`AI is calling tool: ${call.name}`); // For debugging
+            console.log(`AI is calling tool: ${call.name}`); 
 
             if (call.name === 'getArtisanPerformanceDashboard') {
                 const products = await Product.find({ artisan: userId }).select('stats.views');
@@ -450,7 +418,7 @@ router.post('/assistant', [auth, authorize('artisan')], async (req, res) => {
                 const totalSales = orders.reduce((sum, o) => sum + (o.pricing.total || 0), 0);
                 const dashboardData = { totalSales: `$${totalSales.toFixed(2)}`, totalProducts: products.length, totalOrders: orders.length };
                 functionResponse = { name: call.name, content: { result: `Performance Summary: ${JSON.stringify(dashboardData)}` } };
-            
+
             } else if (call.name === 'getPlatformUpdates') {
                 const updates = await getInternalPlatformUpdates(userId);
                 functionResponse = { name: call.name, content: { result: `Platform Updates: ${JSON.stringify(updates)}` } };
@@ -464,14 +432,13 @@ router.post('/assistant', [auth, authorize('artisan')], async (req, res) => {
                 functionResponse = { name: call.name, content: { result: "Sorry, I can't do that yet." } };
             }
 
-            // Send the function's result back to the model to get a natural language response
             const result2 = await chat.sendMessage(JSON.stringify(functionResponse));
             const finalResponse = await result2.response;
-            conversationHistories[userId] = await chat.getHistory(); // Update history
+            conversationHistories[userId] = await chat.getHistory(); 
             res.json({ reply: finalResponse.text() });
 
         } else {
-            // It's a direct text response, update history and send
+
             conversationHistories[userId] = await chat.getHistory();
             res.json({ reply: response.text() });
         }
@@ -481,6 +448,5 @@ router.post('/assistant', [auth, authorize('artisan')], async (req, res) => {
         res.status(500).json({ message: 'The AI assistant is having trouble. Please try again.' });
     }
 });
-
 
 module.exports = router;

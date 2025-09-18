@@ -6,9 +6,6 @@ const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// @route   POST /api/orders
-// @desc    Create a new order
-// @access  Private (Buyer only)
 router.post('/', [auth, authorize('buyer')], [
   body('items').isArray({ min: 1 }).withMessage('Order must contain at least one item'),
   body('items.*.product').isMongoId().withMessage('Invalid product ID'),
@@ -26,7 +23,6 @@ router.post('/', [auth, authorize('buyer')], [
 
     const { items, shippingAddress, billingAddress, payment } = req.body;
 
-    // Validate products and calculate totals
     let subtotal = 0;
     const orderItems = [];
 
@@ -57,16 +53,14 @@ router.post('/', [auth, authorize('buyer')], [
         customization: item.customization || {}
       });
 
-      // Reserve inventory
       if (!product.inventory.isUnlimited) {
         product.inventory.reservedQuantity += item.quantity;
         await product.save();
       }
     }
 
-    // Calculate tax and shipping (simplified)
-    const tax = subtotal * 0.08; // 8% tax
-    const shipping = subtotal > 100 ? 0 : 15; // Free shipping over $100
+    const tax = subtotal * 0.08; 
+    const shipping = subtotal > 100 ? 0 : 15; 
     const total = subtotal + tax + shipping;
 
     const order = new Order({
@@ -99,9 +93,6 @@ router.post('/', [auth, authorize('buyer')], [
   }
 });
 
-// @route   GET /api/orders
-// @desc    Get user's orders
-// @access  Private
 router.get('/', auth, async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
@@ -140,9 +131,6 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/orders/:id
-// @desc    Get single order
-// @access  Private
 router.get('/:id', auth, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
@@ -154,7 +142,6 @@ router.get('/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Check if user has access to this order
     const hasAccess = order.buyer._id.toString() === req.user.id ||
                      order.items.some(item => item.artisan._id.toString() === req.user.id) ||
                      req.user.role === 'admin';
@@ -173,9 +160,6 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-// @route   PUT /api/orders/:id/status
-// @desc    Update order status
-// @access  Private (Artisan for their items, admin for all)
 router.put('/:id/status', auth, [
   body('status').isIn(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled']).withMessage('Invalid status'),
   body('notes').optional().isLength({ max: 500 }).withMessage('Notes must be under 500 characters')
@@ -191,7 +175,6 @@ router.put('/:id/status', auth, [
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Check permissions
     const isArtisan = req.user.role === 'artisan' && 
                      order.items.some(item => item.artisan.toString() === req.user.id);
     const isAdmin = req.user.role === 'admin';
@@ -205,7 +188,6 @@ router.put('/:id/status', auth, [
     order.status = status;
     if (notes) order.notes = notes;
 
-    // Add to timeline
     order.timeline.push({
       status,
       note: notes,
