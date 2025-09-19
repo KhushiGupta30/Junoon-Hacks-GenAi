@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, NavLink, useParams, useNavigate } from 'react-router-dom';
 
-// --- MOCK API & AUTH ---
-// In a real application, you would import these from their respective files.
 const api = {
   get: async (url) => {
     console.log(`Mock GET request to: ${url}`);
@@ -23,7 +21,6 @@ const api = {
   post: async (url, data) => {
     console.log(`Mock POST to ${url} with data:`, data);
     await new Promise(resolve => setTimeout(resolve, 1000));
-    // --- MOCK AI RESPONSE ---
     if (url === '/ai/generate-description') {
         return {
             data: {
@@ -52,8 +49,6 @@ const useAuth = () => ({
   logout: () => console.log("User logged out!"),
 });
 
-
-// --- REUSABLE ANIMATED SECTION COMPONENT ---
 const AnimatedSection = ({ children, className = "" }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
@@ -74,7 +69,6 @@ const AnimatedSection = ({ children, className = "" }) => {
   );
 };
 
-// --- ICONS ---
 const MenuIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>);
 const XIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>);
 const LogoutIcon = () => (<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>);
@@ -82,7 +76,6 @@ const PencilAltIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="
 const SparklesIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm6 0h1v1h1a1 1 0 110 2h-1v1h-1V3a1 1 0 011-1zM3 9a1 1 0 011-1h1v1a1 1 0 11-2 0V9zm1-4h1v1H4V5zm6 4a1 1 0 011-1h1v1a1 1 0 11-2 0V9zm1-4h1v1h-1V5z" clipRule="evenodd" /><path d="M9 11a1 1 0 011-1h1v1a1 1 0 11-2 0v-1zm-4 4a1 1 0 011-1h1v1a1 1 0 11-2 0v-1zm1-4a1 1 0 011-1h1v1a1 1 0 11-2 0v-1zm6 4a1 1 0 011-1h1v1a1 1 0 11-2 0v-1zm1-4a1 1 0 011-1h1v1a1 1 0 11-2 0v-1z" /></svg>);
 
 
-// --- SHARED HEADER & FOOTER COMPONENTS ---
 const ArtisanHeader = ({ user, logout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -129,9 +122,6 @@ const Footer = () => (
   </footer>
 );
 
-
-// --- INTERNAL FORM FIELDS COMPONENT ---
-// This component contains the actual form fields and logic.
 const ProductFormFields = ({ initialData, onSubmit }) => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -147,7 +137,7 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
         images: initialData?.images || [{ url: '', alt: '' }],
     });
     const [loading, setLoading] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false); // New state for AI generation
+    const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState('');
 
     const categories = ['Pottery', 'Textiles', 'Painting', 'Woodwork', 'Metalwork', 'Sculpture', 'Jewelry', 'Other'];
@@ -163,7 +153,6 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
         }
     };
     
-    // --- NEW FUNCTION ---
     const handleGenerateDescription = async () => {
         if (!formData.name || !formData.category) {
             alert('Please enter a Product Name and select a Category first.');
@@ -221,7 +210,6 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
                 <div className="pb-5 border-b border-gray-200"><h2 className="text-xl font-bold text-google-blue">Core Details</h2><p className="mt-1 text-sm text-gray-500">This is the essential information for your product listing.</p></div>
                 <FormInput label="Product Name" id="name" name="name" type="text" value={formData.name} onChange={handleChange} required placeholder="e.g., Hand-Painted Ceramic Mug" />
                 <div>
-                    {/* --- UPDATED LABEL AND BUTTON --- */}
                     <div className="flex justify-between items-center mb-1">
                         <label htmlFor="description" className="block text-sm font-bold text-gray-700">Description</label>
                         <button
@@ -266,9 +254,6 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
     );
 };
 
-
-// --- MAIN PAGE COMPONENT (ProductForm.jsx) ---
-// This component orchestrates the entire page, providing the layout and data.
 const ProductForm = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
@@ -276,7 +261,6 @@ const ProductForm = () => {
   
   const isEditMode = !!productId;
 
-  // In a real app, you would fetch this data if in edit mode.
   const mockInitialData = isEditMode ? {
     _id: productId,
     name: 'Hand-Painted Ceramic Mug',
@@ -300,7 +284,6 @@ const ProductForm = () => {
         navigate('/artisan/products');
     } catch (error) {
         console.error("Failed to submit form:", error);
-        // Re-throw the error so the form's own catch block can display it in the UI.
         throw error;
     }
   };
@@ -309,7 +292,6 @@ const ProductForm = () => {
     <>
       <ArtisanHeader user={user} logout={logout} />
       
-      {/* This main tag is already structured correctly for consistent padding. */}
       <main className="pt-24 bg-gray-50 font-sans container mx-auto px-6 py-16 min-h-screen">
         <AnimatedSection className="mb-12">
           <div className="flex flex-col md:flex-row justify-between items-start gap-6 bg-white p-8 rounded-2xl shadow-lg border border-gray-200">

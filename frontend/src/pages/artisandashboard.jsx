@@ -2,27 +2,26 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axiosConfig';
 import { Link, NavLink } from 'react-router-dom';
-import Mic from '../components/Mic'; // 👈 1. IMPORT THE NEW COMPONENT
+import Mic from '../components/Mic';
 
-// --- (All other components like Icons, AnimatedSection, Header, Footer, StatCard remain unchanged) ---
 const AnimatedSection = ({ children, className = "" }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); } },
-      { threshold: 0.1 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => { if (ref.current) observer.unobserve(ref.current); };
-  }, []);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); } },
+      { threshold: 0.1 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => { if (ref.current) observer.unobserve(ref.current); };
+  }, []);
 
-  return (
-    <div ref={ref} className={`transition-all duration-1000 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"} ${className}`}>
-      {children}
-    </div>
-  );
+  return (
+    <div ref={ref} className={`transition-all duration-1000 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"} ${className}`}>
+      {children}
+    </div>
+  );
 };
 
 const TrendingUpIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}> <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /> </svg> );
@@ -38,116 +37,112 @@ const XIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" 
 const LogoutIcon = () => (<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>);
 
 const ArtisanHeader = ({ user, logout }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const profileRef = useRef(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) setIsProfileOpen(false);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) setIsProfileOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const navLinks = [
-    { name: 'Dashboard', href: '/artisan/dashboard' },
-    { name: 'My Products', href: '/artisan/products' },
-    { name: 'Orders', href: '/artisan/orders' },
-    { name: 'New Idea', href: '/artisan/ideas/new' },
-  ];
+  const navLinks = [
+    { name: 'Dashboard', href: '/artisan/dashboard' },
+    { name: 'My Products', href: '/artisan/products' },
+    { name: 'Orders', href: '/artisan/orders' },
+    { name: 'New Idea', href: '/artisan/ideas/new' },
+  ];
 
-  const activeLinkStyle = "text-google-blue border-b-2 border-google-blue pb-1";
-  const inactiveLinkStyle = "hover:text-google-blue transition";
+  const activeLinkStyle = "text-google-blue border-b-2 border-google-blue pb-1";
+  const inactiveLinkStyle = "hover:text-google-blue transition";
 
-  return (
-    <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link to="/artisan/dashboard" className="flex items-center space-x-3">
-          <img src="/logo.png" alt="KalaGhar Logo" className="h-10 w-10 object-contain" />
-          <h1 className="text-3xl font-bold text-gray-800 tracking-tighter">
-            Kala<span className="text-google-blue">Ghar</span>
-            <span className="text-lg font-medium text-gray-500 ml-3">Artisan Hub</span>
-          </h1>
-        </Link>
-
-        <nav className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">
-          {navLinks.map(link => (
-            <NavLink key={link.name} to={link.href} className={({ isActive }) => isActive ? activeLinkStyle : inactiveLinkStyle}>
-              {link.name}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="flex items-center space-x-4">
-          <div className="relative" ref={profileRef}>
-            <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center space-x-2 focus:outline-none">
-              <img src={user.profile?.avatar || 'https://placehold.co/100x100/4285F4/FFFFFF?text=A&font=roboto'} alt="Profile" className="h-10 w-10 rounded-full border-2 border-google-blue/50" />
-            </button>
-            {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 animate-fade-in-down">
-                <div className="px-4 py-2 border-b">
-                  <p className="font-semibold text-gray-800 text-sm">{user.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                </div>
-                <button onClick={logout} className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
-                  <LogoutIcon /> Logout
-                </button>
-              </div>
-            )}
-          </div>
-          <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-gray-700">
-            <MenuIcon />
-          </button>
-        </div>
-      </div>
-
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="fixed top-0 right-0 h-full w-64 bg-white shadow-xl p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-google-blue">Menu</h2>
-              <button onClick={() => setIsMobileMenuOpen(false)}><XIcon /></button>
-            </div>
-            <nav className="flex flex-col space-y-4">
-              {navLinks.map(link => (
-                <NavLink key={link.name} to={link.href} onClick={() => setIsMobileMenuOpen(false)}
-                  className={({ isActive }) => `px-3 py-2 rounded-md font-medium ${isActive ? 'bg-google-blue/10 text-google-blue' : 'text-gray-700 hover:bg-gray-100'}`}>
-                  {link.name}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-        </div>
-      )}
-    </header>
-  );
+  return (
+    <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
+      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+        <Link to="/artisan/dashboard" className="flex items-center space-x-3">
+          <img src="/logo.png" alt="KalaGhar Logo" className="h-10 w-10 object-contain" />
+          <h1 className="text-3xl font-bold text-gray-800 tracking-tighter">
+            Kala<span className="text-google-blue">Ghar</span>
+            <span className="text-lg font-medium text-gray-500 ml-3">Artisan Hub</span>
+          </h1>
+        </Link>
+        <nav className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">
+          {navLinks.map(link => (
+            <NavLink key={link.name} to={link.href} className={({ isActive }) => isActive ? activeLinkStyle : inactiveLinkStyle}>
+              {link.name}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="flex items-center space-x-4">
+          <div className="relative" ref={profileRef}>
+            <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center space-x-2 focus:outline-none">
+              <img src={user.profile?.avatar || 'https://placehold.co/100x100/4285F4/FFFFFF?text=A&font=roboto'} alt="Profile" className="h-10 w-10 rounded-full border-2 border-google-blue/50" />
+            </button>
+            {isProfileOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 animate-fade-in-down">
+                <div className="px-4 py-2 border-b">
+                  <p className="font-semibold text-gray-800 text-sm">{user.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                </div>
+                <button onClick={logout} className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
+                  <LogoutIcon /> Logout
+                </button>
+              </div>
+            )}
+          </div>
+          <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-gray-700">
+            <MenuIcon />
+          </button>
+        </div>
+      </div>
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/40 z-50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="fixed top-0 right-0 h-full w-64 bg-white shadow-xl p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold text-google-blue">Menu</h2>
+              <button onClick={() => setIsMobileMenuOpen(false)}><XIcon /></button>
+            </div>
+            <nav className="flex flex-col space-y-4">
+              {navLinks.map(link => (
+                <NavLink key={link.name} to={link.href} onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) => `px-3 py-2 rounded-md font-medium ${isActive ? 'bg-google-blue/10 text-google-blue' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  {link.name}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
+    </header>
+  );
 };
 
 const Footer = () => (
-  <footer className="bg-google-blue text-white">
-    <div className="container mx-auto px-6 py-12">
-      <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
-        &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.
-      </div>
-    </div>
-  </footer>
+  <footer className="bg-google-blue text-white">
+    <div className="container mx-auto px-6 py-12">
+      <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
+        &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.
+      </div>
+    </div>
+  </footer>
 );
 
 const StatCard = ({ stat }) => (
-  <div className={`bg-white p-6 rounded-2xl shadow-lg flex flex-col justify-between h-full border-l-8 ${stat.borderColor} transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl`}>
-    <div className="flex items-center justify-between mb-4">
-      <div className={`p-3 rounded-full ${stat.bgColor}/10 ${stat.color}`}>{stat.icon}</div>
-      <p className="text-gray-500 text-sm font-medium">{stat.title}</p>
-    </div>
-    <div>
-      <p className="text-3xl font-extrabold text-gray-800 mb-1">{stat.value}</p>
-      <p className="text-sm text-gray-600">{stat.description}</p>
-    </div>
-  </div>
+  <div className={`bg-white p-6 rounded-2xl shadow-lg flex flex-col justify-between h-full border-l-8 ${stat.borderColor} transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl`}>
+    <div className="flex items-center justify-between mb-4">
+      <div className={`p-3 rounded-full ${stat.bgColor}/10 ${stat.color}`}>{stat.icon}</div>
+      <p className="text-gray-500 text-sm font-medium">{stat.title}</p>
+    </div>
+    <div>
+      <p className="text-3xl font-extrabold text-gray-800 mb-1">{stat.value}</p>
+      <p className="text-sm text-gray-600">{stat.description}</p>
+    </div>
+  </div>
 );
 
-// --- Main Artisan Dashboard Component ---
 const ArtisanDashboardPage = () => {
   const { user, logout } = useAuth();
   const [stats, setStats] = useState({ orders: 0, lowInventory: 0 });
@@ -252,7 +247,7 @@ const ArtisanDashboardPage = () => {
         </div>
       </main>
       <Footer />
-      <Mic /> {/* 👈 2. ADD THE COMPONENT HERE */}
+      <Mic />
     </>
   );
 };

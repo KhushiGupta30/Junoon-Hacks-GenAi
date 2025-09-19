@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
-import { useAuth } from './AuthContext'; // To check if user is logged in
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
@@ -8,7 +8,6 @@ export const useCart = () => {
     return useContext(CartContext);
 };
 
-// Helper function to get cart from localStorage
 const getLocalCart = () => {
     try {
         const localCart = localStorage.getItem('cart');
@@ -23,7 +22,6 @@ export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState(getLocalCart);
     const { isAuthenticated } = useAuth();
 
-    // Save cart to localStorage whenever it changes
     useEffect(() => {
         localStorage.setItem('cart', JSON.stringify(cartItems));
     }, [cartItems]);
@@ -32,14 +30,12 @@ export const CartProvider = ({ children }) => {
         setCartItems(prevItems => {
             const existingItem = prevItems.find(item => item._id === product._id);
             if (existingItem) {
-                // If item exists, update its quantity
                 return prevItems.map(item =>
                     item._id === product._id
                         ? { ...item, quantity: item.quantity + quantity }
                         : item
                 );
             } else {
-                // If item is new, add it to the cart
                 return [...prevItems, { ...product, quantity }];
             }
         });
@@ -53,7 +49,7 @@ export const CartProvider = ({ children }) => {
         setCartItems(prevItems =>
             prevItems.map(item =>
                 item._id === productId
-                    ? { ...item, quantity: Math.max(1, quantity) } // Ensure quantity is at least 1
+                    ? { ...item, quantity: Math.max(1, quantity) }
                     : item
             )
         );
@@ -78,14 +74,12 @@ export const CartProvider = ({ children }) => {
                 quantity: item.quantity,
             })),
             shippingAddress,
-            // In a real app, you would collect payment info
             payment: {
-                method: 'credit_card' // Placeholder
+                method: 'credit_card'
             }
         };
 
         const response = await api.post('/orders', orderData);
-        // Clear the cart after a successful order
         clearCart();
         return response.data;
     };
