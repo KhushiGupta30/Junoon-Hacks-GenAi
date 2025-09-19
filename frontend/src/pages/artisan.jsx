@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// --- Reusable Animated Section ---
 const AnimatedSection = ({ children, className = "" }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
@@ -39,7 +38,6 @@ const AnimatedSection = ({ children, className = "" }) => {
   );
 };
 
-// --- Page Hero Component ---
 const PageHero = ({ title, highlightText, subtitle, backgroundImage, highlightColorClass = 'text-google-blue' }) => (
   <section
     className="min-h-[60vh] flex items-center justify-center pt-24 bg-cover bg-[center_bottom_30%] relative text-center"
@@ -62,7 +60,6 @@ const PageHero = ({ title, highlightText, subtitle, backgroundImage, highlightCo
   </section>
 );
 
-// --- Testimonials Component ---
 const Testimonials = ({ testimonials, accentColorClass = 'border-google-yellow' }) => (
   <section className="py-20 bg-white">
     <div className="container mx-auto px-6">
@@ -88,7 +85,6 @@ const Testimonials = ({ testimonials, accentColorClass = 'border-google-yellow' 
   </section>
 );
 
-// --- Call To Action Component ---
 const CallToAction = ({ onApplyClick, roleName, buttonColorClass = 'bg-google-red' }) => (
   <section className="py-20 bg-gray-100">
     <div className="container mx-auto px-6 text-center">
@@ -109,14 +105,12 @@ const CallToAction = ({ onApplyClick, roleName, buttonColorClass = 'bg-google-re
 );
 
 
-// --- Page-Specific Data ---
 const artisanTestimonials = [
   { quote: 'HunarGhar gave my weaving a global stage. I went from selling locally to having customers in three new countries!', name: 'Priya S.', role: 'Textile Weaver from Rajasthan' },
   { quote: 'The funding I received through the platform allowed me to buy a new kiln and double my production. It was a game-changer.', name: 'Anand V.', role: 'Pottery Artist from Gujarat' },
 ];
 
 
-// --- Main ArtisanPage Component ---
 const ArtisanPage = ({ onApplyClick }) => {
   return (
     
@@ -125,15 +119,13 @@ const ArtisanPage = ({ onApplyClick }) => {
         title="For Every"
         highlightText="Artisan"
         subtitle="Bring your craft to the world. We provide the tools, you provide the talent."
-        backgroundImage="/1.png" // Use your desired background image
+        backgroundImage="/1.png" 
         highlightColorClass="text-google-yellow"
       />
 
-      {/* --- Detailed Features Section --- */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6 space-y-16">
           
-          {/* Smart Tools for Modern Creators */}
           <AnimatedSection>
             <div className="text-center">
               <h2 className="text-4xl font-bold text-gray-800 mb-4">Smart Tools for Modern Creators 🛠️</h2>
@@ -157,7 +149,6 @@ const ArtisanPage = ({ onApplyClick }) => {
           
           <hr/>
 
-          {/* Tell Your Story, Build Your Brand */}
           <AnimatedSection>
             <div className="text-center">
                 <h2 className="text-4xl font-bold text-gray-800 mb-4">Tell Your Story, Build Your Brand 📖</h2>
@@ -177,7 +168,6 @@ const ArtisanPage = ({ onApplyClick }) => {
 
           <hr/>
 
-          {/* Fuel Your Growth & Creativity */}
           <AnimatedSection>
             <div className="text-center">
                 <h2 className="text-4xl font-bold text-gray-800 mb-4">Fuel Your Growth & Creativity 💰</h2>
@@ -201,7 +191,6 @@ const ArtisanPage = ({ onApplyClick }) => {
 
           <hr/>
           
-          {/* Your Bridge to a Global Market */}
           <AnimatedSection>
             <div className="text-center">
                 <h2 className="text-4xl font-bold text-gray-800 mb-4">Your Bridge to a Global Market 🌍</h2>
@@ -221,7 +210,6 @@ const ArtisanPage = ({ onApplyClick }) => {
 
           <hr/>
 
-          {/* Dedicated Support & Sustainable Practices */}
           <AnimatedSection>
             <div className="text-center">
                 <h2 className="text-4xl font-bold text-gray-800 mb-4">Dedicated Support & Sustainable Practices 🌱</h2>

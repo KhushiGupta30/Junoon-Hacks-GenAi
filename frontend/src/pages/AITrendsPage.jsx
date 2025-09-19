@@ -5,10 +5,8 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import api from '../api/axiosConfig';
 
-// Register the components
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
-// --- (AnimatedSection and Icon components remain unchanged) ---
 const AnimatedSection = ({ children, className = "" }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
@@ -41,7 +39,6 @@ const AnimatedSection = ({ children, className = "" }) => {
   );
 };
 
-// --- (Icons, Header, and Footer components remain unchanged) ---
 const SparklesIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-google-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 12l-2.293 2.293a1 1 0 01-1.414 0L4 12m13 1.414l2.293 2.293a1 1 0 010 1.414L14 20l-2.293-2.293a1 1 0 010-1.414l4.586-4.586z" />
@@ -159,7 +156,6 @@ const Footer = () => (
   </footer>
 );
 
-// --- Chart Components ---
 const CategoryChart = ({ data }) => {
     const chartData = {
         labels: data.labels,
@@ -203,9 +199,7 @@ const TrendingMaterialsChart = ({ data }) => {
 };
 
 
-// --- MODIFICATION: New Modal Component for Trend Details ---
 const TrendDetailModal = ({ trend, onClose }) => {
-    // Effect for smooth entrance/exit animations
     const [show, setShow] = useState(false);
     useEffect(() => {
         setShow(true);
@@ -213,7 +207,7 @@ const TrendDetailModal = ({ trend, onClose }) => {
 
     const handleClose = () => {
         setShow(false);
-        setTimeout(onClose, 300); // Wait for animation to finish
+        setTimeout(onClose, 300);
     };
 
     return (
@@ -248,13 +242,11 @@ const TrendDetailModal = ({ trend, onClose }) => {
 };
 
 
-// --- Main AI Trends Page ---
 const AITrendsPage = () => {
   const { user, logout } = useAuth();
   const [trends, setTrends] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // MODIFICATION: State to control the modal visibility
   const [isTrendDetailOpen, setIsTrendDetailOpen] = useState(false);
 
   useEffect(() => {
@@ -294,7 +286,6 @@ const AITrendsPage = () => {
     <>
       <ArtisanHeader user={user} logout={logout} />
       <main className="pt-24 bg-gray-50 font-sans container mx-auto px-6 py-16">
-        {/* --- HERO SECTION --- */}
         <AnimatedSection>
           <div
             className="relative p-8 rounded-2xl shadow-xl mb-12 overflow-hidden text-white bg-google-blue"
@@ -320,7 +311,6 @@ const AITrendsPage = () => {
                 </p>
               </div>
 
-              {/* MODIFICATION: Clickable card that opens modal */}
               <div
                  onClick={() => setIsTrendDetailOpen(true)}
                  className="flex-shrink-0 w-64 lg:w-80 bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-center cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
@@ -339,7 +329,6 @@ const AITrendsPage = () => {
           </div>
         </AnimatedSection>
 
-        {/* AI Recommendations Section */}
         <AnimatedSection className="mb-12 flex flex-col lg:flex-row gap-8 items-center">
           <div className="w-full lg:w-4/12 flex flex-col items-center text-center text-google-green">
               <MegaphoneIcon />
@@ -359,7 +348,6 @@ const AITrendsPage = () => {
           </div>
         </AnimatedSection>
 
-        {/* Graphs Section */}
         <AnimatedSection className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-white p-6 rounded-2xl shadow-lg flex justify-center items-center">
             <CategoryChart data={trends.categoryDemand} />
@@ -370,7 +358,6 @@ const AITrendsPage = () => {
         </AnimatedSection>
       </main>
 
-      {/* MODIFICATION: Conditionally render the modal */}
       {isTrendDetailOpen && (
         <TrendDetailModal
           trend={trends.trendOfMonth}

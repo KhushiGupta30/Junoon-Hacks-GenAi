@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../api/axiosConfig';
 
-// --- ICONS (Unchanged) ---
 const MicIcon = ({ className = "w-8 h-8" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="currentColor" viewBox="0 0 24 24">
     <path d="M12 14a3 3 0 003-3V5a3 3 0 00-6 0v6a3 3 0 003 3zM19 10a1 1 0 112 0 7 7 0 01-14 0 1 1 0 112 0 5 5 0 0010 0zM12 21a7 7 0 007-7h-2a5 5 0 01-10 0H5a7 7 0 007 7z"/>
@@ -13,7 +12,6 @@ const XIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// --- Get the SpeechRecognition object, browser-prefixed ---
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 const Mic = () => {
@@ -24,7 +22,6 @@ const Mic = () => {
   const [statusText, setStatusText] = useState("Click the mic to start");
   const [showSpeakHint, setShowSpeakHint] = useState(true);
 
-  // Use a ref to hold the recognition instance
   const recognitionRef = useRef(null);
 
   useEffect(() => {
@@ -32,7 +29,6 @@ const Mic = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Initialize the recognition object and its event handlers once
   useEffect(() => {
     if (!SpeechRecognition) {
       console.error("SpeechRecognition API not supported in this browser.");
@@ -40,7 +36,6 @@ const Mic = () => {
       return;
     }
 
-    // Create the instance and store it in the ref
     recognitionRef.current = new SpeechRecognition();
     const recognition = recognitionRef.current;
     recognition.continuous = false;
@@ -57,7 +52,6 @@ const Mic = () => {
       setStatusText("Click the mic to start");
     };
 
-    // --- UPDATED: Improved error handling ---
     recognition.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
       setIsListening(false);
@@ -97,12 +91,11 @@ const Mic = () => {
         }
       }
     };
-  }, []); // The empty dependency array ensures this runs only once.
+  }, []);
 
 
   const speak = (text) => {
     if ('speechSynthesis' in window) {
-      // Cancel any previous speech to prevent overlap
       window.speechSynthesis.cancel(); 
       const utterance = new SpeechSynthesisUtterance(text);
       window.speechSynthesis.speak(utterance);
@@ -111,7 +104,7 @@ const Mic = () => {
 
   const handleMicClick = () => {
     if (!recognitionRef.current) {
-        return; // Recognition not supported or initialized
+        return;
     }
 
     if (isListening) {
@@ -125,7 +118,6 @@ const Mic = () => {
   
   const closePanel = () => {
     setIsPanelOpen(false);
-    // Stop listening and speaking if the panel is closed
     if (recognitionRef.current && isListening) {
         recognitionRef.current.stop();
     }
@@ -136,7 +128,6 @@ const Mic = () => {
 
   return (
     <>
-      {/* Floating Action Button */}
       <div className="relative">
         {showSpeakHint && (
           <div className="fixed bottom-28 right-8 bg-google-yellow text-white px-4 py-2 rounded-full shadow-lg animate-bounce text-sm font-semibold z-50">
@@ -152,7 +143,6 @@ const Mic = () => {
         </button>
       </div>
 
-      {/* AI Assistant Panel */}
       <div
         className={`fixed bottom-8 right-8 z-[100] w-[90vw] max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 ease-in-out ${isPanelOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}
       >

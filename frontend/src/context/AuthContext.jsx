@@ -23,7 +23,6 @@ export const AuthProvider = ({ children }) => {
                     setUser(response.data);
                 } catch (error) {
                     console.error("Failed to fetch user, token might be expired.", error);
-                    // Clear invalid token from storage and state
                     localStorage.removeItem('token');
                     setToken(null);
                     setUser(null);
@@ -43,7 +42,6 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
-        // Redirect based on role after login
         if (userData.role === 'artisan') {
             navigate('/artisan/dashboard');
         } else {
@@ -59,7 +57,6 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
-        // Redirect based on role after registration
         if (userData.role === 'artisan') {
             navigate('/artisan/dashboard');
         } else {
@@ -85,7 +82,6 @@ export const AuthProvider = ({ children }) => {
         logout,
     };
 
-    // Render children only after the initial loading is complete
     return (
         <AuthContext.Provider value={value}>
             {!loading && children}
