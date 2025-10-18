@@ -1,6 +1,6 @@
 import './App.css'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';  
-import LandingPage from './pages/landing';
+import LandingPage from './pages/LandingPage';
 import ArtisanPage from './pages/artisan';
 import AmbassadorPage from './pages/ambassador';
 import BuyerMarketplace from './pages/buyermarket'; 
