@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const UserService = require('../services/UserService');
 const { auth } = require('../middleware/auth');
+const { admin } = require('../firebase');
 
 const router = express.Router();
 
@@ -9,7 +10,6 @@ router.post('/register', [
   body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
   body('role').isIn(['artisan', 'buyer', 'investor', 'ambassador']).withMessage('Invalid role'),
-  body('firebaseUid').notEmpty().withMessage('Firebase UID is required') // important to link Firebase UID with your DB user
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -17,7 +17,23 @@ router.post('/register', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, role, firebaseUid } = req.body;
+    const { name, email, role } = req.body;
+    
+    // Get Firebase UID from the authorization token
+    const authHeader = req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    const idToken = authHeader.split('Bearer ')[1];
+    let decodedToken;
+    try {
+      decodedToken = await admin.auth().verifyIdToken(idToken);
+    } catch (error) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    const firebaseUid = decodedToken.uid;
 
     const existingUserByEmail = await UserService.findByEmail(email);
     const existingUserByUid = await UserService.findByUID(firebaseUid);
@@ -35,13 +51,7 @@ router.post('/register', [
 
     res.status(201).json({
       message: 'User registered successfully',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        firebaseUid: user.firebaseUid
-      }
+      user: UserService.toJSON(user)
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -51,11 +61,7 @@ router.post('/register', [
 
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await UserService.findByUID(req.user.uid);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json(UserService.toJSON(user));
+    res.json(req.user);
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ message: 'Server error' });

@@ -1,5 +1,4 @@
 const express = require('express');
-// const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -12,6 +11,7 @@ const ideaRoutes = require('./routes/ideas');
 const investmentRoutes = require('./routes/investments');
 const userRoutes = require('./routes/users');
 const aiRoutes = require('./routes/ai');
+const logisticsRoutes = require('./routes/logistics');
 const db = require('./firebase');
 
 const app = express();
@@ -42,6 +42,7 @@ app.get('/api/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development'
   });
 });
+
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
@@ -49,6 +50,20 @@ app.use('/api/ideas', ideaRoutes);
 app.use('/api/investments', investmentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/logistics', logisticsRoutes);
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';

@@ -10,7 +10,11 @@ import { auth } from "../firebaseConfig";
 const AuthContext = createContext(null);
 
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };
 
 export const AuthProvider = ({ children }) => {
@@ -40,63 +44,100 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    const idToken = await userCredential.user.getIdToken();
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const idToken = await userCredential.user.getIdToken();
 
-    localStorage.setItem("token", idToken);
-    setToken(idToken);
-    api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
+      localStorage.setItem("token", idToken);
+      setToken(idToken);
+      api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
 
-    const response = await api.get("/auth/me");
-    const userData = response.data;
-    setUser(userData);
+      const response = await api.get("/auth/me");
+      const userData = response.data;
+      setUser(userData);
 
-    if (userData.role === "artisan") {
-      navigate("/artisan/dashboard");
-    } else {
-      navigate("/buyer");
+      // Navigate based on user role
+      if (userData.role === "artisan") {
+        navigate("/artisan/dashboard");
+      } else if (userData.role === "ambassador") {
+        navigate("/ambassador/dashboard");
+      } else {
+        navigate("/buyer");
+      }
+      
+      return userData;
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
     }
   };
 
   const register = async (name, email, password, role) => {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    const idToken = await userCredential.user.getIdToken();
+    try {
+      // First create Firebase user
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const idToken = await userCredential.user.getIdToken();
 
-    localStorage.setItem("token", idToken);
-    setToken(idToken);
-    api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
+      // Set token for the registration API call
+      localStorage.setItem("token", idToken);
+      setToken(idToken);
+      api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
 
-    const response = await api.post("/auth/register", { name, email, role });
-    const userData = response.data;
-    setUser(userData);
+      // Register user in backend
+      const response = await api.post("/auth/register", { 
+        name, 
+        email, 
+        role 
+      });
+      
+      const userData = response.data.user;
+      setUser(userData);
 
-    if (userData.role === "artisan") {
-      navigate("/artisan/dashboard");
-    } else {
-      navigate("/buyer");
+      // Navigate based on user role
+      if (userData.role === "artisan") {
+        navigate("/artisan/dashboard");
+      } else if (userData.role === "ambassador") {
+        navigate("/ambassador/dashboard");
+      } else {
+        navigate("/buyer");
+      }
+      
+      return userData;
+    } catch (error) {
+      console.error("Registration error:", error);
+      // If backend registration fails, we might want to delete the Firebase user
+      // But for now, just throw the error
+      throw error;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-    setUser(null);
-    delete api.defaults.headers.common["Authorization"];
-    navigate("/");
+  const logout = async () => {
+    try {
+      // Call backend logout endpoint if needed
+      await api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      localStorage.removeItem("token");
+      setToken(null);
+      setUser(null);
+      delete api.defaults.headers.common["Authorization"];
+      navigate("/");
+    }
   };
 
   const value = {
     user,
     token,
-    isAuthenticated: !!token,
+    isAuthenticated: !!token && !!user,
     loading,
     login,
     register,
@@ -105,7 +146,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
