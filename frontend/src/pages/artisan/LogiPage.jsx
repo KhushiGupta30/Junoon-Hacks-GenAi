@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // Assuming you have this
-import api from '../api/axiosConfig'; // Ensure you have this API instance
+import { useAuth } from '../../context/AuthContext'; // Assuming you have this
+import api from '../../api/axiosConfig'; // Ensure you have this API instance
 
 // --- (All sub-components like AnimatedSection, Icons, Header, Footer remain unchanged) ---
 const AnimatedSection = ({ children, className = "" }) => {
