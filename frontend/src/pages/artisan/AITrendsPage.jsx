@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { Link, NavLink } from 'react-router-dom';
+// import { useAuth } from '../../context/AuthContext'; // No longer needed here
+// Link, NavLink, MenuIcon, XIcon, LogoutIcon removed as Header is gone
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
-import api from '../api/axiosConfig';
+import api from '../../api/axiosConfig';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
+
+// --- Page-Specific Components (Keep These) ---
 
 const AnimatedSection = ({ children, className = "" }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -21,10 +23,10 @@ const AnimatedSection = ({ children, className = "" }) => {
       },
       { threshold: 0.1 }
     );
-    if (ref.current) observer.observe(ref.current);
-    return () => {
-      if (ref.current) observer.unobserve(ref.current);
-    };
+    const currentRef = ref.current; // Capture ref value
+    if (currentRef) observer.observe(currentRef);
+    
+    return () => { if (currentRef) observer.unobserve(currentRef); };
   }, []);
 
   return (
@@ -57,104 +59,13 @@ const MegaphoneIcon = () => (
     </svg>
 );
 
-const MenuIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>);
+// XIcon is used by the modal, so we keep it
 const XIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>);
-const LogoutIcon = () => (<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>);
 
-const ArtisanHeader = ({ user, logout }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const profileRef = useRef(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) setIsProfileOpen(false);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+// --- REMOVED ArtisanHeader component ---
 
-  const navLinks = [
-    { name: 'Dashboard', href: '/artisan/dashboard' },
-    { name: 'My Products', href: '/artisan/products' },
-    { name: 'Orders', href: '/artisan/orders' },
-    { name: 'New Idea', href: '/artisan/ideas/new' },
-  ];
-
-  const activeLinkStyle = "text-google-blue border-b-2 border-google-blue pb-1";
-  const inactiveLinkStyle = "hover:text-google-blue transition";
-
-  return (
-    <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link to="/artisan/dashboard" className="flex items-center space-x-3">
-          <img src="/logo.png" alt="KalaGhar Logo" className="h-10 w-10 object-contain" />
-          <h1 className="text-3xl font-bold text-gray-800 tracking-tighter">
-            Kala<span className="text-google-blue">Ghar</span>
-            <span className="text-lg font-medium text-gray-500 ml-3">Artisan Hub</span>
-          </h1>
-        </Link>
-        <nav className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">
-          {navLinks.map(link => (
-            <NavLink key={link.name} to={link.href} className={({ isActive }) => isActive ? activeLinkStyle : inactiveLinkStyle}>
-              {link.name}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="flex items-center space-x-4">
-          <div className="relative" ref={profileRef}>
-            <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center space-x-2 focus:outline-none">
-              <img src={user.profile?.avatar || 'https://placehold.co/100x100/4285F4/FFFFFF?text=A&font=roboto'} alt="Profile" className="h-10 w-10 rounded-full border-2 border-google-blue/50" />
-            </button>
-            {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 animate-fade-in-down">
-                <div className="px-4 py-2 border-b">
-                  <p className="font-semibold text-gray-800 text-sm">{user.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                </div>
-                <button onClick={logout} className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
-                  <LogoutIcon /> Logout
-                </button>
-              </div>
-            )}
-          </div>
-          <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-gray-700">
-            <MenuIcon />
-          </button>
-        </div>
-      </div>
-
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="fixed top-0 right-0 h-full w-64 bg-white shadow-xl p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-google-blue">Menu</h2>
-              <button onClick={() => setIsMobileMenuOpen(false)}><XIcon /></button>
-            </div>
-            <nav className="flex flex-col space-y-4">
-              {navLinks.map(link => (
-                <NavLink key={link.name} to={link.href} onClick={() => setIsMobileMenuOpen(false)}
-                  className={({ isActive }) => `px-3 py-2 rounded-md font-medium ${isActive ? 'bg-google-blue/10 text-google-blue' : 'text-gray-700 hover:bg-gray-100'}`}>
-                  {link.name}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-};
-
-const Footer = () => (
-  <footer className="bg-google-blue text-white">
-    <div className="container mx-auto px-6 py-12">
-      <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
-        &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.
-      </div>
-    </div>
-  </footer>
-);
+// --- REMOVED Footer component ---
 
 const CategoryChart = ({ data }) => {
     const chartData = {
@@ -243,7 +154,7 @@ const TrendDetailModal = ({ trend, onClose }) => {
 
 
 const AITrendsPage = () => {
-  const { user, logout } = useAuth();
+  // const { user, logout } = useAuth(); // Removed
   const [trends, setTrends] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -266,9 +177,10 @@ const AITrendsPage = () => {
     fetchTrends();
   }, []);
 
-  if (loading || !user) {
+  // Simplified loading check. ProtectedRoute handles the !user case.
+  if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="flex justify-center items-center min-h-[calc(100vh-10rem)] bg-gray-100">
         <div className="text-google-blue text-xl font-semibold">Analyzing Latest Trends...</div>
       </div>
     );
@@ -276,7 +188,7 @@ const AITrendsPage = () => {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="flex justify-center items-center min-h-[calc(100vh-10rem)] bg-gray-100">
         <div className="text-red-500 text-xl font-semibold">{error}</div>
       </div>
     );
@@ -284,8 +196,13 @@ const AITrendsPage = () => {
 
   return (
     <>
-      <ArtisanHeader user={user} logout={logout} />
-      <main className="pt-24 bg-gray-50 font-sans container mx-auto px-6 py-16">
+      {/* <ArtisanHeader user={user} logout={logout} /> REMOVED */}
+      
+      {/* The <main> tag is no longer needed, as ArtisanLayout has one.
+        We just return the page content directly.
+        The pt-24 padding is also gone, as it's on the layout's <main> tag.
+      */}
+      <div className="container mx-auto px-6 py-16">
         <AnimatedSection>
           <div
             className="relative p-8 rounded-2xl shadow-xl mb-12 overflow-hidden text-white bg-google-blue"
@@ -356,7 +273,7 @@ const AITrendsPage = () => {
             <TrendingMaterialsChart data={trends.trendingMaterials} />
           </div>
         </AnimatedSection>
-      </main>
+      </div>
 
       {isTrendDetailOpen && (
         <TrendDetailModal
@@ -365,7 +282,7 @@ const AITrendsPage = () => {
         />
       )}
       
-      <Footer />
+      {/* <Footer /> REMOVED */}
     </>
   );
 };
