@@ -49,3 +49,8 @@
 .animate-fade-in-down {
   animation: fade-in-down 0.2s ease-out forwards;
 }
+
+body {
+  font-family: 'Roboto', sans-serif;
+  /* Add other base styles */
+}

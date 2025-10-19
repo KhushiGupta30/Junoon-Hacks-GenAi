@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { MenuIcon, XIcon, LogoutIcon } from '../common/Icons'; // Adjust path if needed
+import { MenuIcon, LogoutIcon } from '../common/Icons'; // Removed XIcon + SearchIcon
 
-/**
- * A helper component to create the nav links.
- */
 const NavItem = ({ to, children }) => (
   <NavLink
     to={to}
-    end={to === '/artisan/dashboard'} // Only end for the dashboard route
+    end={to === '/artisan/dashboard'}
     className={({ isActive }) =>
       `flex items-center h-16 text-sm font-medium transition-all duration-150 ease-in-out border-b-2 ${
         isActive
-          ? 'text-google-blue border-google-blue' // Active state
-          : 'text-gray-600 border-transparent hover:text-google-blue' // Inactive state
+          ? 'text-google-blue border-google-blue'
+          : 'text-gray-600 border-transparent hover:text-google-blue'
       }`
     }
   >
@@ -23,7 +20,6 @@ const NavItem = ({ to, children }) => (
 );
 
 const ArtisanHeader = ({ user, logout }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -33,15 +29,14 @@ const ArtisanHeader = ({ user, logout }) => {
         setIsProfileOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // --- Nav links including "Orders" ---
   const navLinks = [
     { name: 'Dashboard', href: '/artisan/dashboard' },
     { name: 'Manage Products', href: '/artisan/products' },
-    { name: 'Orders', href: '/artisan/orders' }, // <-- Added Orders link
+    { name: 'Orders', href: '/artisan/orders' },
     { name: 'New Idea', href: '/artisan/ideas/new' },
     { name: 'AI Trend Report', href: '/artisan/trends' },
     { name: 'Funding', href: '/artisan/grant' },
@@ -50,75 +45,122 @@ const ArtisanHeader = ({ user, logout }) => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md border-b border-gray-200">
-      <div className="container mx-auto px-6 h-16 flex justify-between items-center">
+    <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm z-50 shadow-sm border-b border-gray-200">
+      <div className="container mx-auto px-6">
+        <div className="h-16 flex items-center justify-between">
+          {/* --- Left: Logo + Nav --- */}
+          <div className="flex items-center h-16">
+            <Link
+              to="/artisan/dashboard"
+              className="flex items-center space-x-3 mr-8 flex-shrink-0"
+            >
+              <img
+                src="/logo.png"
+                alt="KalaGhar Logo"
+                className="h-10 w-10 object-contain"
+              />
+              <h1 className="text-3xl font-bold text-gray-800 tracking-tighter hidden sm:block">
+                कला<span className="text-google-blue">Ghar</span>
+              </h1>
+            </Link>
 
-        {/* --- Left Side: Logo + Nav --- */}
-        <div className="flex items-center h-16">
-          <Link to="/artisan/dashboard" className="flex items-center space-x-3 mr-8">
-            <img src="/logo.png" alt="KalaGhar Logo" className="h-10 w-10 object-contain" />
-            <h1 className="text-3xl font-bold text-gray-800 tracking-tighter hidden sm:block">
-              Kala<span className="text-google-blue">Ghar</span>
-            </h1>
-          </Link>
-
-          {/* --- Desktop Nav --- */}
-          <nav className="hidden md:flex items-center h-16 space-x-7">
-            {navLinks.map(link => (
-              <NavItem key={link.name} to={link.href}>
-                {link.name}
-              </NavItem>
-            ))}
-          </nav>
-        </div>
-
-        {/* --- Right Side: Profile + Mobile Menu Button --- */}
-        <div className="flex items-center space-x-4">
-          <div className="relative" ref={profileRef}>
-            <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center space-x-2 focus:outline-none">
-              <img src={user.profile?.avatar || `https://ui-avatars.com/api/?name=${user?.name || 'A'}&background=0F9D58&color=fff`} alt="Profile" className="h-10 w-10 rounded-full border-2 border-google-blue/50" />
-            </button>
-            {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 animate-fade-in-down border border-gray-200">
-                <div className="px-4 py-2 border-b">
-                  <p className="font-semibold text-gray-800 text-sm">{user.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                </div>
-                <button onClick={logout} className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
-                  <LogoutIcon /> Logout
-                </button>
-              </div>
-            )}
-          </div>
-          <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-gray-700">
-            <MenuIcon />
-          </button>
-        </div>
-      </div>
-
-      {/* --- Mobile Menu (Updated with new links) --- */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="fixed top-0 right-0 h-full w-64 bg-white shadow-xl p-5 animate-fade-in-down" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-google-blue">Menu</h2>
-              <button onClick={() => setIsMobileMenuOpen(false)}><XIcon /></button>
-            </div>
-            <nav className="flex flex-col space-y-4">
-              {navLinks.map(link => (
-                <NavLink
-                  key={link.name}
-                  to={link.href}
-                  end={link.href === '/artisan/dashboard'}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={({ isActive }) => `px-3 py-2 rounded-md font-medium ${isActive ? 'bg-google-blue/10 text-google-blue' : 'text-gray-700 hover:bg-gray-100'}`}>
+            <nav className="hidden md:flex items-center h-16 space-x-7 overflow-x-auto scrollbar-hide">
+              {navLinks.map((link) => (
+                <NavItem key={link.name} to={link.href}>
                   {link.name}
-                </NavLink>
+                </NavItem>
               ))}
             </nav>
           </div>
+
+          {/* --- Right: Profile --- */}
+          <div className="flex items-center space-x-4 flex-shrink-0">
+            <div className="relative" ref={profileRef}>
+              {/* Google Spin Wrapper */}
+              <div
+                className={`p-0.5 rounded-full bg-[conic-gradient(from_0deg,#4285F4,#DB4437,#F4B400,#0F9D58,#4285F4)] 
+                transition-all duration-200 
+                ${isProfileOpen ? 'animate-google-spin' : 'hover:animate-google-spin'}`}
+              >
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="block rounded-full focus:outline-none bg-white p-px dark:bg-slate-900"
+                >
+                  <img
+                    src={
+                      user.profile?.avatar ||
+                      `https://ui-avatars.com/api/?name=${user?.name || 'A'}&background=0F9D58&color=fff`
+                    }
+                    alt="Profile"
+                    className="h-9 w-9 rounded-full block border-2 border-white dark:border-slate-900"
+                  />
+                </button>
+              </div>
+
+              {/* Profile Dropdown (Google Account Style) */}
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl py-4 z-[60] border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                  {/* Top Section */}
+                  <div className="flex flex-col items-center px-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                    <img
+                      src={
+                        user.profile?.avatar ||
+                        `https://ui-avatars.com/api/?name=${user?.name || 'A'}&background=4285F4&color=fff`
+                      }
+                      alt="Profile"
+                      className="h-16 w-16 rounded-full border-4 border-white shadow-md"
+                    />
+                    <p className="mt-2 font-semibold text-gray-800 dark:text-gray-100 text-lg">
+                      Hi, {user.name?.split(' ')[0] || 'User'}!
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                      {user.email}
+                    </p>
+
+                    <button className="mt-3 px-4 py-2 text-sm font-medium text-google-blue border border-google-blue rounded-full hover:bg-google-blue hover:text-white transition">
+                      Manage your Account
+                    </button>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col space-y-1 mt-2 px-2">
+                    <button className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                      + Add account
+                    </button>
+                    <button
+                      onClick={logout}
+                      className="flex items-center justify-center w-full py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/40 rounded-lg"
+                    >
+                      <LogoutIcon /> Sign out
+                    </button>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="text-xs text-gray-400 dark:text-gray-500 mt-4 flex justify-center gap-2">
+                    <a href="#" className="hover:underline">
+                      Privacy Policy
+                    </a>
+                    •
+                    <a href="#" className="hover:underline">
+                      Terms of Service
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => {
+                /* Logic to open mobile menu */
+              }}
+              className="md:hidden text-gray-700"
+            >
+              <MenuIcon />
+            </button>
+          </div>
         </div>
-      )}
+      </div>
     </header>
   );
 };
