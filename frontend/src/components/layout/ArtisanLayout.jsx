@@ -22,7 +22,7 @@ const ArtisanLayout = () => {
           Adjust this value to match your ArtisanHeader's exact height
           to prevent content from hiding underneath it.
         */}
-        <main className="pt-24">
+        <main className="pt-4">
           {/* Outlet is the "content area" where your pages will be loaded */}
           <Outlet />
         </main>

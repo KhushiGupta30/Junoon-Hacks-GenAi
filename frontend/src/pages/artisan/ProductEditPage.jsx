@@ -1,84 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Link, NavLink, useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axiosConfig";
-import { useAuth } from "../../context/AuthContext";
+// import { useAuth } from '../../context/AuthContext'; // Removed - Provided by Layout
 
-const AnimatedSection = ({ children, className = "" }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => {
-      if (ref.current) observer.unobserve(ref.current);
-    };
-  }, []);
-  return (
-    <div
-      ref={ref}
-      className={`transition-all duration-1000 ease-out ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-      } ${className}`}
-    >
-      {children}
-    </div>
-  );
-};
+// --- REUSABLE ANIMATED SECTION COMPONENT (Keep) ---
+// Assuming this is imported correctly, e.g., from '../../components/ui/AnimatedSection'
+import AnimatedSection from '../../components/ui/AnimatedSection'; 
 
-// --- ICONS ---
-const MenuIcon = () => (
-  <svg
-    className="w-6 h-6"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 6h16M4 12h16M4 18h16"
-    />
-  </svg>
-);
-const XIcon = () => (
-  <svg
-    className="w-6 h-6"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M6 18L18 6M6 6l12 12"
-    />
-  </svg>
-);
-const LogoutIcon = () => (
-  <svg
-    className="w-5 h-5 mr-2"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-    />
-  </svg>
-);
+// --- ICONS (Keep only ones used by THIS page's content) ---
 const PencilAltIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -122,143 +51,10 @@ const LightBulbIcon = () => (
   </svg>
 );
 
-// --- SHARED HEADER & FOOTER COMPONENTS ---
-const ArtisanHeader = ({ user, logout }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const profileRef = useRef(null);
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target))
-        setIsProfileOpen(false);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-  const navLinks = [
-    { name: "Dashboard", href: "/artisan/dashboard" },
-    { name: "My Products", href: "/artisan/products" },
-    { name: "Funding", href: "/artisan/grants" },
-    { name: "Logistics", href: "/artisan/logistics" },
-  ];
-  const activeLinkStyle = "text-google-blue border-b-2 border-google-blue pb-1";
-  const inactiveLinkStyle = "hover:text-google-blue transition";
-  return (
-    <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link to="/artisan/dashboard" className="flex items-center space-x-3">
-          <img
-            src="/logo.png"
-            alt="KalaGhar Logo"
-            className="h-10 w-10 object-contain"
-          />
-          <h1 className="text-3xl font-bold text-gray-800 tracking-tighter">
-            Kala<span className="text-google-blue">Ghar</span>
-            <span className="text-lg font-medium text-gray-500 ml-3">
-              Artisan Hub
-            </span>
-          </h1>
-        </Link>
-        <nav className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.name}
-              to={link.href}
-              className={({ isActive }) =>
-                isActive ? activeLinkStyle : inactiveLinkStyle
-              }
-            >
-              {link.name}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="flex items-center space-x-4">
-          <div className="relative" ref={profileRef}>
-            <button
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center space-x-2 focus:outline-none"
-            >
-              <img
-                src={user.profile?.avatar || "/default-avatar.png"}
-                alt="Profile"
-                className="h-10 w-10 rounded-full border-2 border-google-blue/50"
-              />
-            </button>
-            {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 animate-fade-in-down">
-                <div className="px-4 py-2 border-b">
-                  <p className="font-semibold text-gray-800 text-sm">
-                    {user.name}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                </div>
-                <button
-                  onClick={logout}
-                  className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
-                >
-                  <LogoutIcon /> Logout
-                </button>
-              </div>
-            )}
-          </div>
-          <button
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="md:hidden text-gray-700"
-          >
-            <MenuIcon />
-          </button>
-        </div>
-      </div>
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-50 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          <div
-            className="fixed top-0 right-0 h-full w-64 bg-white shadow-xl p-5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-google-blue">Menu</h2>
-              <button onClick={() => setIsMobileMenuOpen(false)}>
-                <XIcon />
-              </button>
-            </div>
-            <nav className="flex flex-col space-y-4">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.name}
-                  to={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `px-3 py-2 rounded-md font-medium ${
-                      isActive
-                        ? "bg-google-blue/10 text-google-blue"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`
-                  }
-                >
-                  {link.name}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-};
+// --- REMOVED ArtisanHeader component ---
+// --- REMOVED Footer component ---
 
-const Footer = () => (
-  <footer className="bg-google-blue text-white">
-    <div className="container mx-auto px-6 py-12">
-      <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
-        &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.
-      </div>
-    </div>
-  </footer>
-);
-
+// --- REUSABLE FORM COMPONENTS (Keep) ---
 const FormInput = ({ label, id, ...props }) => (
   <div>
     <label htmlFor={id} className="block text-sm font-bold text-gray-700 mb-1">
@@ -287,7 +83,7 @@ const FormSelect = ({ label, id, children, ...props }) => (
   </div>
 );
 
-// --- INTERNAL FORM FIELDS COMPONENT ---
+// --- INTERNAL FORM FIELDS COMPONENT (Keep) ---
 const ProductFormFields = ({ initialData, onSubmit }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -433,6 +229,7 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
         </p>
       )}
 
+      {/* --- Core Details Section --- */}
       <div className="space-y-6">
         <div className="pb-5 border-b border-gray-200">
           <h2 className="text-xl font-bold text-google-blue">Core Details</h2>
@@ -462,7 +259,7 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
               type="button"
               onClick={handleGenerateDescription}
               disabled={isGenerating}
-              className="flex items-center gap-1 text-xs font-semibold text-white bg-google-blue px-2 py-1 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+              className="flex items-center gap-1 text-xs font-semibold text-white bg-google-blue px-2 py-1 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <SparklesIcon />
               {isGenerating ? "Generating..." : "Generate with AI"}
@@ -492,7 +289,7 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
                 type="button"
                 onClick={handleSuggestPrice}
                 disabled={isSuggestingPrice}
-                className="flex items-center gap-1 text-xs font-semibold text-white bg-google-green px-2 py-1 rounded-md hover:bg-green-700 disabled:bg-gray-400 transition-colors"
+                className="flex items-center gap-1 text-xs font-semibold text-white bg-google-green px-2 py-1 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <LightBulbIcon />
                 {isSuggestingPrice ? "Analyzing..." : "Suggest Price"}
@@ -536,6 +333,7 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
         </div>
       </div>
 
+      {/* --- Inventory & Status Section --- */}
       <div className="space-y-6">
         <div className="pb-5 border-b border-gray-200">
           <h2 className="text-xl font-bold text-google-green">
@@ -590,6 +388,7 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
         </div>
       </div>
 
+      {/* --- Product Images Section --- */}
       <div className="space-y-6">
         <div className="pb-5 border-b border-gray-200">
           <h2 className="text-xl font-bold text-google-yellow">
@@ -608,22 +407,27 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
             value={formData.images[0].url}
             onChange={handleChange}
             placeholder="https://example.com/image.png"
+            required // Ensure at least one image URL is provided
           />
+           {/* You could add more image inputs here later */}
         </div>
       </div>
 
+      {/* --- Form Actions --- */}
       <div className="flex justify-end items-center gap-4 pt-5 border-t border-gray-200">
         <button
           type="button"
           onClick={() => navigate("/artisan/products")}
-          className="bg-gray-100 text-gray-800 font-bold px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors"
+          // Consistent secondary button style
+          className="bg-gray-100 text-gray-800 font-semibold px-6 py-2.5 rounded-lg hover:bg-gray-200 transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={formLoading}
-          className="bg-google-blue text-white font-bold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:bg-blue-300 disabled:cursor-not-allowed"
+          // Consistent primary button style
+          className="bg-google-blue text-white font-bold px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {formLoading
             ? "Saving..."
@@ -640,106 +444,137 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
 const ProductEditPage = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  // const { user, logout } = useAuth(); // Removed
 
   const [initialData, setInitialData] = useState(null);
-  const [pageLoading, setPageLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true); // Start loading true
   const [pageError, setPageError] = useState("");
 
   const isEditMode = !!productId;
 
   useEffect(() => {
+    // Only fetch if in edit mode
     if (isEditMode) {
-      setPageLoading(true);
       const fetchProduct = async () => {
         try {
           const response = await api.get(`/products/${productId}`);
           setInitialData(response.data);
+          setPageError(''); // Clear error on successful fetch
         } catch (err) {
-          setPageError("Failed to fetch product data. Please try again.");
+          setPageError('Failed to fetch product data. Please check the ID or try again.');
           console.error(err);
+          setInitialData(null); // Clear initial data on error
         } finally {
           setPageLoading(false);
         }
       };
       fetchProduct();
+    } else {
+        // If creating new, stop loading immediately
+        setPageLoading(false);
+        setInitialData(null); // Ensure no old data persists
     }
-  }, [productId, isEditMode]);
+  }, [productId, isEditMode]); // Depend on productId and isEditMode
 
   const handleFormSubmit = async (formData) => {
-    // --- FIX: Data cleaning and type conversion before submission ---
+    // --- Data cleaning and type conversion ---
     const payload = {
       ...formData,
-      // Convert price to a floating-point number
       price: parseFloat(formData.price),
-      // Convert inventory quantity to an integer
       inventory: {
         ...formData.inventory,
-        quantity: parseInt(formData.inventory.quantity, 10),
+        // Ensure quantity is a number, default to 0 if invalid or unlimited
+        quantity: formData.inventory.isUnlimited ? 0 : parseInt(formData.inventory.quantity, 10) || 0,
       },
-      // Filter out any image objects that have an empty URL
-      images: formData.images.filter((img) => img.url && img.url.trim() !== ""),
+      // Filter out empty images and ensure alt text exists
+      images: formData.images
+        .filter((img) => img.url && img.url.trim() !== '')
+        .map(img => ({ url: img.url, alt: img.alt || formData.name || 'Product Image' })), // Add default alt text
     };
 
+    // Basic validation before sending
+    if (isNaN(payload.price) || payload.price < 0) {
+      throw new Error("Invalid price entered.");
+    }
+    if (!formData.inventory.isUnlimited && (isNaN(payload.inventory.quantity) || payload.inventory.quantity < 0)) {
+       throw new Error("Invalid quantity entered.");
+    }
     if (payload.images.length === 0) {
       throw new Error("At least one valid image URL is required.");
     }
 
+
     try {
+      let response;
       if (isEditMode) {
-        await api.put(`/products/${productId}`, payload);
-        alert("Product updated successfully!");
+        response = await api.put(`/products/${productId}`, payload);
+        // Use Snackbar here instead of alert
+        console.log("Product updated successfully!");
+        // alert("Product updated successfully!"); 
       } else {
-        await api.post("/products", payload);
-        alert("Product created successfully!");
+        response = await api.post("/products", payload);
+         // Use Snackbar here instead of alert
+        console.log("Product created successfully!");
+       // alert("Product created successfully!");
       }
-      navigate("/artisan/products");
+      navigate("/artisan/products"); // Redirect after success
     } catch (error) {
       console.error("Failed to submit form:", error);
-      throw new Error(
-        error.response?.data?.errors[0]?.msg ||
-          error.response?.data?.message ||
-          "Failed to save product."
-      );
+      // Try to get a specific error message from the backend response
+      const backendError = error.response?.data?.errors?.[0]?.msg || error.response?.data?.message;
+      throw new Error( backendError || "Failed to save product. Please check your input and try again.");
     }
   };
-
-  if (pageLoading) {
+  
+  // --- Loading State ---
+  // Renders only when fetching data in edit mode
+  if (pageLoading && isEditMode) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        {" "}
-        <h2 className="text-xl font-semibold">Loading Product...</h2>{" "}
-      </div>
-    );
-  }
-  if (pageError) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        {" "}
-        <p className="text-xl text-red-600">{pageError}</p>{" "}
-      </div>
+        // Simple loading indicator centered
+        <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]">
+            <div className="text-xl font-semibold text-google-blue animate-pulse">Loading Product Details...</div>
+        </div>
     );
   }
 
+  // --- Error State ---
+  // Renders if fetching data failed in edit mode
+  if (pageError && isEditMode) {
+    return (
+        <div className="flex flex-col justify-center items-center min-h-[calc(100vh-10rem)] px-6 text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Product</h2>
+            <p className="text-red-500 mb-6">{pageError}</p>
+            <button
+              onClick={() => navigate('/artisan/products')}
+              className="bg-google-blue text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Back to Products
+            </button>
+        </div>
+    );
+  }
+
+  // --- Main Return (Form is always rendered for create, or after load/error check for edit) ---
   return (
     <>
-      <ArtisanHeader user={user} logout={logout} />
-      <main className="pt-24 bg-gray-50 font-sans container mx-auto px-6 py-16 min-h-screen">
-        <AnimatedSection className="mb-12">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-6 bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-            <div className="flex items-center gap-6">
-              <div className="text-google-blue hidden sm:block">
-                <PencilAltIcon />
+      {/* <ArtisanHeader ... /> Removed */}
+
+      {/* Page content wrapper with padding */}
+      {/* Using container mx-auto for forms is often good for readability on wide screens */}
+      <div className="container mx-auto px-6 py-12"> {/* Reduced py-16 to py-12 */}
+        <AnimatedSection className="mb-8"> {/* Reduced mb-12 to mb-8 */}
+          <div className="flex flex-col md:flex-row justify-between items-start gap-6 bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
+            <div className="flex items-center gap-4 md:gap-6">
+              <div className="text-google-blue hidden sm:block flex-shrink-0">
+                <PencilAltIcon /> {/* Icon stays */}
               </div>
               <div>
-                <h1 className="text-4xl font-extrabold text-gray-800">
+                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800">
                   {isEditMode ? "Edit Product" : "Add New Product"}
                 </h1>
-                <p className="mt-1 text-gray-600">
+                <p className="mt-1 text-gray-600 text-sm md:text-base">
                   {isEditMode
-                    ? `You are currently editing "${
-                        initialData?.name || "product"
-                      }".`
+                    ? `Update the details for "${initialData?.name || "your product"}".` // Updated text
                     : "Fill out the form below to add a new creation to your portfolio."}
                 </p>
               </div>
@@ -748,13 +583,15 @@ const ProductEditPage = () => {
         </AnimatedSection>
 
         <AnimatedSection>
+          {/* Pass initialData (which could be null for create mode) */}
           <ProductFormFields
-            initialData={initialData}
+            initialData={initialData} 
             onSubmit={handleFormSubmit}
           />
         </AnimatedSection>
-      </main>
-      <Footer />
+      </div>
+
+      {/* <Footer /> Removed */}
     </>
   );
 };

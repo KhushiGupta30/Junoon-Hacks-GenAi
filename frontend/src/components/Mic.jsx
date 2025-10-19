@@ -1,189 +1,236 @@
 import React, { useState, useEffect, useRef } from 'react';
-import api from '../api/axiosConfig';
+import api from '../api/axiosConfig'; // Adjust path if needed
 
-const MicIcon = ({ className = "w-8 h-8" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12 14a3 3 0 003-3V5a3 3 0 00-6 0v6a3 3 0 003 3zM19 10a1 1 0 112 0 7 7 0 01-14 0 1 1 0 112 0 5 5 0 0010 0zM12 21a7 7 0 007-7h-2a5 5 0 01-10 0H5a7 7 0 007 7z"/>
-  </svg>
-);
-const XIcon = ({ className = "w-6 h-6" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-  </svg>
-);
+// --- Import Icons ---
+import { GoogleMicIcon, XIcon } from './common/Icons'; // Adjust path if needed
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 const Mic = () => {
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const [aiReply, setAiReply] = useState("");
-  const [statusText, setStatusText] = useState("Click the mic to start");
-  const [showSpeakHint, setShowSpeakHint] = useState(true);
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+    const [transcript, setTranscript] = useState("");
+    const [aiReply, setAiReply] = useState("");
+    const [statusText, setStatusText] = useState("Tap the mic to start");
+    const [showSpeakHint, setShowSpeakHint] = useState(true);
 
-  const recognitionRef = useRef(null);
+    const recognitionRef = useRef(null);
+    const panelContentRef = useRef(null); // Ref for scrolling
 
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSpeakHint(false), 120000);
-    return () => clearTimeout(timer);
-  }, []);
+    // Hide hint after 5 seconds
+    useEffect(() => {
+        const timer = setTimeout(() => setShowSpeakHint(false), 5000);
+        return () => clearTimeout(timer);
+    }, []);
 
-  useEffect(() => {
-    if (!SpeechRecognition) {
-      console.error("SpeechRecognition API not supported in this browser.");
-      setStatusText("Voice recognition not supported.");
-      return;
-    }
-
-    recognitionRef.current = new SpeechRecognition();
-    const recognition = recognitionRef.current;
-    recognition.continuous = false;
-    recognition.lang = 'en-US';
-    recognition.interimResults = true;
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      setStatusText("Listening...");
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      setStatusText("Click the mic to start");
-    };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
-      setIsListening(false);
-
-      let errorMessage = event.error;
-      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        errorMessage = "Microphone access denied. Please allow it in your browser settings and ensure you are on a secure (HTTPS) connection.";
-      } else if (event.error === 'no-speech') {
-        errorMessage = "No speech was detected. Please try again.";
-      } else if (event.error === 'network') {
-        errorMessage = "Network error. Ensure you are on HTTPS and have a stable connection.";
-      }
-      
-      setStatusText(`Error: ${errorMessage}`);
-    };
-
-    recognition.onresult = async (event) => {
-      const currentTranscript = Array.from(event.results)
-        .map(result => result[0])
-        .map(result => result.transcript)
-        .join('');
-      
-      setTranscript(currentTranscript);
-
-      if (event.results[0].isFinal) {
-        setStatusText("Thinking...");
-        try {
-          const response = await api.post('/ai/assistant', { prompt: currentTranscript });
-          const replyText = response.data.reply;
-          setAiReply(replyText);
-          speak(replyText);
-        } catch (error) {
-          const errorMessage = "Sorry, I had a problem responding.";
-          setAiReply(errorMessage);
-          speak(errorMessage);
-          console.error("AI Assistant API error:", error);
+    // Setup Speech Recognition
+    useEffect(() => {
+        if (!SpeechRecognition) {
+            console.error("SpeechRecognition API not supported in this browser.");
+            setStatusText("Voice recognition not supported.");
+            return;
         }
-      }
+
+        recognitionRef.current = new SpeechRecognition();
+        const recognition = recognitionRef.current;
+        recognition.continuous = false; // Process after each pause
+        recognition.lang = 'en-US';
+        recognition.interimResults = true; // Show results as they come in
+
+        recognition.onstart = () => {
+            setIsListening(true);
+            setStatusText("Listening...");
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+            // Don't reset status immediately if thinking, wait for API response or error
+            if (statusText === "Listening...") {
+                setStatusText("Tap the mic to start");
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Speech recognition error:", event.error);
+            setIsListening(false);
+            let errorMessage = "Sorry, I didn't catch that."; // Simpler default
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                errorMessage = "Microphone access denied.";
+            } else if (event.error === 'no-speech') {
+                errorMessage = "Didn't hear anything.";
+            } else if (event.error === 'network') {
+                errorMessage = "Network error. Please try again.";
+            }
+            setStatusText(errorMessage);
+        };
+
+        recognition.onresult = async (event) => {
+            const currentTranscript = Array.from(event.results)
+                .map(result => result[0])
+                .map(result => result.transcript)
+                .join('');
+
+            setTranscript(currentTranscript);
+
+            // Once speech is final
+            if (event.results[0].isFinal) {
+                setStatusText("Thinking...");
+                try {
+                    // Small delay for UX
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    const response = await api.post('/ai/assistant', { prompt: currentTranscript });
+                    const replyText = response.data.reply;
+                    setAiReply(replyText);
+                    setStatusText("Tap the mic to start"); // Reset status after reply
+                    speak(replyText); // Speak the reply
+                } catch (error) {
+                    const errorMessage = "Sorry, I had trouble responding.";
+                    setAiReply(errorMessage);
+                    setStatusText("Tap the mic to start"); // Reset status after error
+                    speak(errorMessage); // Speak the error message
+                    console.error("AI Assistant API error:", error);
+                }
+            }
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [statusText]); // Rerun setup if statusText changes (mainly for reset logic)
+
+    // Text-to-Speech function
+    const speak = (text) => {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // Cancel any previous speech
+            const utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
+        }
     };
-  }, []);
 
+    // Toggle listening state
+    const handleMicClick = () => {
+        if (!recognitionRef.current) return;
 
-  const speak = (text) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); 
-      const utterance = new SpeechSynthesisUtterance(text);
-      window.speechSynthesis.speak(utterance);
-    }
-  };
+        if (isListening) {
+            recognitionRef.current.stop();
+        } else {
+            setTranscript(""); // Clear previous transcript
+            setAiReply("");   // Clear previous reply
+            recognitionRef.current.start();
+        }
+    };
 
-  const handleMicClick = () => {
-    if (!recognitionRef.current) {
-        return;
-    }
+    // Close the panel and stop listening/speaking
+    const closePanel = () => {
+        setIsPanelOpen(false);
+        if (recognitionRef.current && isListening) {
+            recognitionRef.current.stop();
+        }
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        setStatusText("Tap the mic to start"); // Reset status on close
+    };
 
-    if (isListening) {
-      recognitionRef.current.stop();
-    } else {
-      setTranscript("");
-      setAiReply("");
-      recognitionRef.current.start();
-    }
-  };
-  
-  const closePanel = () => {
-    setIsPanelOpen(false);
-    if (recognitionRef.current && isListening) {
-        recognitionRef.current.stop();
-    }
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-    }
-  }
+    // Auto-scroll chat area
+    useEffect(() => {
+        if (panelContentRef.current) {
+            panelContentRef.current.scrollTop = panelContentRef.current.scrollHeight;
+        }
+    }, [transcript, aiReply]);
 
-  return (
-    <>
-      <div className="relative">
-        {showSpeakHint && (
-          <div className="fixed bottom-28 right-8 bg-google-yellow text-white px-4 py-2 rounded-full shadow-lg animate-bounce text-sm font-semibold z-50">
-            Speak to me 🎤
-          </div>
-        )}
-        <button
-          onClick={() => setIsPanelOpen(true)}
-          className={`fixed bottom-8 right-8 z-[99] bg-google-blue text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl focus:outline-none ${isPanelOpen ? 'opacity-0 scale-0' : 'opacity-100 scale-100'}`}
-          aria-label="Open AI Assistant"
-        >
-          <MicIcon />
-        </button>
-      </div>
+    return (
+        <>
+            {/* --- Floating Action Button (FAB) --- */}
+            <div className="fixed bottom-6 right-6 z-[90]">
+                {showSpeakHint && !isPanelOpen && (
+                    <div className="absolute bottom-full right-0 mb-2 w-max bg-gray-700 text-white px-3 py-1 rounded-md shadow-lg text-xs font-medium animate-fade-in-down">
+                        Speak to me ✨
+                    </div>
+                )}
+                <button
+                    onClick={() => setIsPanelOpen(true)}
+                    // Increased size (w-18 h-18) and added border
+                    className={`bg-white w-18 h-18 rounded-2xl flex items-center justify-center shadow-lg border border-gray-200 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-blue transform transition-all duration-300 ease-in-out hover:scale-105 ${isPanelOpen ? 'opacity-0 scale-0 pointer-events-none' : 'opacity-100 scale-100'}`}
+                    aria-label="Open AI Assistant"
+                >
+                    {/* Increased icon size */}
+                    <GoogleMicIcon className="w-8 h-8" isListening={true} />
+                </button>
+            </div>
 
-      <div
-        className={`fixed bottom-8 right-8 z-[100] w-[90vw] max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 ease-in-out ${isPanelOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}
-      >
-        <div className="flex justify-between items-center p-4 bg-gray-50 border-b">
-          <h3 className="font-bold text-gray-800 text-lg">KalaGhar AI Assistant</h3>
-          <button onClick={closePanel} className="text-gray-500 hover:text-gray-800">
-            <XIcon />
-          </button>
-        </div>
-        <div className="p-6 space-y-4 h-80 flex flex-col">
-          <div className="flex-grow overflow-y-auto space-y-4">
-            {transcript && (
-              <div className="p-3 bg-google-blue/10 rounded-lg text-right">
-                <p className="text-sm font-semibold text-google-blue mb-1">You said:</p>
-                <p className="text-gray-700">{transcript}</p>
-              </div>
-            )}
-            {aiReply && (
-              <div className="p-3 bg-gray-100 rounded-lg">
-                <p className="text-sm font-semibold text-gray-600 mb-1">AI Replied:</p>
-                <p className="text-gray-800">{aiReply}</p>
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col items-center justify-center pt-4">
-            <button
-              onClick={handleMicClick}
-              disabled={!SpeechRecognition}
-              className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-colors duration-300 ${isListening ? 'bg-red-500' : 'bg-google-blue hover:bg-google-blue/90'} focus:outline-none focus:ring-4 focus:ring-google-blue/30 disabled:bg-gray-400`}
+            {/* --- Assistant Panel (Bottom Sheet Style) --- */}
+            {/* Overlay */}
+            <div
+                className={`fixed inset-0 z-[95] bg-black/30 transition-opacity duration-300 ease-in-out ${isPanelOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                onClick={closePanel}
+                aria-hidden="true"
+            />
+
+            {/* Panel */}
+            <div
+                className={`fixed bottom-0 left-0 right-0 z-[100] w-full max-w-xl mx-auto bg-white rounded-t-2xl shadow-2xl overflow-hidden transform transition-transform duration-300 ease-in-out ${isPanelOpen ? 'translate-y-0' : 'translate-y-full'}`}
+                style={{ maxHeight: '75vh' }} // Limit height
             >
-              <MicIcon className="w-10 h-10 text-white" />
-              {isListening && (
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              )}
-            </button>
-            <p className="mt-4 text-gray-600 text-sm font-medium text-center">{statusText}</p>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+                {/* Panel Header */}
+                <div className="flex justify-between items-center p-4 border-b border-gray-200">
+                    <h3 className="font-semibold text-gray-700 text-base">AI Assistant</h3>
+                    <button onClick={closePanel} className="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100">
+                        <XIcon className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Panel Content (Scrollable Chat + Fixed Mic Button) */}
+                <div className="h-[60vh] flex flex-col"> {/* Fixed height for content area */}
+                    {/* Chat/Transcript Area */}
+                    <div ref={panelContentRef} className="flex-grow overflow-y-auto p-4 space-y-4">
+                        {/* User transcript bubble */}
+                        {transcript && (
+                            <div className="flex justify-end">
+                                <div className="bg-google-blue text-white p-3 rounded-xl rounded-br-none max-w-[80%]">
+                                    <p className="text-sm">{transcript}</p>
+                                </div>
+                            </div>
+                        )}
+                        {/* AI reply bubble */}
+                        {aiReply && (
+                            <div className="flex justify-start">
+                                <div className="bg-gray-100 text-gray-800 p-3 rounded-xl rounded-bl-none max-w-[80%]">
+                                    <p className="text-sm">{aiReply}</p>
+                                </div>
+                            </div>
+                        )}
+                        {/* Thinking indicator */}
+                        {statusText === "Thinking..." && (
+                            <div className="flex justify-start">
+                                <div className="bg-gray-100 text-gray-500 p-3 rounded-xl rounded-bl-none inline-flex items-center space-x-2">
+                                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75"></span>
+                                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></span>
+                                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-300"></span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Mic Button Area */}
+                    <div className="flex flex-col items-center justify-center p-4 border-t border-gray-200 bg-white">
+                        <button
+                            onClick={handleMicClick}
+                            disabled={!SpeechRecognition}
+                            className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-google-blue/30 disabled:opacity-50 ${isListening ? 'bg-white shadow-inner' : 'bg-white shadow-md hover:shadow-lg'}`}
+                            aria-label={isListening ? "Stop listening" : "Start listening"}
+                        >
+                            <GoogleMicIcon className="w-8 h-8" isListening={isListening} />
+                            {/* Optional pulse when listening */}
+                            {isListening && (
+                                <span className="absolute inset-0 rounded-full border-4 border-blue-200 animate-pulse"></span>
+                            )}
+                        </button>
+                        <p className="mt-3 text-gray-500 text-xs font-medium text-center h-4"> {/* Fixed height */}
+                            {statusText}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
 };
 
 export default Mic;
