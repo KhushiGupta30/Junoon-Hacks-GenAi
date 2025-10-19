@@ -13,6 +13,70 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const getInternalPlatformUpdates = async (userId) => {
+  // Mock implementation - replace with actual database queries
+  return {
+    marketTrends: {
+      trending: "Block Printing",
+      demandIncrease: "+45% this month",
+      topCategory: "Textiles"
+    },
+    fundingOpportunities: [
+      {
+        name: "Craft Innovation Grant",
+        amount: "₹50,000",
+        deadline: "30 days",
+        eligibility: "For artisans with 6+ months on platform"
+      }
+    ],
+    communityHighlights: [
+      {
+        type: "success_story",
+        title: "Local artisan reaches ₹1L in sales",
+        artisan: "Priya from Jaipur"
+      },
+      {
+        type: "new_feature",
+        title: "Video uploads now available for products",
+        description: "Showcase your craft process"
+      }
+    ],
+    personalMilestones: {
+      daysOnPlatform: 120,
+      totalSales: 45,
+      nextMilestone: "50 sales - unlock Premium Badge"
+    }
+  };
+};
+
+const searchWebForEvents = async (query, location) => {
+  // Mock implementation - in production, integrate with an events API
+  // You could use Google Events API, Eventbrite API, or web scraping
+  return [
+    {
+      title: `${query} Workshop`,
+      location: `${location} Craft Center`,
+      date: "Next Saturday, 10 AM",
+      description: `Learn advanced ${query} techniques from master artisans`,
+      registrationUrl: "https://example.com/register"
+    },
+    {
+      title: `${location} Artisan Market`,
+      location: `Central ${location}`,
+      date: "This Sunday, 9 AM - 6 PM",
+      description: "Monthly market featuring local handicrafts",
+      registrationUrl: "https://example.com/market"
+    },
+    {
+      title: "Traditional Crafts Exhibition",
+      location: `${location} Museum`,
+      date: "Opening next week",
+      description: `Featuring ${query} and other traditional crafts`,
+      registrationUrl: "https://example.com/exhibition"
+    }
+  ];
+};
+
 const extractJson = (text) => {
   const jsonMatch = text.match(/```json\s*(\{[\s\S]*?\})\s*```|(\{[\s\S]*?\})/);
   if (jsonMatch) {
