@@ -16,7 +16,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import ArtisanLayout from './components/layout/ArtisanLayout.jsx'// Make sure this path is correct
 
 // --- Your Artisan Pages ---
-import ArtisanDashboardPage from './pages/artisan/artisandashboard';
+import ArtisanDashboardPage from './pages/artisan/ArtisanDashboard.jsx';
 import MyProductsPage from './pages/artisan/MyProductsPage.jsx';
 import ProductEditPage from './pages/artisan/ProductEditPage.jsx';
 import MyOrdersPage from './pages/artisan/MyOrdersPage.jsx';
