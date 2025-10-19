@@ -1,15 +1,18 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
-const Product = require('../models/Product');
+const UserService = require('../services/UserService');
+const ProductService = require('../services/ProductService');
 const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
 router.get('/profile', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    res.json(user);
+    const user = await UserService.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(UserService.toJSON(user));
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ message: 'Server error while fetching profile' });
@@ -30,15 +33,11 @@ router.put('/profile', auth, async (req, res) => {
       }
     });
 
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      updates,
-      { new: true, runValidators: true }
-    );
+    const user = await UserService.update(req.user.id, updates);
 
     res.json({
       message: 'Profile updated successfully',
-      user
+      user: UserService.toJSON(user)
     });
   } catch (error) {
     console.error('Update profile error:', error);
@@ -51,19 +50,21 @@ router.get('/artisans', async (req, res) => {
     const { page = 1, limit = 12, location, specialty } = req.query;
 
     const filter = { role: 'artisan' };
-    if (location) filter['profile.location.city'] = new RegExp(location, 'i');
-    if (specialty) filter['artisanProfile.craftSpecialty'] = { $in: [specialty] };
+    if (location) filter['profile.location.city'] = location;
+    if (specialty) filter['artisanProfile.craftSpecialty'] = specialty;
 
-    const skip = (page - 1) * limit;
-    const artisans = await User.find(filter)
-      .select('-password')
-      .skip(skip)
-      .limit(parseInt(limit));
+    const options = {
+      limit: parseInt(limit),
+      offset: (page - 1) * limit
+    };
 
-    const total = await User.countDocuments(filter);
+    const artisans = await UserService.findMany(filter, options);
+    const sanitizedArtisans = artisans.map(user => UserService.toJSON(user));
+
+    const total = await UserService.count(filter);
 
     res.json({
-      artisans,
+      artisans: sanitizedArtisans,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / limit),
@@ -78,29 +79,26 @@ router.get('/artisans', async (req, res) => {
 
 router.get('/artisans/:id', async (req, res) => {
   try {
-    const artisan = await User.findById(req.params.id).select('-password');
+    const artisan = await UserService.findById(req.params.id);
 
     if (!artisan || artisan.role !== 'artisan') {
       return res.status(404).json({ message: 'Artisan not found' });
     }
 
-    const products = await Product.find({ 
-      artisan: req.params.id, 
-      status: 'active' 
-    }).select('name images price category averageRating totalReviews');
+    const products = await ProductService.findActive({ 
+      artisan: req.params.id
+    }, {
+      limit: 50
+    });
 
-    artisan.stats.profileViews += 1;
-    await artisan.save();
+    await UserService.incrementProfileViews(artisan.id);
 
     res.json({
-      artisan,
+      artisan: UserService.toJSON(artisan),
       products
     });
   } catch (error) {
     console.error('Get artisan error:', error);
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Artisan not found' });
-    }
     res.status(500).json({ message: 'Server error while fetching artisan' });
   }
 });
@@ -112,13 +110,15 @@ router.get('/my-products', [auth, authorize('artisan')], async (req, res) => {
     const filter = { artisan: req.user.id };
     if (status) filter.status = status;
 
-    const skip = (page - 1) * limit;
-    const products = await Product.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+    const options = {
+      limit: parseInt(limit),
+      offset: (page - 1) * limit,
+      sortBy: 'createdAt',
+      sortOrder: 'desc'
+    };
 
-    const total = await Product.countDocuments(filter);
+    const products = await ProductService.findMany(filter, options);
+    const total = await ProductService.count(filter);
 
     res.json({
       products,

@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult, query } = require('express-validator');
-const Product = require('../models/Product');
-const User = require('../models/User');
+const ProductService = require('../services/ProductService');
+const UserService = require('../services/UserService');
 const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
@@ -42,24 +42,40 @@ router.get('/', [
     }
     if (artisan) filter.artisan = artisan;
     if (search) {
-      filter.$text = { $search: search };
+      // Note: Firestore doesn't have full-text search built-in
+      // You might want to implement this using Algolia or similar
+      console.log('Search functionality needs to be implemented with external service');
     }
 
-    const sort = {};
-    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+    const options = {
+      sortBy,
+      sortOrder,
+      limit: parseInt(limit),
+      offset: (page - 1) * limit
+    };
 
-    const skip = (page - 1) * limit;
-    const products = await Product.find(filter)
-      .populate('artisan', 'name profile.avatar profile.location.city')
-      .sort(sort)
-      .skip(skip)
-      .limit(parseInt(limit));
+    const products = await ProductService.findActive(filter, options);
+    
+    // Populate artisan data for each product
+    const populatedProducts = await Promise.all(
+      products.map(async (product) => {
+        const artisan = await UserService.findById(product.artisan);
+        return {
+          ...product,
+          artisan: artisan ? {
+            id: artisan.id,
+            name: artisan.name,
+            profile: artisan.profile
+          } : null
+        };
+      })
+    );
 
-    const total = await Product.countDocuments(filter);
+    const total = await ProductService.count(filter);
     const totalPages = Math.ceil(total / limit);
 
     res.json({
-      products,
+      products: populatedProducts,
       pagination: {
         currentPage: parseInt(page),
         totalPages,
@@ -76,24 +92,46 @@ router.get('/', [
 
 router.get('/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id)
-
-      .populate('artisan', 'name email profile.avatar profile.bio profile.location')
-      .populate('reviews.user', 'name profile.avatar');
+    const product = await ProductService.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    product.stats.views += 1;
-    await product.save();
+    // Populate artisan data
+    const artisan = await UserService.findById(product.artisan);
+    const populatedProduct = {
+      ...product,
+      artisan: artisan ? {
+        id: artisan.id,
+        name: artisan.name,
+        email: artisan.email,
+        profile: artisan.profile
+      } : null
+    };
 
-    res.json(product);
+    // Populate review user data
+    if (product.reviews && product.reviews.length > 0) {
+      populatedProduct.reviews = await Promise.all(
+        product.reviews.map(async (review) => {
+          const user = await UserService.findById(review.user);
+          return {
+            ...review,
+            user: user ? {
+              id: user.id,
+              name: user.name,
+              profile: user.profile
+            } : null
+          };
+        })
+      );
+    }
+
+    await ProductService.incrementViews(product.id);
+
+    res.json(populatedProduct);
   } catch (error) {
     console.error('Get product error:', error);
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Product not found' });
-    }
     res.status(500).json({ message: 'Server error while fetching product' });
   }
 });
@@ -116,11 +154,18 @@ router.post('/', [auth, authorize('artisan')], [
       artisan: req.user.id
     };
 
-    const product = new Product(productData);
-    await product.save();
+    const product = await ProductService.create(productData);
 
-    const populatedProduct = await Product.findById(product._id)
-      .populate('artisan', 'name profile.avatar profile.location.city');
+    // Populate artisan data
+    const artisan = await UserService.findById(product.artisan);
+    const populatedProduct = {
+      ...product,
+      artisan: artisan ? {
+        id: artisan.id,
+        name: artisan.name,
+        profile: artisan.profile
+      } : null
+    };
 
     res.status(201).json({
       message: 'Product created successfully',
@@ -134,25 +179,32 @@ router.post('/', [auth, authorize('artisan')], [
 
 router.put('/:id', [auth, authorize('artisan')], async (req, res) => {
   try {
-    let product = await Product.findById(req.params.id);
+    const product = await ProductService.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    if (product.artisan.toString() !== req.user.id) {
+    if (product.artisan !== req.user.id) {
       return res.status(403).json({ message: 'Access denied: You can only update your own products' });
     }
 
-    product = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    ).populate('artisan', 'name profile.avatar profile.location.city');
+    const updatedProduct = await ProductService.update(req.params.id, req.body);
+
+    // Populate artisan data
+    const artisan = await UserService.findById(updatedProduct.artisan);
+    const populatedProduct = {
+      ...updatedProduct,
+      artisan: artisan ? {
+        id: artisan.id,
+        name: artisan.name,
+        profile: artisan.profile
+      } : null
+    };
 
     res.json({
       message: 'Product updated successfully',
-      product
+      product: populatedProduct
     });
   } catch (error) {
     console.error('Update product error:', error);
@@ -162,17 +214,17 @@ router.put('/:id', [auth, authorize('artisan')], async (req, res) => {
 
 router.delete('/:id', [auth, authorize('artisan')], async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await ProductService.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    if (product.artisan.toString() !== req.user.id) {
+    if (product.artisan !== req.user.id) {
       return res.status(403).json({ message: 'Access denied: You can only delete your own products' });
     }
 
-    await Product.findByIdAndDelete(req.params.id);
+    await ProductService.delete(req.params.id);
 
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
@@ -191,32 +243,45 @@ router.post('/:id/reviews', [auth, authorize('buyer')], [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const product = await Product.findById(req.params.id);
+    const product = await ProductService.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const existingReview = product.reviews.find(
-      review => review.user.toString() === req.user.id
+    const existingReview = product.reviews?.find(
+      review => review.user === req.user.id
     );
 
     if (existingReview) {
       return res.status(400).json({ message: 'You have already reviewed this product' });
     }
 
-    const review = {
+    const reviewData = {
       user: req.user.id,
       rating: req.body.rating,
       comment: req.body.comment,
       images: req.body.images || []
     };
 
-    product.reviews.push(review);
-    product.calculateAverageRating();
-    await product.save();
+    const updatedProduct = await ProductService.addReview(req.params.id, reviewData);
 
-    const populatedProduct = await Product.findById(product._id)
-      .populate('reviews.user', 'name profile.avatar');
+    // Populate review user data
+    const populatedProduct = {
+      ...updatedProduct,
+      reviews: await Promise.all(
+        updatedProduct.reviews.map(async (review) => {
+          const user = await UserService.findById(review.user);
+          return {
+            ...review,
+            user: user ? {
+              id: user.id,
+              name: user.name,
+              profile: user.profile
+            } : null
+          };
+        })
+      )
+    };
 
     res.status(201).json({
       message: 'Review added successfully',

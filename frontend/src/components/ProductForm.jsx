@@ -1,41 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, NavLink, useParams, useNavigate } from 'react-router-dom';
-
-const api = {
-  get: async (url) => {
-    console.log(`Mock GET request to: ${url}`);
-    if (url.startsWith('/products/')) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        return { 
-            data: { 
-                product: {
-                    _id: '1', name: 'Hand-Painted Ceramic Mug', status: 'active', price: 25.00, inventory: { isUnlimited: false, quantity: 15 },
-                    description: 'A beautifully crafted mug, perfect for your morning coffee. Each piece is unique.', category: 'Pottery', 
-                    images: [{ url: 'https://placehold.co/600x400/34A853/FFFFFF?text=Mug', alt: 'Ceramic Mug' }]
-                } 
-            }
-        };
-    }
-    return { data: {} };
-  },
-  post: async (url, data) => {
-    console.log(`Mock POST to ${url} with data:`, data);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    if (url === '/ai/generate-description') {
-        return {
-            data: {
-                description: `Breathe in the aroma of freshly brewed coffee from a mug that's as unique as you are. This ${data.name} isn't just a piece of pottery; it's a small piece of art, lovingly handcrafted in the ${data.category} tradition. Each brushstroke tells a story, a testament to the artisan's skill and passion.\n\nCrafted from high-quality ceramic, its sturdy build and comfortable handle make it your perfect companion for cozy mornings and relaxing evenings. The vibrant, hand-painted design ensures that no two mugs are exactly alike, bringing a touch of individuality to your daily routine.\n\nWhether you're gifting it to a loved one or treating yourself, this mug is more than just a vessel—it's an experience, a celebration of craftsmanship that warms both your hands and your heart.`
-            }
-        };
-    }
-    return { data: { ...data, _id: 'new-product-id' } };
-  },
-  put: async (url, data) => {
-    console.log(`Mock PUT to ${url} with data:`, data);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return { data };
-  },
-};
+import api from '../api/axiosConfig';
 
 
 const useAuth = () => ({
