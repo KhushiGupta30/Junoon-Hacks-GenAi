@@ -1,9 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-// import { useAuth } from '../../context/AuthContext'; // Removed
-// import { NavLink } from 'react-router-dom'; // Removed
+import { Link, NavLink } from 'react-router-dom';
 
-// --- ANIMATED SECTION COMPONENT (Keep) ---
+// --- MOCK AUTH CONTEXT ---
+// In a real application, you would remove this and import useAuth from your context file.
+const useAuth = () => ({
+  user: {
+    name: 'Priya Sharma',
+    email: 'priya.sharma@example.com',
+    profile: {
+      avatar: 'https://placehold.co/100x100/EA4335/FFFFFF?text=P&font=roboto'
+    }
+  },
+  logout: () => console.log("User logged out!"),
+});
+
+// --- ANIMATED SECTION COMPONENT ---
 const AnimatedSection = ({ children, className = "" }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
@@ -18,10 +29,10 @@ const AnimatedSection = ({ children, className = "" }) => {
       },
       { threshold: 0.1 }
     );
-    const currentRef = ref.current; // Capture ref value
-    if (currentRef) observer.observe(currentRef);
-    
-    return () => { if (currentRef) observer.unobserve(currentRef); };
+    if (ref.current) observer.observe(ref.current);
+    return () => {
+      if (ref.current) observer.unobserve(ref.current);
+    };
   }, []);
 
   return (
@@ -36,19 +47,112 @@ const AnimatedSection = ({ children, className = "" }) => {
   );
 };
 
-// --- ICONS (Keep ones used by the page) ---
+// --- ICONS ---
+const MenuIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>);
 const XIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>);
+const LogoutIcon = () => (<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>);
 const UsersIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.125-1.273-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.125-1.273.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>);
 const StarIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 12l-2.293 2.293a1 1 0 01-1.414 0L4 12m13 1.414l2.293 2.293a1 1 0 010 1.414L14 20l-2.293-2.293a1 1 0 010-1.414l4.586-4.586z" /></svg>);
 const CalendarIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>);
 const ChatAlt2Icon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2V10a2 2 0 012-2h8z" /></svg>);
 
-// --- REMOVED ArtisanHeader component ---
+// --- HEADER & FOOTER COMPONENTS ---
+const ArtisanHeader = ({ user, logout }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef(null);
 
-// --- REMOVED Footer component ---
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) setIsProfileOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const navLinks = [
+    { name: 'Dashboard', href: '/artisan/dashboard' },
+    { name: 'Funding', href: '/artisan/grants' },
+    { name: 'Logistics', href: '/artisan/logistics' },
+    { name: 'Community', href: '/artisan/community' },
+  ];
+
+  const activeLinkStyle = "text-google-blue border-b-2 border-google-blue pb-1";
+  const inactiveLinkStyle = "hover:text-google-blue transition";
+
+  return (
+    <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
+      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+        <Link to="/artisan/dashboard" className="flex items-center space-x-3">
+          <img src="/logo.png" alt="KalaGhar Logo" className="h-10 w-10 object-contain" />
+          <h1 className="text-3xl font-bold text-gray-800 tracking-tighter">
+            Kala<span className="text-google-blue">Ghar</span>
+            <span className="text-lg font-medium text-gray-500 ml-3">Artisan Hub</span>
+          </h1>
+        </Link>
+        <nav className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">
+          {navLinks.map(link => (
+            <NavLink key={link.name} to={link.href} className={({ isActive }) => isActive ? activeLinkStyle : inactiveLinkStyle}>
+              {link.name}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="flex items-center space-x-4">
+          <div className="relative" ref={profileRef}>
+            <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center space-x-2 focus:outline-none">
+              <img src={user.profile?.avatar || 'https://placehold.co/100x100/4285F4/FFFFFF?text=A&font=roboto'} alt="Profile" className="h-10 w-10 rounded-full border-2 border-google-blue/50" />
+            </button>
+            {isProfileOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 animate-fade-in-down">
+                <div className="px-4 py-2 border-b">
+                  <p className="font-semibold text-gray-800 text-sm">{user.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                </div>
+                <button onClick={logout} className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
+                  <LogoutIcon /> Logout
+                </button>
+              </div>
+            )}
+          </div>
+          <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-gray-700">
+            <MenuIcon />
+          </button>
+        </div>
+      </div>
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/40 z-50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="fixed top-0 right-0 h-full w-64 bg-white shadow-xl p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold text-google-blue">Menu</h2>
+              <button onClick={() => setIsMobileMenuOpen(false)}><XIcon /></button>
+            </div>
+            <nav className="flex flex-col space-y-4">
+              {navLinks.map(link => (
+                <NavLink key={link.name} to={link.href} onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) => `px-3 py-2 rounded-md font-medium ${isActive ? 'bg-google-blue/10 text-google-blue' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  {link.name}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};
+
+const Footer = () => (
+  <footer className="bg-google-blue text-white">
+    <div className="container mx-auto px-6 py-12">
+      <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
+        &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.
+      </div>
+    </div>
+  </footer>
+);
 
 
-// --- MODAL COMPONENT for Ambassador Details (Keep) ---
+// --- MODAL COMPONENT for Ambassador Details ---
 const AmbassadorDetailModal = ({ ambassador, onClose }) => {
     const [show, setShow] = useState(false);
     useEffect(() => {
@@ -96,7 +200,7 @@ const AmbassadorDetailModal = ({ ambassador, onClose }) => {
 
 // --- MAIN COMMUNITY PAGE COMPONENT ---
 const CommunityPage = () => {
-  // const { user, logout } = useAuth(); // Removed
+  const { user, logout } = useAuth();
   const [communityData, setCommunityData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAmbassadorDetailOpen, setIsAmbassadorDetailOpen] = useState(false);
@@ -127,7 +231,6 @@ const CommunityPage = () => {
 
   useEffect(() => {
     setLoading(true);
-    // This uses mock data, but you would swap this for an API call
     const timer = setTimeout(() => {
       setCommunityData(mockCommunityData);
       setLoading(false);
@@ -135,10 +238,9 @@ const CommunityPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Simplified loading check. ProtectedRoute handles the !user case.
-  if (loading) {
+  if (loading || !user) {
     return (
-      <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]">
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
         <div className="text-google-blue text-xl font-semibold">Building your community connections...</div>
       </div>
     );
@@ -146,10 +248,8 @@ const CommunityPage = () => {
 
   return (
     <>
-      {/* <ArtisanHeader ... /> Removed */}
-
-      {/* The <main> tag is gone. This div provides the page's container and padding. */}
-      <div className="container mx-auto px-6 py-16">
+      <ArtisanHeader user={user} logout={logout} />
+      <main className="pt-24 bg-gray-50 font-sans container mx-auto px-6 py-16">
         {/* --- HERO SECTION --- */}
         <AnimatedSection>
           <div className="relative p-8 rounded-2xl shadow-xl mb-16 overflow-hidden bg-google-yellow">
@@ -168,7 +268,7 @@ const CommunityPage = () => {
                 </p>
               </div>
 
-              {/* Ambassador Card */}
+              {/* MODIFICATION: Ambassador Card container is now right-aligned on desktop */}
               <div className="w-full md:w-1/2 flex justify-center md:justify-end">
                 <div 
                   onClick={() => setIsAmbassadorDetailOpen(true)}
@@ -268,7 +368,7 @@ const CommunityPage = () => {
             </div>
           </div>
         </AnimatedSection>
-      </div>
+      </main>
 
       {isAmbassadorDetailOpen && (
         <AmbassadorDetailModal
@@ -277,7 +377,7 @@ const CommunityPage = () => {
         />
       )}
 
-      {/* <Footer /> Removed */}
+      <Footer />
     </>
   );
 };

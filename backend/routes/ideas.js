@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const Idea = require('../models/Idea');
+const IdeaService = require('../services/IdeaService');
+const UserService = require('../services/UserService');
 const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
@@ -12,17 +13,34 @@ router.get('/', async (req, res) => {
     const filter = { status: 'published' };
     if (category) filter.category = category;
 
-    const skip = (page - 1) * limit;
-    const ideas = await Idea.find(filter)
-      .populate('artisan', 'name profile.avatar')
-      .sort({ [sortBy]: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+    const options = {
+      sortBy,
+      sortOrder: 'desc',
+      limit: parseInt(limit),
+      offset: (page - 1) * limit
+    };
 
-    const total = await Idea.countDocuments(filter);
+    const ideas = await IdeaService.findPublished(filter, options);
+    
+    // Populate artisan data for each idea
+    const populatedIdeas = await Promise.all(
+      ideas.map(async (idea) => {
+        const artisan = await UserService.findById(idea.artisan);
+        return {
+          ...idea,
+          artisan: artisan ? {
+            id: artisan.id,
+            name: artisan.name,
+            profile: artisan.profile
+          } : null
+        };
+      })
+    );
+
+    const total = await IdeaService.count(filter);
 
     res.json({
-      ideas,
+      ideas: populatedIdeas,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / limit),
@@ -46,15 +64,21 @@ router.post('/', [auth, authorize('artisan')], [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const idea = new Idea({
+    const idea = await IdeaService.create({
       ...req.body,
       artisan: req.user.id
     });
 
-    await idea.save();
-
-    const populatedIdea = await Idea.findById(idea._id)
-      .populate('artisan', 'name profile.avatar');
+    // Populate artisan data
+    const artisan = await UserService.findById(idea.artisan);
+    const populatedIdea = {
+      ...idea,
+      artisan: artisan ? {
+        id: artisan.id,
+        name: artisan.name,
+        profile: artisan.profile
+      } : null
+    };
 
     res.status(201).json({
       message: 'Idea created successfully',
@@ -75,52 +99,20 @@ router.post('/:id/vote', auth, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const idea = await Idea.findById(req.params.id);
+    const idea = await IdeaService.findById(req.params.id);
     if (!idea) {
       return res.status(404).json({ message: 'Idea not found' });
     }
 
-    const existingVoteIndex = idea.votes.voters.findIndex(
-      voter => voter.user.toString() === req.user.id
-    );
-
     const { vote } = req.body;
 
-    if (existingVoteIndex !== -1) {
-      const existingVote = idea.votes.voters[existingVoteIndex];
-      
-      // Remove old vote counts
-      if (existingVote.vote === 'up') {
-        idea.votes.upvotes -= 1;
-      } else {
-        idea.votes.downvotes -= 1;
-      }
-
-      // Update vote
-      idea.votes.voters[existingVoteIndex].vote = vote;
-      idea.votes.voters[existingVoteIndex].date = new Date();
-    } else {
-      // Add new vote
-      idea.votes.voters.push({
-        user: req.user.id,
-        vote
-      });
-    }
-
-    // Add new vote counts
-    if (vote === 'up') {
-      idea.votes.upvotes += 1;
-    } else {
-      idea.votes.downvotes += 1;
-    }
-
-    await idea.save();
+    const updatedIdea = await IdeaService.addVote(req.params.id, req.user.id, vote);
 
     res.json({
       message: 'Vote recorded successfully',
       votes: {
-        upvotes: idea.votes.upvotes,
-        downvotes: idea.votes.downvotes,
+        upvotes: updatedIdea.votes.upvotes,
+        downvotes: updatedIdea.votes.downvotes,
         userVote: vote
       }
     });

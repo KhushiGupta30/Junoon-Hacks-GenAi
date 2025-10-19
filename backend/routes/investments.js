@@ -1,13 +1,13 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const Investment = require('../models/Investment');
-const User = require('../models/User');
+const InvestmentService = require('../services/InvestmentService');
+const UserService = require('../services/UserService');
 const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
 router.post('/', [auth, authorize('investor')], [
-  body('artisan').isMongoId().withMessage('Invalid artisan ID'),
+  body('artisan').notEmpty().withMessage('Artisan ID is required'),
   body('type').isIn(['grant', 'micro_loan', 'equity_investment', 'pre_order_funding']).withMessage('Invalid investment type'),
   body('amount').isFloat({ min: 1 }).withMessage('Amount must be at least $1'),
   body('purpose').isLength({ min: 10, max: 1000 }).withMessage('Purpose must be between 10 and 1000 characters')
@@ -18,21 +18,32 @@ router.post('/', [auth, authorize('investor')], [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const artisan = await User.findById(req.body.artisan);
+    const artisan = await UserService.findById(req.body.artisan);
     if (!artisan || artisan.role !== 'artisan') {
       return res.status(400).json({ message: 'Invalid artisan' });
     }
 
-    const investment = new Investment({
+    const investment = await InvestmentService.create({
       ...req.body,
       investor: req.user.id
     });
 
-    await investment.save();
-
-    const populatedInvestment = await Investment.findById(investment._id)
-      .populate('investor', 'name profile.avatar')
-      .populate('artisan', 'name profile.avatar artisanProfile');
+    // Populate investor and artisan data
+    const investor = await UserService.findById(investment.investor);
+    const populatedInvestment = {
+      ...investment,
+      investor: investor ? {
+        id: investor.id,
+        name: investor.name,
+        profile: investor.profile
+      } : null,
+      artisan: artisan ? {
+        id: artisan.id,
+        name: artisan.name,
+        profile: artisan.profile,
+        artisanProfile: artisan.artisanProfile
+      } : null
+    };
 
     res.status(201).json({
       message: 'Investment created successfully',
@@ -58,18 +69,41 @@ router.get('/', auth, async (req, res) => {
     if (status) filter.status = status;
     if (type) filter.type = type;
 
-    const skip = (page - 1) * limit;
-    const investments = await Investment.find(filter)
-      .populate('investor', 'name profile.avatar')
-      .populate('artisan', 'name profile.avatar artisanProfile.craftSpecialty')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+    const options = {
+      limit: parseInt(limit),
+      offset: (page - 1) * limit,
+      sortBy: 'createdAt',
+      sortOrder: 'desc'
+    };
 
-    const total = await Investment.countDocuments(filter);
+    const investments = await InvestmentService.findMany(filter, options);
+    
+    // Populate investor and artisan data
+    const populatedInvestments = await Promise.all(
+      investments.map(async (investment) => {
+        const investor = await UserService.findById(investment.investor);
+        const artisan = await UserService.findById(investment.artisan);
+        return {
+          ...investment,
+          investor: investor ? {
+            id: investor.id,
+            name: investor.name,
+            profile: investor.profile
+          } : null,
+          artisan: artisan ? {
+            id: artisan.id,
+            name: artisan.name,
+            profile: artisan.profile,
+            artisanProfile: artisan.artisanProfile
+          } : null
+        };
+      })
+    );
+
+    const total = await InvestmentService.count(filter);
 
     res.json({
-      investments,
+      investments: populatedInvestments,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / limit),

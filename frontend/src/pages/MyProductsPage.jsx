@@ -1,17 +1,62 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import api from '../../api/axiosConfig';
-// import { useAuth } from '../../context/AuthContext'; // Removed
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import api from '../api/axiosConfig';
+import { useAuth } from '../context/AuthContext';
 
-// --- ICONS (Keep ones used by this page) ---
+// --- ICONS ---
+const MenuIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>);
+const XIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>);
+const LogoutIcon = () => (<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>);
 const PlusIcon = () => (<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>);
 
-// --- REMOVED ArtisanHeader component ---
+// --- SHARED HEADER & FOOTER ---
+const ArtisanHeader = ({ user, logout }) => {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const profileRef = useRef(null);
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+        if (profileRef.current && !profileRef.current.contains(event.target)) setIsProfileOpen(false);
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+    const navLinks = [
+        { name: 'Dashboard', href: '/artisan/dashboard' },
+        { name: 'My Products', href: '/artisan/products' },
+        { name: 'Funding', href: '/artisan/grants' },
+        { name: 'Logistics', href: '/artisan/logistics' },
+    ];
+    const activeLinkStyle = "text-google-blue border-b-2 border-google-blue pb-1";
+    const inactiveLinkStyle = "hover:text-google-blue transition";
+    return (
+        <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+            <Link to="/artisan/dashboard" className="flex items-center space-x-3">
+            <img src="/logo.png" alt="KalaGhar Logo" className="h-10 w-10 object-contain" />
+            <h1 className="text-3xl font-bold text-gray-800 tracking-tighter">Kala<span className="text-google-blue">Ghar</span><span className="text-lg font-medium text-gray-500 ml-3">Artisan Hub</span></h1>
+            </Link>
+            <nav className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">{navLinks.map(link => (<NavLink key={link.name} to={link.href} className={({ isActive }) => isActive ? activeLinkStyle : inactiveLinkStyle}>{link.name}</NavLink>))}</nav>
+            <div className="flex items-center space-x-4">
+            <div className="relative" ref={profileRef}>
+                <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center space-x-2 focus:outline-none"><img src={user.profile?.avatar || '/default-avatar.png'} alt="Profile" className="h-10 w-10 rounded-full border-2 border-google-blue/50" /></button>
+                {isProfileOpen && (<div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 animate-fade-in-down"><div className="px-4 py-2 border-b"><p className="font-semibold text-gray-800 text-sm">{user.name}</p><p className="text-xs text-gray-500 truncate">{user.email}</p></div><button onClick={logout} className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"><LogoutIcon /> Logout</button></div>)}
+            </div>
+            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-gray-700"><MenuIcon /></button>
+            </div>
+        </div>
+        {isMobileMenuOpen && (<div className="fixed inset-0 bg-black/40 z-50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}><div className="fixed top-0 right-0 h-full w-64 bg-white shadow-xl p-5" onClick={(e) => e.stopPropagation()}><div className="flex justify-between items-center mb-6"><h2 className="text-lg font-semibold text-google-blue">Menu</h2><button onClick={() => setIsMobileMenuOpen(false)}><XIcon /></button></div><nav className="flex flex-col space-y-4">{navLinks.map(link => (<NavLink key={link.name} to={link.href} onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `px-3 py-2 rounded-md font-medium ${isActive ? 'bg-google-blue/10 text-google-blue' : 'text-gray-700 hover:bg-gray-100'}`}>{link.name}</NavLink>))}</nav></div></div>)}
+        </header>
+    );
+};
 
-// --- REMOVED Footer component ---
+const Footer = () => (
+    <footer className="bg-google-blue text-white">
+        <div className="container mx-auto px-6 py-12"><div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">&copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.</div></div>
+    </footer>
+);
 
 
-// --- PAGE-SPECIFIC COMPONENT (Keep) ---
 const ProductRow = ({ product, onDelete }) => (
     <tr className="border-b hover:bg-gray-50">
         <td className="p-4">
@@ -54,7 +99,7 @@ const ProductRow = ({ product, onDelete }) => (
 );
 
 const MyProductsPage = () => {
-    // const { user, logout } = useAuth(); // Removed
+    const { user, logout } = useAuth();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -95,10 +140,8 @@ const MyProductsPage = () => {
 
     return (
         <>
-            {/* <ArtisanHeader user={user} logout={logout} /> REMOVED */}
-
-            {/* Page content wrapper with padding */}
-            <div className="container mx-auto px-6 py-16">
+            <ArtisanHeader user={user} logout={logout} />
+            <main className="pt-24 bg-gray-50 font-sans container mx-auto px-6 py-16 min-h-screen">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-4xl font-extrabold text-gray-800">My Products</h1>
                     <Link to="/artisan/products/new" className="flex items-center bg-google-blue text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
@@ -136,9 +179,8 @@ const MyProductsPage = () => {
                         </div>
                     )}
                 </div>
-            </div>
-            
-            {/* <Footer /> REMOVED */}
+            </main>
+            <Footer />
         </>
     );
 };
