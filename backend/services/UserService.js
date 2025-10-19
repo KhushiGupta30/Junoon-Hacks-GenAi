@@ -7,7 +7,7 @@ class UserService extends BaseService {
   }
 
   async create(userData) {
-    // Hash password before saving
+    // Hash password before saving (if password provided)
     if (userData.password) {
       userData.password = await bcrypt.hash(userData.password, 12);
     }
@@ -19,7 +19,13 @@ class UserService extends BaseService {
     return await this.findOne({ email });
   }
 
+  // New method to find user by Firebase UID
+  async findByUID(firebaseUid) {
+    return await this.findOne({ firebaseUid });
+  }
+
   async comparePassword(user, candidatePassword) {
+    if (!user.password) return false;
     return await bcrypt.compare(candidatePassword, user.password);
   }
 
@@ -81,8 +87,9 @@ class UserService extends BaseService {
     return null;
   }
 
-  // Override toJSON to exclude password
+  // Override toJSON to exclude password but keep firebaseUid for auth
   toJSON(user) {
+    if (!user) return null;
     const userObj = { ...user };
     delete userObj.password;
     return userObj;

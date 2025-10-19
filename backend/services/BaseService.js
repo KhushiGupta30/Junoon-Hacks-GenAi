@@ -1,4 +1,4 @@
-const db = require('../firebase');
+const { db, admin } = require('../firebase');
 
 class BaseService {
   constructor(collectionName) {
