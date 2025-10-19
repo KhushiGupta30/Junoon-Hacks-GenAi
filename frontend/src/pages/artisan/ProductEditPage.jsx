@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link, NavLink, useParams, useNavigate } from "react-router-dom";
-import api from "../api/axiosConfig";
-import { useAuth } from "../context/AuthContext";
+import api from "../../api/axiosConfig";
+import { useAuth } from "../../context/AuthContext";
 
 const AnimatedSection = ({ children, className = "" }) => {
   const [isVisible, setIsVisible] = useState(false);
