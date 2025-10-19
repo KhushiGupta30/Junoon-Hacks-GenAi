@@ -1,27 +1,39 @@
+// src/components/artisan/StatCard.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const StatCardContent = ({ stat }) => (
-  <div className={`bg-white p-6 rounded-2xl shadow-lg flex flex-col justify-between h-full border-l-8 ${stat.borderColor} transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl`}>
-    <div className="flex items-center justify-between mb-4">
-      <div className={`p-3 rounded-full ${stat.bgColor}/10 ${stat.color}`}>{stat.icon}</div>
-      <p className="text-gray-500 text-sm font-medium">{stat.title}</p>
+// New Google-like Stat Card Design
+const StatCard = ({ stat }) => {
+  // Determine if it's a link or just display
+  const CardContent = () => (
+    <div className={`bg-white p-5 md:p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-200 ease-in-out h-full flex flex-col`}>
+      <div className="flex items-center justify-between mb-4">
+        {/* Title */}
+        <p className="text-sm font-medium text-gray-500">{stat.title}</p>
+        {/* Icon with subtle background color */}
+        <div className={`p-2 rounded-full ${stat.bgColor}/10 ${stat.color}`}>
+           {React.cloneElement(stat.icon, { className: 'h-5 w-5' })} {/* Smaller Icon */}
+        </div>
+      </div>
+      <div className="mt-auto"> {/* Pushes value and description down if needed */}
+        {/* Value - Make this prominent */}
+        <p className="text-3xl md:text-4xl font-bold text-gray-800 mb-1">{stat.value}</p>
+        {/* Description (Optional) */}
+        {stat.description && <p className="text-xs text-gray-600">{stat.description}</p>}
+      </div>
     </div>
-    <div>
-      <p className="text-3xl font-extrabold text-gray-800 mb-1">{stat.value}</p>
-      <p className="text-sm text-gray-600">{stat.description}</p>
-    </div>
-  </div>
-);
+  );
 
-const StatCard = ({ stat }) => (
-  stat.link.startsWith('/') ?
+  // Wrap with Link if stat.link exists
+  return stat.link ? (
     <Link to={stat.link} className="block h-full">
-      <StatCardContent stat={stat} />
-    </Link> :
-    <a href={stat.link} className="block h-full cursor-pointer">
-      <StatCardContent stat={stat} />
-    </a>
-);
+      <CardContent />
+    </Link>
+  ) : (
+    <div className="block h-full cursor-default"> {/* Or make it clickable for details */}
+       <CardContent />
+    </div>
+  );
+};
 
 export default StatCard;

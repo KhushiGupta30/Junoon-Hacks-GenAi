@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { MenuIcon, LogoutIcon } from '../common/Icons'; // Removed XIcon + SearchIcon
+import { MenuIcon, LogoutIcon, BellIcon } from '../common/Icons'; // Added BellIcon
 
 const NavItem = ({ to, children }) => (
   <NavLink
@@ -21,12 +21,17 @@ const NavItem = ({ to, children }) => (
 
 const ArtisanHeader = ({ user, logout }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const profileRef = useRef(null);
+  const notifRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setIsProfileOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setIsNotifOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -42,6 +47,13 @@ const ArtisanHeader = ({ user, logout }) => {
     { name: 'Funding', href: '/artisan/grant' },
     { name: 'Community', href: '/artisan/community' },
     { name: 'Logistics', href: '/artisan/logistics' },
+  ];
+
+  // Dummy notifications
+  const notifications = [
+    { id: 1, text: 'Your product has been approved', time: '2h ago' },
+    { id: 2, text: 'New funding opportunity available', time: '5h ago' },
+    { id: 3, text: 'AI Trend report updated', time: '1d ago' },
   ];
 
   return (
@@ -73,10 +85,51 @@ const ArtisanHeader = ({ user, logout }) => {
             </nav>
           </div>
 
-          {/* --- Right: Profile --- */}
+          {/* --- Right: Notifications + Profile + Mobile Menu --- */}
           <div className="flex items-center space-x-4 flex-shrink-0">
+            {/* Notification Bell */}
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition relative"
+              >
+                <BellIcon className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                {/* Notification Badge */}
+                {notifications.length > 0 && (
+                  <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
+                )}
+              </button>
+
+              {/* Notification Dropdown */}
+              {isNotifOpen && (
+                <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl py-2 z-[60] border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                  <h3 className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700">
+                    Notifications
+                  </h3>
+                  <ul className="flex flex-col">
+                    {notifications.map((notif) => (
+                      <li
+                        key={notif.id}
+                        className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                      >
+                        <p>{notif.text}</p>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                          {notif.time}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="text-center mt-2">
+                    <button className="text-sm text-google-blue hover:underline">
+                      See all
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Profile */}
             <div className="relative" ref={profileRef}>
-              {/* Google Spin Wrapper */}
               <div
                 className={`p-0.5 rounded-full bg-[conic-gradient(from_0deg,#4285F4,#DB4437,#F4B400,#0F9D58,#4285F4)] 
                 transition-all duration-200 
@@ -97,10 +150,9 @@ const ArtisanHeader = ({ user, logout }) => {
                 </button>
               </div>
 
-              {/* Profile Dropdown (Google Account Style) */}
+              {/* Profile Dropdown */}
               {isProfileOpen && (
                 <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl py-4 z-[60] border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                  {/* Top Section */}
                   <div className="flex flex-col items-center px-4 pb-4 border-b border-gray-200 dark:border-gray-700">
                     <img
                       src={
@@ -122,7 +174,6 @@ const ArtisanHeader = ({ user, logout }) => {
                     </button>
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex flex-col space-y-1 mt-2 px-2">
                     <button className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                       + Add account
@@ -135,7 +186,6 @@ const ArtisanHeader = ({ user, logout }) => {
                     </button>
                   </div>
 
-                  {/* Footer */}
                   <div className="text-xs text-gray-400 dark:text-gray-500 mt-4 flex justify-center gap-2">
                     <a href="#" className="hover:underline">
                       Privacy Policy
