@@ -12,6 +12,7 @@ const ideaRoutes = require('./routes/ideas');
 const investmentRoutes = require('./routes/investments');
 const userRoutes = require('./routes/users');
 const aiRoutes = require('./routes/ai');
+const logisticsRoutes = require('./routes/logistics');
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use('/api/ideas', ideaRoutes);
 app.use('/api/investments', investmentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/logistics', logisticsRoutes);
 
 const PORT = process.env.PORT || 8080;
 const HOST = '0.0.0.0';
