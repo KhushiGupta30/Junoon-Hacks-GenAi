@@ -300,6 +300,7 @@ const MyProductsPage = () => {
           </div>
         </AnimatedSection>
       </div>
+      
 
       <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4 lg:mt-0">
         <AnimatedSection>
