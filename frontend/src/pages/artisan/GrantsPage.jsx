@@ -122,7 +122,7 @@ const GrantsPage = () => {
     <h1
         className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
         style={{ 
-            background: 'linear-gradient(90deg, #f66356ff, #DB4437)', 
+            background: 'linear-gradient(90deg, #FDD835, #FFC107)',
             color: '#FFFFFF' 
         }}
     >

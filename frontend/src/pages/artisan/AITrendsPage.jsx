@@ -277,6 +277,23 @@ const AITrendsPage = () => {
       <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
         {/* --- Main Content Area (Left/Top) --- */}
         <div className="flex-grow lg:w-2/3">
+<<<<<<< HEAD
+            {/* Page Title - Styled like LogiPage */}
+            <AnimatedSection className="mb-8 md:mb-10 text-center">
+    <h1
+        className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
+        style={{
+            background: 'linear-gradient(90deg, #f66356ff, #DB4437)', 
+            color: '#FFFFFF'
+        }}
+    >
+        AI Trend Hub
+    </h1>
+    <p className="mt-3 text-gray-700 text-sm">
+        Stay ahead with AI-driven insights for your craft business.
+    </p>
+</AnimatedSection>
+=======
           {/* Page Title - Styled like LogiPage */}
           <AnimatedSection className="mb-8 pt-8 md:mb-10 text-center">
             <h1
@@ -292,6 +309,7 @@ const AITrendsPage = () => {
               Stay ahead with AI-driven insights for your craft business.
             </p>
           </AnimatedSection>
+>>>>>>> ca37c53893a6a0265b2000abef52a0385e870042
 
           {/* --- Charts Section --- */}
           <AnimatedSection className="grid grid-cols-1 lg:grid-cols-2 gap-8">
