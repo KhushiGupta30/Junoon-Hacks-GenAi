@@ -4,6 +4,7 @@ const OrderService = require('../services/OrderService');
 const ProductService = require('../services/ProductService');
 const IdeaService = require('../services/IdeaService');
 const UserService = require('../services/UserService');
+const MentorshipService = require('../services/MentorshipService');
 
 const router = express.Router();
 
@@ -46,32 +47,29 @@ router.get('/artisan-stats', [auth, authorize('artisan')], async (req, res) => {
 
 router.get('/ambassador-stats', [auth, authorize('ambassador')], async (req, res) => {
     try {
-        const stats = {
-            mentored: 12,
-            events: 4,
-            impactScore: 2800
-        };
-        const myArtisans = [
-            { name: 'Priya S.', craft: 'Textile Weaver', imageUrl: 'https://placehold.co/100x100/DB4437/FFFFFF?text=PS' },
-            { name: 'Anand V.', craft: 'Pottery Artist', imageUrl: 'https://placehold.co/100x100/0F9D58/FFFFFF?text=AV' },
-            { name: 'Sita Devi', craft: 'Madhubani Painter', imageUrl: 'https://placehold.co/100x100/F4B400/FFFFFF?text=SD' },
-        ];
-        const nearbyAmbassadors = [
-            { name: 'Isha Verma', location: 'Gurgaon', distance: '25 km away' },
-            { name: 'Rohan Gupta', location: 'Noida', distance: '30 km away' },
-            { name: 'Meera Singh', location: 'Faridabad', distance: '35 km away' },
-        ];
+        const ambassadorId = req.user.id;
+
+        // Get count of mentored artisans from the new service
+        const mentoredArtisans = await MentorshipService.findArtisansByAmbassador(ambassadorId);
+
+        // This is still mock data, but you can build an `EventService` next
+        const eventsHosted = 4; // Placeholder
+        const communityRating = 4.8; // Placeholder
+
+        // You could calculate a real sales growth figure by checking orders
+        // from mentored artisans over time.
+        const artisanSalesGrowth = 15; // Placeholder
 
         res.json({
-            stats,
-            myArtisans,
-            nearbyAmbassadors
+            mentoredArtisans: mentoredArtisans.length,
+            eventsHosted,
+            communityRating,
+            artisanSalesGrowth
         });
     } catch (error) {
         console.error('Ambassador dashboard error:', error);
         res.status(500).json({ message: 'Server error while fetching ambassador dashboard data' });
     }
 });
-
 
 module.exports = router;
