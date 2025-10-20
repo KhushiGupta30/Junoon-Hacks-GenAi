@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axiosConfig';
 import { Users, Star, BarChart2 } from 'lucide-react';
-// FIX: Changed from { SkeletonStat } to SkeletonStat to handle the default export
 import SkeletonStat from '../../components/ui/SkeletonStat';
 
 const StatCard = ({ icon, title, value, colorClass }) => (

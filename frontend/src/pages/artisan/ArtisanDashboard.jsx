@@ -145,39 +145,20 @@ const ArtisanDashboard = () => {
     let isMounted = true;
     const fetchDashboardData = async () => {
       try {
-        const { data } = await api.get('/dashboard/artisan-stats');
-        if (isMounted) {
-          // Process stats
-          const activeOrders = ordersResponse.data.orders.filter(order => ['pending', 'confirmed', 'processing', 'in_production'].includes(order.status));
-          const lowStockItems = myProductsResponse.data.products.filter(p => !p.inventory.isUnlimited && p.inventory.quantity < 5);
-          setStats({ orders: activeOrders.length, lowInventory: lowStockItems.length });
-
-          // --- SET MOCK DATA (Replace when API is ready) ---
-          const chartLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-          setSalesData({
-            labels: chartLabels,
-            data: [12, 19, 3, 5, 2, 3, 9],
-          });
-           setViewsData({
-            labels: chartLabels,
-            data: [30, 25, 40, 35, 50, 45, 60],
-          });
-          setTopProducts([
-            { id: 'prod1', name: 'Hand-Painted Scarf', stats: { views: 55 }, images: [{url: 'https://placehold.co/40x40/DB4437/FFFFFF?text=S'}], link: '/artisan/products/edit/prod1' },
-            { id: 'prod2', name: 'Ceramic Vase', stats: { views: 48 }, images: [{url: 'https://placehold.co/40x40/4285F4/FFFFFF?text=V'}], link: '/artisan/products/edit/prod2' },
-          ]);
-          // --- END MOCK DATA ---
-        }
+        const response = await axios.get('/dashboard/artisan-stats');
+        // Assuming the endpoint returns an object with orders and myProducts arrays
+        setOrders(response.data.orders);
+        setMyProducts(response.data.myProducts);
       } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
-        setError("Could not load dashboard data. Please try again later.");
+        console.error('Failed to fetch dashboard data:', error);
+        // Handle error appropriately
       } finally {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       }
     };
     fetchDashboardData();
     return () => { isMounted = false; };
-  }, []); // Empty array, runs once
+  }, []); 
 
   const statsData = [
     { title: 'New Orders', value: stats.orders, icon: <ArchiveIcon />, color: 'text-google-blue', borderColor: 'border-google-blue', bgColor: 'bg-google-blue', link: '/artisan/orders', description: "View and manage incoming orders" },
@@ -186,7 +167,6 @@ const ArtisanDashboard = () => {
   ];
 
   if (loading || !user) {
-    // ... (Skeleton loading state remains the same) ...
      return (
       <div className="px-6 md:px-8 py-8 md:py-10">
         <div className="h-40 bg-gray-200 rounded-2xl shadow-xl mb-10 md:mb-12 animate-pulse"></div>
