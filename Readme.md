@@ -30,7 +30,7 @@ npm >= 9.0.0
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/kalaghar.git
+git clone https://github.com/KhushiGupta30/Junoon-Hacks-GenAi.git
 cd kalaghar
 ```
 
