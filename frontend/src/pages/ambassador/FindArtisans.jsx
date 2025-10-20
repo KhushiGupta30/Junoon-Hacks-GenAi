@@ -105,7 +105,7 @@ const FindArtisans = () => {
     useEffect(() => {
         const fetchArtisans = async () => {
             try {
-                const res = await api.get('/users/artisans');
+                const res = await api.get('/users/artisans/unmentored');
                 setArtisans(res.data.artisans || []);
             } catch (err) {
                 setError("Could not fetch the list of artisans. Please try refreshing the page.");
