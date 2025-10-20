@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext'; // Adjust path if needed
-import api from '../../api/axiosConfig';          // Adjust path if needed
+import { useAuth } from '../../context/AuthContext';
+import api from '../../api/axiosConfig';         
 import { Link } from 'react-router-dom';
-import AnimatedSection from '../../components/ui/AnimatedSection'; // Adjust path if needed
-import StatCard from '../../components/artisan/StatCard';       // Adjust path if needed
+import AnimatedSection from '../../components/ui/AnimatedSection';
+import StatCard from '../../components/artisan/StatCard';      
 import {
-  SparklesIcon, ArchiveIcon, TrendingUpIcon, GiftIcon, // Keep used icons
-  TagIcon, SupportIcon, TruckIcon, LightBulbIcon, // Keep used icons
-  // Add new icons needed for Activity/Actions
-  PlusIcon, // Assuming you have this from MyProductsPage
-  InboxIcon, // Replace with appropriate icons as needed
+  SparklesIcon, ArchiveIcon, TrendingUpIcon, GiftIcon, 
+  TagIcon, SupportIcon, TruckIcon, LightBulbIcon, 
+  PlusIcon,
+  InboxIcon,
   BellIcon,
   CogIcon,
-  ArrowRightIcon, // Example for links
-  CheckCircleIcon, // Example for status
-  ExclamationCircleIcon // Example for alerts
-} from '../../components/common/Icons';                       // Adjust path if needed
-import SkeletonCard from '../../components/ui/SkeletonCard'; // Adjust path if needed
-import SkeletonStat from '../../components/ui/SkeletonStat'; // Adjust path if needed
-import SkeletonListItem from '../../components/ui/SkeletonListItem'; // NEW - Create this component
+  ArrowRightIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon
+} from '../../components/common/Icons';                      
+import SkeletonCard from '../../components/ui/SkeletonCard';
+import SkeletonStat from '../../components/ui/SkeletonStat';
+import SkeletonListItem from '../../components/ui/SkeletonListItem';
 
 
 
@@ -26,25 +25,19 @@ const ArtisanDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ orders: 0, lowInventory: 0 });
   const [loading, setLoading] = useState(true);
-  // Add state for activity if fetching dynamically
-  // const [activity, setActivity] = useState([]); 
-
   useEffect(() => {
     let isMounted = true;
     const fetchDashboardData = async () => {
       try {
-        // Parallel fetching
-        const [ordersResponse, myProductsResponse /*, activityResponse */] = await Promise.all([
+        const [ordersResponse, myProductsResponse] = await Promise.all([
           api.get('/orders'),
           api.get('/users/my-products'),
-          // api.get('/activity/recent') // Example: Fetch recent activity if needed
         ]);
 
         if (isMounted) {
           const activeOrders = ordersResponse.data.orders.filter(order => ['pending', 'confirmed', 'processing', 'in_production'].includes(order.status));
           const lowStockItems = myProductsResponse.data.products.filter(p => !p.inventory.isUnlimited && p.inventory.quantity < 5);
           setStats({ orders: activeOrders.length, lowInventory: lowStockItems.length });
-          // setActivity(activityResponse.data.items); // Set activity state if fetched
         }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -62,8 +55,6 @@ const ArtisanDashboard = () => {
     { title: 'Low Stock Alerts', value: `${stats.lowInventory} items`, icon: <TrendingUpIcon />, color: 'text-google-red', borderColor: 'border-google-red', bgColor: 'bg-google-red', link: '/artisan/products', description: "Replenish your popular items" },
   ];
 
-  // --- Mock Recent Activity Data ---
-  // In a real app, fetch this data in useEffect
   const mockActivity = [
       { id: 1, type: 'order', icon: <ArchiveIcon className="w-5 h-5 text-google-blue"/>, text: 'Order #KG1236 placed by S. Gupta', detail: '$45.50 - 2 items', time: '15m ago', link: '/artisan/orders'},
       { id: 2, type: 'stock', icon: <TrendingUpIcon className="w-5 h-5 text-google-red"/>, text: 'Low Stock: \'Hand-Painted Scarf\'', detail: 'Only 2 left', time: '1h ago', link: '/artisan/products/edit/prod_id_scarf'}, // Replace prod_id_scarf
@@ -71,10 +62,7 @@ const ArtisanDashboard = () => {
       { id: 4, type: 'message', icon: <InboxIcon className="w-5 h-5 text-gray-500"/>, text: 'New message from R. Kumar', detail: 'Regarding Custom Order', time: 'Yesterday', link: '#'}, // Link to messages page
       { id: 5, type: 'product', icon: <TagIcon className="w-5 h-5 text-purple-600"/>, text: 'Product \'Wooden Bowl Set\' added', detail: 'Status: Draft', time: '2 days ago', link: '/artisan/products/edit/prod_id_bowl'}, // Replace prod_id_bowl
   ];
-  // --- End Mock Data ---
 
-
-  // --- Loading State ---
   if (loading || !user) {
     return (
       <div className="px-6 md:px-8 py-8 md:py-10">
@@ -82,7 +70,6 @@ const ArtisanDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10 md:mb-12">
           {[...Array(3)].map((_, i) => <SkeletonStat key={i} />)}
         </div>
-        {/* Skeleton for Activity Feed and Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg border animate-pulse">
                 <div className="h-6 w-1/3 bg-gray-200 rounded mb-6"></div>
@@ -110,7 +97,6 @@ const ArtisanDashboard = () => {
     );
   }
 
-  // --- Main Return ---
   return (
     <div className="px-6 md:px-8 py-8 md:py-10">
       <AnimatedSection className="mb-10 md:mb-12">
@@ -136,10 +122,8 @@ const ArtisanDashboard = () => {
         </div>
       </AnimatedSection>
 
-      {/* --- NEW SECTION: Activity Feed & Quick Actions --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* --- Recent Activity Feed (Left Column) --- */}
         <AnimatedSection className="lg:col-span-2">
           <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 h-full">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
@@ -163,7 +147,6 @@ const ArtisanDashboard = () => {
                 <p className="text-center text-gray-500 py-8">No recent activity to show.</p>
               )}
             </div>
-            {/* Optional: Add a "View All Activity" link */}
             {mockActivity.length > 0 && (
                  <div className="mt-4 text-center">
                      <Link to="#" className="text-sm font-semibold text-google-blue hover:underline">
@@ -174,12 +157,10 @@ const ArtisanDashboard = () => {
           </div>
         </AnimatedSection>
 
-        {/* --- Quick Actions (Right Column) --- */}
         <AnimatedSection className="lg:col-span-1">
           <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 h-full">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
             <div className="space-y-3">
-               {/* Primary Action Button */}
               <Link
                 to="/artisan/products/new"
                 className="flex items-center justify-center w-full bg-google-blue text-white font-bold px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm"
@@ -187,23 +168,22 @@ const ArtisanDashboard = () => {
                 <PlusIcon className="w-5 h-5 mr-2" />
                 Add New Product
               </Link>
-              {/* Secondary Action Buttons/Links */}
               <Link
-                to="/artisan/orders?filter=pending" // Example: link to pending orders
+                to="/artisan/orders?filter=pending"
                 className="flex items-center w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition-colors text-sm"
               >
                  <ArchiveIcon className="w-5 h-5 mr-3 text-gray-500" />
                  View Pending Orders
               </Link>
                <Link
-                to="#" // Link to messages page
+                to="#"
                 className="flex items-center w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition-colors text-sm"
               >
                  <InboxIcon className="w-5 h-5 mr-3 text-gray-500" />
                  Check Messages
               </Link>
                <Link
-                to="#" // Link to profile/settings page
+                to="#"
                 className="flex items-center w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition-colors text-sm"
               >
                  <CogIcon className="w-5 h-5 mr-3 text-gray-500" />
@@ -214,11 +194,6 @@ const ArtisanDashboard = () => {
         </AnimatedSection>
 
       </div>
-      {/* --- END NEW SECTION --- */}
-
-      {/* REMOVED the old featureCards grid */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"> ... </div> */}
-
     </div>
   );
 };
