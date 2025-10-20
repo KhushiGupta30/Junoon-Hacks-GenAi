@@ -9,6 +9,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@google-cloud/text-to-speech": "^6.3.1",
     "@google/generative-ai": "^0.24.1",
     "axios": "^1.12.2",
     "bcryptjs": "^2.4.3",

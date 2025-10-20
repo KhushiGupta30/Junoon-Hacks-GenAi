@@ -72,22 +72,37 @@ const Mic = () => {
 
             setTranscript(currentTranscript);
 
-            // Once speech is final
             if (event.results[0].isFinal) {
                 setStatusText("Thinking...");
                 try {
-                    // Small delay for UX
                     await new Promise(resolve => setTimeout(resolve, 300));
                     const response = await api.post('/ai/assistant', { prompt: currentTranscript });
-                    const replyText = response.data.reply;
-                    setAiReply(replyText);
-                    setStatusText("Tap the mic to start"); // Reset status after reply
-                    speak(replyText); // Speak the reply
+                    
+                    // OLD CODE:
+                    // const replyText = response.data.reply;
+
+                    // NEW CODE:
+                    const { reply, language } = response.data; // Destructure the new response object
+                    
+                    setAiReply(reply);
+                    setStatusText("Tap the mic to start");
+
+                    // OLD CALL:
+                    // speak(replyText);
+
+                    // NEW CALL:
+                    if (reply && language) {
+                        playAudio(reply, language); // Play audio in the correct language
+                    }
+                    
                 } catch (error) {
                     const errorMessage = "Sorry, I had trouble responding.";
                     setAiReply(errorMessage);
-                    setStatusText("Tap the mic to start"); // Reset status after error
-                    speak(errorMessage); // Speak the error message
+                    setStatusText("Tap the mic to start");
+                    
+                    // Speak the error message in a default language (e.g., English)
+                    playAudio(errorMessage, 'en-US'); 
+                    
                     console.error("AI Assistant API error:", error);
                 }
             }
@@ -96,13 +111,26 @@ const Mic = () => {
     }, [statusText]); // Rerun setup if statusText changes (mainly for reset logic)
 
     // Text-to-Speech function
-    const speak = (text) => {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); // Cancel any previous speech
-            const utterance = new SpeechSynthesisUtterance(text);
-            window.speechSynthesis.speak(utterance);
-        }
-    };
+const playAudio = async (text, languageCode) => {
+    try {
+        // Call our new backend endpoint
+        const response = await api.post('/ai/synthesize-speech', {
+            text,
+            languageCode
+        });
+        
+        const { audioContent } = response.data;
+        if (!audioContent) return;
+
+        // Decode the Base64 string and play the audio
+        const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+        audio.play();
+
+    } catch (error) {
+        console.error("Error playing synthesized speech:", error);
+        // Handle error, maybe show a message to the user
+    }
+};
 
     // Toggle listening state
     const handleMicClick = () => {

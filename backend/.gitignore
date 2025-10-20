@@ -2,3 +2,4 @@
 node_modules
 logs
 firebaseKey.json
+google-credentials.json
