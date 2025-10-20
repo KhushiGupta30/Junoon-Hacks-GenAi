@@ -83,6 +83,7 @@ const AppLayout = () => {
 
 
 function App() {
+
   return (
     <Router>
       <AuthProvider>
@@ -92,7 +93,7 @@ function App() {
         </CartProvider>
       </AuthProvider>
     </Router>
-  );
+  )
 }
 
 export default App;
