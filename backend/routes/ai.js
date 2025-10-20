@@ -7,6 +7,7 @@ const IdeaService = require("../services/IdeaService");
 const { body, validationResult } = require("express-validator");
 const OrderService = require("../services/OrderService");
 const ConversationService = require("../services/ConversationService");
+const AIReportService = require('../services/AIReportService');
 
 const router = express.Router();
 
@@ -121,13 +122,26 @@ const getAITrends = async () => {
 
 router.get("/trends", auth, async (req, res) => {
   try {
+    // 1. Check for a fresh, cached report first
+    const latestReport = await AIReportService.getLatestReport('trends');
+    if (latestReport && AIReportService.isReportFresh(latestReport.generatedAt)) {
+      console.log("Serving cached trends report.");
+      return res.json(latestReport.reportData);
+    }
+
+    console.log("Generating new trends report.");
     const trends = await getAITrends();
+
+    // 3. Save the new report to the database for future requests
+    await AIReportService.saveReport('trends', trends);
+
     res.json(trends);
   } catch (error) {
     console.error("AI trends route error:", error.message);
     res.status(500).json({ message: "Server error while fetching AI trends." });
   }
 });
+
 
 router.post(
   "/generate-description",
@@ -298,6 +312,16 @@ router.post(
   [auth, authorize("artisan")],
   async (req, res) => {
     try {
+    const userId = req.user.id;
+
+    // 1. Check for a fresh, cached report for THIS user
+    const latestReport = await AIReportService.getLatestReport('funding', userId);
+    if (latestReport && AIReportService.isReportFresh(latestReport.generatedAt)) {
+      console.log(`Serving cached funding report for user ${userId}.`);
+      return res.json(latestReport.reportData);
+    }
+    // 2. If no fresh report, generate a new one
+    console.log(`Generating new funding report for user ${userId}.`);
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
       const artisan = await UserService.findById(req.user.id);
@@ -373,6 +397,7 @@ router.post(
       }
 
       const report = JSON.parse(jsonString);
+      await AIReportService.saveReport('funding', report, userId);
       res.json(report);
     } catch (error) {
       console.error("AI funding report error:", error);
@@ -388,6 +413,17 @@ router.post(
   [auth, authorize("artisan")],
   async (req, res) => {
     try {
+        const userId = req.user.id;
+
+    // 1. Check for a fresh, cached report for THIS user
+    const latestReport = await AIReportService.getLatestReport('insights', userId);
+    if (latestReport && AIReportService.isReportFresh(latestReport.generatedAt)) {
+      console.log(`Serving cached personal insights for user ${userId}.`);
+      return res.json(latestReport.reportData);
+    }
+
+    // 2. If no fresh report, generate a new one
+    console.log(`Generating new personal insights for user ${userId}.`);
       const marketTrends = await getAITrends();
 
       const artisanProducts = await ProductService.findMany(
@@ -470,6 +506,7 @@ router.post(
       }
 
       const insights = JSON.parse(jsonString);
+      await AIReportService.saveReport('insights', insights, userId);
       res.json(insights);
     } catch (error) {
       console.error("AI personal insights error:", error);
