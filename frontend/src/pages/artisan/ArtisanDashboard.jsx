@@ -1,93 +1,134 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axiosConfig';
 import { Link } from 'react-router-dom';
 import AnimatedSection from '../../components/ui/AnimatedSection';
 import StatCard from '../../components/artisan/StatCard';
-import {
-  SparklesIcon, ArchiveIcon, TrendingUpIcon,
-  EyeIcon,
-  CurrencyDollarIcon
-} from '../../components/common/Icons';
+import { SparklesIcon, ArchiveIcon, TrendingUpIcon, EyeIcon, CurrencyDollarIcon, UserCheck } from '../../components/common/Icons';
 import SkeletonCard from '../../components/ui/SkeletonCard';
 import SkeletonStat from '../../components/ui/SkeletonStat';
 
 import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+
+// --- Child Components for the Dashboard ---
 
 const MiniLineChart = ({ title, data, labels, icon, borderColor, bgColor }) => {
-  const chartData = {
-    labels: labels,
-    datasets: [
-      {
-        label: title,
-        data: data,
-        borderColor: borderColor || '#4285F4',
-        backgroundColor: bgColor || 'rgba(66, 133, 244, 0.1)',
-        tension: 0.3,
-        fill: true,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        mode: 'index',
-        intersect: false,
-        displayColors: false,
-      },
-    },
-    scales: {
-      x: { display: false },
-      y: { display: false },
-    },
-    elements: {
-        line: {
-            borderWidth: 2
-        }
-    }
-  };
-
-  return (
-    <div className="bg-white p-4 md:p-6 rounded-xl shadow-md border border-gray-100 h-full flex flex-col">
-       <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-500">{title}</h3>
-            {icon && <span className="text-gray-400">{React.cloneElement(icon, { className: 'h-5 w-5' })}</span>}
-       </div>
-       <div className="flex-grow h-24 md:h-32">
-            <Line options={options} data={chartData} />
-       </div>
-    </div>
-  );
+    const chartData = {
+        labels: labels,
+        datasets: [{
+            label: title,
+            data: data,
+            borderColor: borderColor || '#4285F4',
+            backgroundColor: bgColor || 'rgba(66, 133, 244, 0.1)',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+        }],
+    };
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, displayColors: false } },
+        scales: { x: { display: false }, y: { display: false } },
+        elements: { line: { borderWidth: 2 } }
+    };
+    return (
+        <div className="bg-white p-4 md:p-6 rounded-xl shadow-md border border-gray-100 h-full flex flex-col">
+           <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+                {icon && <span className="text-gray-400">{React.cloneElement(icon, { className: 'h-5 w-5' })}</span>}
+           </div>
+           <div className="flex-grow h-24 md:h-32">
+                <Line options={options} data={chartData} />
+           </div>
+        </div>
+    );
 };
 
+const MentorshipWidget = () => {
+    const [mentor, setMentor] = useState(null);
+    const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchData = useCallback(async () => {
+        try {
+            const mentorRes = await api.get('/mentorship/my-mentor');
+            if (mentorRes.data.mentor) {
+                setMentor(mentorRes.data.mentor);
+                setRequests([]); // If they have a mentor, don't show requests
+            } else {
+                const requestsRes = await api.get('/mentorship/requests');
+                setRequests(requestsRes.data.requests);
+            }
+        } catch (error) {
+            console.error("Error fetching mentorship data:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    const handleAccept = async (mentorshipId) => {
+        try {
+            await api.put(`/mentorship/accept/${mentorshipId}`);
+            // Refetch data to update the UI
+            setLoading(true);
+            fetchData();
+        } catch (error) {
+            alert("Failed to accept request. Please try again.");
+            console.error(error);
+        }
+    };
+
+    if (loading) {
+        return <div className="h-20 bg-gray-200 rounded-lg animate-pulse mb-6"></div>;
+    }
+
+    if (mentor) {
+        return (
+            <AnimatedSection className="mb-6">
+                <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-lg flex justify-between items-center">
+                    <div className="flex items-center">
+                        <UserCheck className="h-6 w-6 mr-3" />
+                        <div>
+                            <h3 className="font-bold">You are mentored by {mentor.name}</h3>
+                            <a href={`mailto:${mentor.email}`} className="text-sm text-green-700 hover:underline">Contact your mentor</a>
+                        </div>
+                    </div>
+                </div>
+            </AnimatedSection>
+        );
+    }
+
+    if (requests.length > 0) {
+        return (
+            <AnimatedSection className="mb-6">
+                 <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded-lg">
+                    <h3 className="font-bold mb-2">You have new mentorship requests!</h3>
+                    {requests.map(({ id, ambassador }) => (
+                        <div key={id} className="flex justify-between items-center py-1">
+                            <p><span className="font-semibold">{ambassador.name}</span> wants to be your mentor.</p>
+                            <button onClick={() => handleAccept(id)} className="bg-blue-500 text-white font-semibold px-3 py-1 rounded-md text-sm hover:bg-blue-600 transition">
+                                Accept
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </AnimatedSection>
+        );
+    }
+
+    return null; // Render nothing if no mentor and no requests
+};
+
+// --- Main Dashboard Component ---
 
 const ArtisanDashboard = () => {
   const { user } = useAuth();
@@ -103,7 +144,6 @@ const ArtisanDashboard = () => {
     const fetchDashboardData = async () => {
       try {
         const { data } = await api.get('/dashboard/artisan-stats');
-
         if (isMounted) {
           setStats(data.stats);
           setSalesData(data.salesData);
@@ -130,20 +170,15 @@ const ArtisanDashboard = () => {
   if (loading || !user) {
     return (
       <div className="px-6 md:px-8 py-8 md:py-10">
-        
         <div className="h-40 bg-gray-200 rounded-2xl shadow-xl mb-10 md:mb-12 animate-pulse"></div>
-        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10 md:mb-12">
           {[...Array(3)].map((_, i) => <SkeletonStat key={i} />)}
         </div>
-        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <SkeletonCard className="h-40 md:h-48" />
                 <SkeletonCard className="h-40 md:h-48" />
             </div>
-            
             <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg border animate-pulse">
                 <div className="h-6 w-1/2 bg-gray-200 rounded mb-6"></div>
                 <div className="space-y-4">
@@ -174,81 +209,47 @@ const ArtisanDashboard = () => {
   
   return (
     <div className="px-6 md:px-8 py-8 md:py-10">
-      
+      <MentorshipWidget />
+
       <AnimatedSection className="mb-10 pt-8 md:mb-12">
         <div className="relative p-8 md:p-10 rounded-2xl shadow-xl overflow-hidden text-white" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/2.png')`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-          <header className="relative z-10 flex justify-center items-center text-center">
-            
-            <div className="flex-grow">
-              <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-2">
-                <span className="text-google-yellow">Your</span> Creative <span className="text-white">Dashboard</span>
-              </h1>
-              <p className="text-lg text-white/90 max-w-2xl mx-auto" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-                Welcome back, {user.name}! Here's your workspace.
-              </p>
-            </div>
+          <header className="relative z-10 text-center">
+            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-2">
+              <span className="text-google-yellow">Your</span> Creative <span className="text-white">Dashboard</span>
+            </h1>
+            <p className="text-lg text-white/90 max-w-2xl mx-auto" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+              Welcome back, {user.name}! Here's your workspace.
+            </p>
           </header>
         </div>
       </AnimatedSection>
-
       
       <AnimatedSection className="mb-10 md:mb-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {statsData.map((stat, index) => (
-            <StatCard key={index} stat={stat} />
-          ))}
+          {statsData.map((stat, index) => <StatCard key={index} stat={stat} />)}
         </div>
       </AnimatedSection>
-
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        
         <AnimatedSection className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-8">
-           
-           {salesData && <MiniLineChart
-                title="Sales (Last 7 Days)"
-                labels={salesData.labels}
-                data={salesData.data}
-                icon={<CurrencyDollarIcon />}
-                borderColor="#34A853"
-                bgColor="rgba(52, 168, 83, 0.1)"
-            />}
-             
-            {viewsData && <MiniLineChart
-                title="Product Views (Last 7 Days)"
-                labels={viewsData.labels}
-                data={viewsData.data}
-                icon={<EyeIcon />}
-                borderColor="#4285F4"
-                bgColor="rgba(66, 133, 244, 0.1)"
-            />}
+           {salesData && <MiniLineChart title="Sales (Last 7 Days)" labels={salesData.labels} data={salesData.data} icon={<CurrencyDollarIcon />} borderColor="#34A853" bgColor="rgba(52, 168, 83, 0.1)" />}
+           {viewsData && <MiniLineChart title="Product Views (Last 7 Days)" labels={viewsData.labels} data={viewsData.data} icon={<EyeIcon />} borderColor="#4285F4" bgColor="rgba(66, 133, 244, 0.1)" />}
         </AnimatedSection>
 
-        
         <AnimatedSection className="lg:col-span-1">
           <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 h-full">
             <h2 className="text-base font-medium text-gray-800 mb-4">Top Performing Products</h2>
             <div className="space-y-3">
-              {topProducts.length > 0 ? (
-                topProducts.map((product) => (
-                  <Link
-                    to={`/artisan/products/edit/${product.id}`}
-                    key={product.id}
-                    className="flex items-center p-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
+              {topProducts.length > 0 ? topProducts.map((product) => (
+                  <Link to={`/artisan/products/edit/${product.id}`} key={product.id} className="flex items-center p-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors">
                     <img src={product.images[0]?.url || 'https://placehold.co/40x40/cccccc/ffffff?text=P'} alt={product.name} className="w-10 h-10 rounded-md object-cover mr-3 flex-shrink-0" />
                     <div className="flex-1 overflow-hidden">
                       <p className="text-sm font-medium text-gray-800 truncate">{product.name}</p>
                       <p className="text-xs text-gray-500">{product.stats?.views || 0} Views</p>
                     </div>
                   </Link>
-                ))
-              ) : (
-                <p className="text-center text-sm text-gray-500 py-6">No product data available yet.</p>
-              )}
+                )) : (<p className="text-center text-sm text-gray-500 py-6">No product data available yet.</p>)}
             </div>
-            
             {topProducts.length > 0 && (
                  <div className="mt-4 pt-3 border-t border-gray-100 text-center">
                      <Link to="/artisan/analytics/products" className="text-sm font-medium text-google-blue hover:underline">
@@ -258,9 +259,7 @@ const ArtisanDashboard = () => {
              )}
           </div>
         </AnimatedSection>
-
       </div>
-      
     </div>
   );
 };

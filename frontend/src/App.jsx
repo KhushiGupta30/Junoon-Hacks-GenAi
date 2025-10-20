@@ -28,6 +28,7 @@ import AmbassadorDashboard from './pages/ambassador/Dashboard.jsx';
 import MyArtisans from './pages/ambassador/MyArtisans.jsx';
 import CommunityHub from './pages/ambassador/CommunityHub.jsx';
 import Profile from './pages/ambassador/Profile.jsx';
+import FindArtisans from './pages/ambassador/FindArtisans.jsx';
 
 const AppLayout = () => {
   const location = useLocation();
@@ -72,6 +73,7 @@ const AppLayout = () => {
             <Route path="artisans" element={<MyArtisans />} />
             <Route path="community" element={<CommunityHub />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="find-artisans" element={<FindArtisans />} />
           </Route>
           
         </Routes>

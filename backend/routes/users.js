@@ -134,4 +134,20 @@ router.get('/my-products', [auth, authorize('artisan')], async (req, res) => {
   }
 });
 
+router.get('/artisans/unmentored', auth, async (req, res) => {
+  try {
+      const allArtisans = await UserService.findMany({ role: 'artisan' });
+      const allMentorships = await MentorshipService.findMany({ status: 'active' });
+      
+      const mentoredArtisanIds = new Set(allMentorships.map(m => m.artisanId));
+      
+      const unmentoredArtisans = allArtisans.filter(artisan => !mentoredArtisanIds.has(artisan.id));
+
+      res.json({ artisans: unmentoredArtisans.map(UserService.toJSON) });
+  } catch (error) {
+      console.error("Error fetching unmentored artisans:", error);
+      res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = router;

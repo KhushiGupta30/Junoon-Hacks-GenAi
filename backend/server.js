@@ -18,6 +18,7 @@ const communityRoutes = require('./routes/community');
 const ambassadorRoutes = require('./routes/ambassador');
 const notificationRoutes = require('./routes/notifications');
 const eventRoutes = require('./routes/events');
+const mentorshipRoutes = require('./routes/mentorship');
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use('/api/community', communityRoutes);
 app.use('/api/ambassador', ambassadorRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/mentorship', mentorshipRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
