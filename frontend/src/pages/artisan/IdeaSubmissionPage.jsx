@@ -1,47 +1,34 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../../api/axiosConfig'; // Keep your real API import
-// import { useAuth } from '../../context/AuthContext'; // Removed
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import api from '../../api/axiosConfig'; // Adjust path if needed
+// Import Shared Components & Icons
+import AnimatedSection from '../../components/ui/AnimatedSection'; // Adjust path if needed
+import {
+    LightBulbIcon,
+    ExclamationCircleIcon, // For error states
+    HistoryIcon, // For sidebar
+    ArrowLeftIcon, // For cancel button - MAKE SURE THIS IS IN Icons.jsx
+    FilterIcon,     // New
+    SortAscendingIcon, // New
+    SortDescendingIcon, // New
+    ThumbUpIcon,       // New
+    XIcon, // For Modal
+    ChatAltIcon,    // For Modal Comments - MAKE SURE THIS IS IN Icons.jsx
+    PlusCircleIcon  // For Modal Add Button - MAKE SURE THIS IS IN Icons.jsx
+} from '../../components/common/Icons'; // Adjust path if needed
+// Import Modal
+import IdeaDetailModal from '../../components/modal/IdeaDetailModal'; // Adjust path if needed
 
-// --- REUSABLE ANIMATED SECTION COMPONENT ---
-const AnimatedSection = ({ children, className = "" }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setIsVisible(true);
-        observer.disconnect();
-      }
-    }, { threshold: 0.1 });
-    const currentRef = ref.current; // Capture ref value
-    if (currentRef) observer.observe(currentRef);
-    
-    return () => { if (currentRef) observer.unobserve(currentRef); };
-  }, []);
-  return (
-    <div ref={ref} className={`transition-all duration-1000 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"} ${className}`}>
-      {children}
-    </div>
-  );
-};
+// --- Skeleton Component Placeholders ---
+const SkeletonBase = ({ className = "" }) => <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>;
+const SkeletonSidebarCard = () => <SkeletonBase className="h-64" />; // Taller for list
+const SkeletonForm = () => <SkeletonBase className="h-[40rem]" />; // Tall form skeleton
+// --- End Skeletons ---
 
-// --- ICONS (Only keep ones used by this page) ---
-const LightBulbIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>);
-
-// --- REMOVED ArtisanHeader component ---
-
-// --- REMOVED Footer component ---
-
-
-// --- INTERNAL FORM FIELDS COMPONENT (Keep) ---
+// --- INTERNAL FORM FIELDS COMPONENT ---
 const IdeaSubmissionFormFields = ({ onSubmit }) => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        category: 'Other',
-    });
+    const [formData, setFormData] = useState({ title: '', description: '', category: 'Other' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -67,33 +54,28 @@ const IdeaSubmissionFormFields = ({ onSubmit }) => {
 
     const FormInput = ({ label, id, ...props }) => (
         <div>
-            <label htmlFor={id} className="block text-sm font-bold text-gray-700 mb-1">{label}</label>
-            <input id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-google-blue focus:border-google-blue sm:text-sm" />
+            <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+            <input id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm" />
         </div>
     );
 
     const FormSelect = ({ label, id, children, ...props }) => (
         <div>
-            <label htmlFor={id} className="block text-sm font-bold text-gray-700 mb-1">{label}</label>
-            <select id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-google-blue focus:border-google-blue sm:text-sm">{children}</select>
+            <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+            <select id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm">{children}</select>
         </div>
     );
 
     return (
-        <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-10 rounded-2xl shadow-lg space-y-8 border border-gray-200">
-            {error && <p className="text-red-600 bg-red-50 p-4 rounded-lg font-medium border border-red-200">{error}</p>}
-            
+        <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200 space-y-6">
+            {error && <div className="text-red-700 bg-red-50 p-3 rounded-md text-sm font-medium border border-red-200">{error}</div>}
+
             <div className="space-y-6">
-                <div className="pb-5 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-google-yellow">Describe Your Idea</h2>
-                    <p className="mt-1 text-sm text-gray-500">Provide the core details of your new concept.</p>
-                </div>
-                
                 <FormInput label="Idea Title" id="title" name="title" type="text" value={formData.title} onChange={handleChange} required placeholder="e.g., Self-Watering Terracotta Planters" />
-                
+
                 <div>
-                    <label htmlFor="description" className="block text-sm font-bold text-gray-700 mb-1">Detailed Description</label>
-                    <textarea id="description" name="description" value={formData.description} onChange={handleChange} required rows="6" placeholder="Describe your idea. What makes it unique? What materials would you use? What's the story behind it?" className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-google-blue focus:border-google-blue sm:text-sm"></textarea>
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Detailed Description</label>
+                    <textarea id="description" name="description" value={formData.description} onChange={handleChange} required rows="5" placeholder="Describe your idea. What makes it unique? What materials would you use? What's the story behind it?" className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm"></textarea>
                 </div>
 
                 <FormSelect label="Category" id="category" name="category" value={formData.category} onChange={handleChange}>
@@ -101,9 +83,12 @@ const IdeaSubmissionFormFields = ({ onSubmit }) => {
                 </FormSelect>
             </div>
 
-            <div className="flex justify-end items-center gap-4 pt-5 border-t border-gray-200">
-                <button type="button" onClick={() => navigate('/artisan/dashboard')} className="bg-gray-100 text-gray-800 font-bold px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
-                <button type="submit" disabled={loading} className="bg-google-blue text-white font-bold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:bg-blue-300 disabled:cursor-not-allowed">
+            <div className="flex justify-end items-center gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onClick={() => navigate('/artisan/dashboard')} className="bg-white text-gray-700 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 border border-gray-300 transition-colors text-sm flex items-center gap-1.5">
+                   {/* Optional: <ArrowLeftIcon className="w-4 h-4" /> */} Cancel
+                </button>
+                <button type="submit" disabled={loading} className="bg-google-blue text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2">
+                    {loading && <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
                     {loading ? 'Submitting...' : 'Submit for Review'}
                 </button>
             </div>
@@ -112,50 +97,224 @@ const IdeaSubmissionFormFields = ({ onSubmit }) => {
 };
 
 
-// --- MAIN PAGE COMPONENT (IdeaSubmissionPage.jsx) ---
+// --- MAIN PAGE COMPONENT (Styled like LogiPage) ---
 const IdeaSubmissionPage = () => {
-  const navigate = useNavigate();
-  // const { user, logout } = useAuth(); // Removed
+    const navigate = useNavigate();
+    const [recentIdeas, setRecentIdeas] = useState(null); // State for sidebar
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(''); // Added error state for fetching recent ideas
+    const [sortBy, setSortBy] = useState('date'); // 'date', 'votes'
+    const [sortOrder, setSortOrder] = useState('desc'); // 'asc', 'desc'
+    const [filterCategory, setFilterCategory] = useState('All'); // 'All', 'Pottery', etc.
+    const [selectedIdea, setSelectedIdea] = useState(null); // <-- State for modal
 
-  const handleFormSubmit = async (formData) => {
-    try {
-        await api.post('/ideas', formData);
-        alert('Your idea has been submitted successfully!');
-        navigate('/artisan/dashboard');
-    } catch (err) {
-        console.error("Failed to submit idea:", err);
-        const errorMessage = err.response?.data?.message || err.message || "Failed to submit your idea. Please try again.";
-        // Re-throw the error so the form's internal state can handle displaying it
-        throw new Error(errorMessage);
-    }
-  };
-  
-  return (
-    <>
-      {/* <ArtisanHeader user={user} logout={logout} /> REMOVED */}
-      
-      {/* Page content wrapper with padding */}
-      <div className="container mx-auto px-6 py-16">
-        <AnimatedSection className="mb-12">
-           <div className="flex flex-col md:flex-row justify-center items-center text-center gap-6 bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-            <div className="flex items-center gap-6">
-              <div className="text-google-yellow hidden sm:block"><LightBulbIcon /></div>
-              <div >
-                <h1 className="text-4xl font-extrabold text-gray-800">Submit a New Idea</h1>
-                <p className="mt-1 text-gray-600">Share your next masterpiece to get feedback and pre-orders from the community.</p>
-              </div>
+    // Mock data for the sidebar - ADDED VOTES & DESCRIPTION
+    const mockRecentIdeas = [
+        { id: 'idea1', title: 'Modular Wooden Shelving Unit', category: 'Woodwork', time: '2h ago', submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), votes: 15, description: "A versatile shelving system made from sustainable bamboo.", link: '#' },
+        { id: 'idea2', title: 'Hand-Dyed Shibori Throw Pillows', category: 'Textiles', time: 'Yesterday', submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000), votes: 8, description: "Organic cotton pillows dyed using traditional Japanese Shibori techniques.", link: '#' },
+        { id: 'idea3', title: 'Minimalist Ceramic Dinnerware Set', category: 'Pottery', time: '3d ago', submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), votes: 22, description: "Simple, elegant stoneware plates and bowls with a matte glaze.", link: '#' },
+        { id: 'idea4', title: 'Upcycled Metal Sculpture', category: 'Metalwork', time: '5d ago', submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), votes: 5, description: "Abstract sculpture created from reclaimed industrial metal parts.", link: '#' },
+    ];
+
+    const categoriesForFilter = ['All', 'Pottery', 'Textiles', 'Painting', 'Woodwork', 'Metalwork', 'Sculpture', 'Jewelry', 'Other']; // For filter dropdown
+
+    // Fetch recent ideas (replace mock with API call)
+    useEffect(() => {
+        const fetchRecentIdeas = async () => {
+            setLoading(true);
+            setError('');
+            try {
+                // Replace with your actual API call:
+                // const response = await api.get('/ideas/recent?limit=10'); // Example
+                // setRecentIdeas(response.data.ideas.map(idea => ({...idea, submittedAt: new Date(idea.createdAt)}))); // Ensure date object
+                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
+                setRecentIdeas(mockRecentIdeas);
+            } catch (err) {
+                console.error("Failed to fetch recent ideas:", err);
+                setError("Could not load recent ideas."); // Set error message
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchRecentIdeas();
+    }, []);
+
+    // Memoized sorting and filtering logic
+    const displayedIdeas = useMemo(() => {
+        if (!recentIdeas) return [];
+        let filtered = [...recentIdeas];
+        if (filterCategory !== 'All') {
+            filtered = filtered.filter(idea => idea.category === filterCategory);
+        }
+        filtered.sort((a, b) => {
+            let comparison = 0;
+            if (sortBy === 'votes') {
+                comparison = a.votes - b.votes;
+            } else { // Default to date
+                comparison = a.submittedAt.getTime() - b.submittedAt.getTime();
+            }
+            return sortOrder === 'asc' ? comparison : -comparison; // Apply order
+        });
+        return filtered;
+    }, [recentIdeas, filterCategory, sortBy, sortOrder]);
+
+
+    const handleFormSubmit = async (formData) => {
+        try {
+            const response = await api.post('/ideas', formData);
+            const newIdea = {
+                id: response.data._id || Date.now(),
+                title: response.data.title,
+                category: response.data.category,
+                description: response.data.description, // Make sure API returns description
+                time: 'Just now',
+                submittedAt: new Date(),
+                votes: 0,
+                link: '#' // Link to the new idea page if applicable
+            };
+            setRecentIdeas(prev => [newIdea, ...(prev || [])].slice(0, 5)); // Add and limit list size
+            // alert('Your idea has been submitted successfully!'); // Consider using a snackbar
+            navigate('/artisan/dashboard'); // Or stay on the page
+        } catch (err) {
+            console.error("Failed to submit idea:", err);
+            const errorMessage = err.response?.data?.message || err.message || "Failed to submit. Please try again.";
+            throw new Error(errorMessage); // Re-throw for form feedback
+        }
+    };
+
+    // --- Function to open the modal ---
+    const openIdeaModal = (idea) => {
+        setSelectedIdea(idea);
+    };
+
+    // --- Function to handle "Add to Products" from modal ---
+    const handleAddToProducts = (ideaData) => {
+        console.log("Adding idea to products:", ideaData);
+        // Pass relevant data (title, description, category etc.) via state
+        navigate('/artisan/products/new', { state: { ideaData: {
+            name: ideaData.title,
+            description: ideaData.description,
+            category: ideaData.category
+            // Add other relevant fields if available
+        } } });
+    };
+
+    // --- Loading State ---
+    if (loading && !recentIdeas) { // Only show full skeleton on initial load
+        return (
+            <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
+                <div className="flex-grow space-y-8"><SkeletonBase className="h-10 w-3/4 mb-4"/><SkeletonForm/></div>
+                <div className="lg:w-80 flex-shrink-0 space-y-6"><SkeletonSidebarCard /></div>
             </div>
-          </div>
-        </AnimatedSection>
-        
-        <AnimatedSection>
-          <IdeaSubmissionFormFields onSubmit={handleFormSubmit} />
-        </AnimatedSection>
-      </div>
+        );
+    }
 
-      {/* <Footer /> REMOVED */}
-    </>
-  );
+    // --- Main Return ---
+    return (
+        <> {/* Added Fragment */}
+            <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
+
+                {/* --- Main Content Area (Form) --- */}
+                <div className="flex-grow lg:w-2/3">
+                    <AnimatedSection className="mb-8 text-center">
+    <h1
+        className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
+        style={{
+            background: 'linear-gradient(90deg, #70d969ff, #0F9D58)', 
+            color: '#202124'
+        }}
+    >
+        Submit a New Idea
+    </h1>
+    <p className="mt-3 text-gray-700 text-sm">
+        Share your next masterpiece for community feedback.
+    </p>
+</AnimatedSection>
+
+
+                    <AnimatedSection>
+                        <IdeaSubmissionFormFields onSubmit={handleFormSubmit} />
+                    </AnimatedSection>
+                </div>
+
+                {/* --- Right Sidebar (Recent Activity) --- */}
+                <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4 lg:mt-0">
+                    <AnimatedSection>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                            {/* Sidebar Header with Filters */}
+                            <div className="flex flex-col sm:flex-row justify-between items-start gap-3 p-4 border-b border-gray-100">
+                                <div className="flex items-center gap-3 flex-shrink-0">
+                                    <HistoryIcon className="h-6 w-6 text-gray-500" />
+                                    <h3 className="text-base font-medium text-gray-800 whitespace-nowrap">Recent Ideas</h3>
+                                </div>
+                                {/* Filter/Sort Controls */}
+                                <div className="flex items-center gap-1.5 flex-wrap justify-start sm:justify-end w-full sm:w-auto">
+                                    <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="text-xs border border-gray-200 rounded px-1 py-0.5 bg-gray-50 focus:ring-1 focus:ring-google-blue focus:border-google-blue" aria-label="Filter by category">
+                                       {categoriesForFilter.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                    </select>
+                                    <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="text-xs border border-gray-200 rounded px-1 py-0.5 bg-gray-50 focus:ring-1 focus:ring-google-blue focus:border-google-blue" aria-label="Sort by">
+                                        <option value="date">Date</option>
+                                        <option value="votes">Votes</option>
+                                    </select>
+                                    <button onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="p-1 rounded hover:bg-gray-100 text-gray-500" aria-label={`Sort ${sortOrder === 'asc' ? 'descending' : 'ascending'}`}>
+                                        {sortOrder === 'asc' ? <SortAscendingIcon className="w-4 h-4"/> : <SortDescendingIcon className="w-4 h-4"/>}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Display error if fetching recent ideas failed */}
+                            {error && <p className="p-4 text-xs text-red-600 bg-red-50">{error}</p>}
+
+                            {/* Idea List */}
+                            <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                                {loading && !recentIdeas ? ( <div className="p-4 text-center text-xs text-gray-500">Loading ideas...</div> )
+                                 : displayedIdeas.length > 0 ? (
+                                    displayedIdeas.map(idea => (
+                                        // Use button to trigger modal
+                                        <button
+                                            key={idea.id}
+                                            onClick={() => openIdeaModal(idea)}
+                                            className="block w-full text-left p-4 hover:bg-gray-50/70 transition-colors focus:outline-none focus:bg-gray-100"
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <p className="font-medium text-sm text-gray-800 leading-snug flex-1 pr-2">{idea.title}</p>
+                                                <div className="flex items-center gap-1 text-xs text-gray-500 flex-shrink-0">
+                                                    <ThumbUpIcon className="w-3 h-3 text-gray-400" />
+                                                    <span>{idea.votes}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center mt-1">
+                                                <span className="inline-block text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{idea.category}</span>
+                                                <span className="text-xs text-gray-400 flex-shrink-0">{idea.time}</span>
+                                            </div>
+                                        </button>
+                                    ))
+                                ) : (
+                                    !error && <p className="text-center text-gray-500 py-6 text-xs px-4">No ideas match your filters.</p>
+                                )}
+                            </div>
+
+                            {/* Footer Link */}
+                            {recentIdeas && recentIdeas.length > 0 && (
+                                <div className="p-3 text-center bg-gray-50/70 rounded-b-xl border-t border-gray-100">
+                                    <Link to="/artisan/ideas" className="text-google-blue text-xs font-medium hover:underline">View all submitted ideas</Link>
+                                </div>
+                            )}
+                        </div>
+                    </AnimatedSection>
+                </aside>
+            </div>
+
+            {/* --- Render Modal Conditionally --- */}
+            {selectedIdea && (
+                <IdeaDetailModal
+                    idea={selectedIdea}
+                    onClose={() => setSelectedIdea(null)}
+                    onAddToProducts={handleAddToProducts}
+                />
+            )}
+        </> // End Fragment
+    );
 };
 
 export default IdeaSubmissionPage;
