@@ -118,7 +118,7 @@ const GrantsPage = () => {
         {/* --- Main Content Area (Left/Top) --- */}
         <div className="flex-grow lg:w-2/3">
             {/* Page Title - Styled like LogiPage */}
-             <AnimatedSection className="mb-8 pt-8 text-center">
+             <AnimatedSection className="mb-8 text-center">
     <h1
         className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
         style={{ 
