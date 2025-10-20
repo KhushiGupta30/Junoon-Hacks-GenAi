@@ -11,6 +11,7 @@ import {
   EyeIcon,
   CurrencyDollarIcon,
   UserCheck,
+  ExclamationCircleIcon // Ensure this icon is imported
 } from "../../components/common/Icons";
 import SkeletonCard from "../../components/ui/SkeletonCard";
 import SkeletonStat from "../../components/ui/SkeletonStat";
@@ -186,9 +187,14 @@ const ArtisanDashboard = () => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // Use the 'api' instance you imported
-        const response = await api.get("/dashboard/artisan");
-        setDashboardData(response.data);
+        const response = await api.get("/dashboard/artisan-stats"); // Corrected API endpoint
+        
+        // Correctly set the state with the data from the backend
+        setStats(response.data.stats);
+        setSalesData(response.data.salesData);
+        setViewsData(response.data.viewsData);
+        setTopProducts(response.data.topProducts);
+
       } catch (err) {
         setError("Failed to fetch dashboard data");
         console.error("Failed to fetch dashboard data:", err);
