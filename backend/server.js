@@ -13,6 +13,8 @@ const userRoutes = require('./routes/users');
 const aiRoutes = require('./routes/ai');
 const logisticsRoutes = require('./routes/logistics');
 const db = require('./firebase');
+const dashboardRoutes = require('./routes/dashboard');
+const communityRoutes = require('./routes/community');
 
 const app = express();
 
@@ -31,7 +33,6 @@ app.use(morgan('combined'));
 
 app.use(express.json());
 
-// Firebase is initialized in firebase.js
 console.log('Firebase connected');
 
 app.get('/', (req, res) => res.send('KalaGhar API is running...'));
@@ -51,6 +52,8 @@ app.use('/api/investments', investmentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/logistics', logisticsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/community', communityRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

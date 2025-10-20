@@ -4,6 +4,7 @@ import api from "../api/axiosConfig";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signOut,
 } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 
@@ -23,15 +24,17 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // This useEffect now runs only once on initial component mount.
+  // Its job is to re-authenticate a user if a token exists from a previous session.
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserOnLoad = async () => {
       if (token) {
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         try {
           const response = await api.get("/auth/me");
           setUser(response.data);
         } catch (error) {
-          console.error("Failed to fetch user, token might be expired.", error);
+          console.error("Token is invalid or expired. Logging out.", error);
           localStorage.removeItem("token");
           setToken(null);
           setUser(null);
@@ -40,36 +43,39 @@ export const AuthProvider = ({ children }) => {
       }
       setLoading(false);
     };
-    fetchUser();
-  }, [token]);
+    fetchUserOnLoad();
+  }, []); // Empty dependency array means this runs only once.
+
+  const handleAuthSuccess = (userData, idToken) => {
+    localStorage.setItem("token", idToken);
+    api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
+    setUser(userData);
+    setToken(idToken); // Update token state
+
+    // Navigate based on user role
+    switch (userData.role) {
+      case "artisan":
+        navigate("/artisan/dashboard");
+        break;
+      case "ambassador":
+        navigate("/ambassador/dashboard");
+        break;
+      default:
+        navigate("/buyer");
+    }
+  };
 
   const login = async (email, password) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
-
-      localStorage.setItem("token", idToken);
-      setToken(idToken);
-      api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
-
-      const response = await api.get("/auth/me");
-      const userData = response.data;
-      setUser(userData);
-
-      // Navigate based on user role
-      if (userData.role === "artisan") {
-        navigate("/artisan/dashboard");
-      } else if (userData.role === "ambassador") {
-        navigate("/ambassador/dashboard");
-      } else {
-        navigate("/buyer");
-      }
       
-      return userData;
+      // Manually set header for the immediate request
+      api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
+      const response = await api.get("/auth/me");
+      
+      handleAuthSuccess(response.data, idToken);
+      return response.data;
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -78,53 +84,26 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password, role) => {
     try {
-      // First create Firebase user
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
 
-      // Set token for the registration API call
-      localStorage.setItem("token", idToken);
-      setToken(idToken);
+      // Manually set header for the immediate request
       api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
-
-      // Register user in backend
-      const response = await api.post("/auth/register", { 
-        name, 
-        email, 
-        role 
-      });
+      const response = await api.post("/auth/register", { name, email, role });
       
-      const userData = response.data.user;
-      setUser(userData);
-
-      // Navigate based on user role
-      if (userData.role === "artisan") {
-        navigate("/artisan/dashboard");
-      } else if (userData.role === "ambassador") {
-        navigate("/ambassador/dashboard");
-      } else {
-        navigate("/buyer");
-      }
-      
-      return userData;
+      handleAuthSuccess(response.data.user, idToken);
+      return response.data.user;
     } catch (error) {
       console.error("Registration error:", error);
-      // If backend registration fails, we might want to delete the Firebase user
-      // But for now, just throw the error
       throw error;
     }
   };
 
   const logout = async () => {
     try {
-      // Call backend logout endpoint if needed
-      await api.post("/auth/logout");
+      await signOut(auth); // Sign out from Firebase
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Firebase sign out error:", error);
     } finally {
       localStorage.removeItem("token");
       setToken(null);
@@ -146,7 +125,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

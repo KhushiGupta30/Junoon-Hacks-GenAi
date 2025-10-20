@@ -1,9 +1,18 @@
-import './App.css'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';  
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import ScrollToTop from './components/scrolltotop';
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
+import ArtisanLayout from './components/layout/ArtisanLayout';
+import AmbassadorLayout from './components/layout/AmbassadorLayout';
 import LandingPage from './pages/LandingPage';
-import ArtisanPage from './pages/artisan';
 import AmbassadorPage from './pages/ambassador';
-import BuyerMarketplace from './pages/buyermarket'; 
+import ArtisanPage from './pages/artisan';
+import BuyerMarket from './pages/buyermarket';
+import SellerPage from './components/SellerPage';
 import CartPage from './components/cartpage';
 import ProductPage from './components/ProductPage';
 import SellerPage from './components/SellerPage';
@@ -22,11 +31,8 @@ import GrantsPage from './pages/artisan/GrantsPage.jsx';
 import LogiPage from './pages/artisan/LogiPage.jsx';
 import CommunityPage from './pages/artisan/CommunityPage.jsx';
 import AmbassadorDashboardPage from './pages/ambassadordashboard.jsx';
-import ArtisanProfilePage from './pages/artisan/ArtisanProfilePage.jsx';
-import ReviewsPage from './pages/artisan/ReviewsPage.jsx';
 
 function App() {
-
   return (
     <Router>
       <AuthProvider>
@@ -57,9 +63,6 @@ function App() {
               <Route path="/artisan/logistics" element={<LogiPage/>} />
               <Route path="/artisan/community" element={<CommunityPage/>} />
               <Route path="/artisan/ideas/new" element={<IdeaSubmissionPage />} />
-              <Route path='/artisan/ArtisanProfilePage' element={<ArtisanProfilePage/>}/>
-              <Route path='/artisan/reviews' element={<ReviewsPage/>}/>
-
             </Route>
             <Route path="/ambassador/dashboard" element={<AmbassadorDashboardPage />} />
 
@@ -67,7 +70,7 @@ function App() {
         </CartProvider>
       </AuthProvider>
     </Router>
-  )
+  );
 }
 
 export default App;

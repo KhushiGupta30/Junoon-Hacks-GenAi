@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import api from '../api/axiosConfig';
 
 const AnimatedSection = ({ children, className = "" }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -15,13 +16,14 @@ const AnimatedSection = ({ children, className = "" }) => {
       { threshold: 0.1 }
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
+    const currentRef = ref.current;
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, []);
@@ -29,7 +31,7 @@ const AnimatedSection = ({ children, className = "" }) => {
   return (
     <div
       ref={ref}
-      className={`transition-all duration-1000 ${
+      className={`transition-all duration-1000 ease-out ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
       } ${className}`}
     >
@@ -38,73 +40,51 @@ const AnimatedSection = ({ children, className = "" }) => {
   );
 };
 
-const UserIcon = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
+const PageHero = ({ title, highlightText, subtitle, backgroundImage, highlightColorClass = "text-google-blue" }) => (
+  <section
+    className="min-h-[60vh] flex items-center justify-center pt-24 bg-cover bg-center relative text-center"
+    style={{ backgroundImage: `url(${backgroundImage})` }}
   >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-    ></path>
-  </svg>
+    <div className="absolute inset-0 bg-black/50"></div>
+    <div className="container mx-auto px-6 relative z-10">
+      <AnimatedSection>
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-white leading-tight mb-4">
+            {title} <span className={highlightColorClass}>{highlightText}</span>
+          </h1>
+          <p className="text-lg text-white/90 font-medium">{subtitle}</p>
+        </div>
+      </AnimatedSection>
+    </div>
+  </section>
 );
-const MailIcon = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-    ></path>
-  </svg>
+
+const CallToAction = ({ onApplyClick, roleName, buttonColorClass = "bg-google-red" }) => (
+  <section className="py-20 bg-gray-100">
+    <div className="container mx-auto px-6 text-center">
+      <AnimatedSection>
+        <h2 className="text-4xl font-bold text-gray-800 mb-4">
+          Ready to Volunteer Your Passion?
+        </h2>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+          Join our network of KalaGhar Ambassadors and dedicate your time to a
+          cause that matters. Your effort can change lives.
+        </p>
+        <button
+          onClick={onApplyClick}
+          className={`${buttonColorClass} text-white font-bold px-10 py-4 rounded-full hover:opacity-90 transition-all duration-300 transform hover:scale-105 shadow-lg`}
+        >
+          Volunteer as an {roleName}
+        </button>
+      </AnimatedSection>
+    </div>
+  </section>
 );
-const LocationIcon = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-    ></path>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-    ></path>
-  </svg>
-);
-const CloseIcon = () => (
-  <svg
-    className="w-6 h-6"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M6 18L18 6M6 6l12 12"
-    ></path>
-  </svg>
-);
+
+const UserIcon = () => ( <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" ></path> </svg> );
+const MailIcon = () => ( <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" ></path> </svg> );
+const LocationIcon = () => ( <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" ></path> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" ></path> </svg> );
+const CloseIcon = () => ( <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" ></path> </svg> );
 
 const ApplicationModal = ({ onClose }) => {
   const [formData, setFormData] = useState({
@@ -114,6 +94,9 @@ const ApplicationModal = ({ onClose }) => {
     reason: "",
     skills: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const modalRef = useRef();
 
   const handleInputChange = (e) => {
@@ -121,18 +104,25 @@ const ApplicationModal = ({ onClose }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Application Submitted:", formData);
-    alert("Thank you for your application! We will be in touch soon.");
-    onClose();
+    setLoading(true);
+    setError('');
+    try {
+      await api.post('/ambassador/apply', formData);
+      setSuccess(true);
+    } catch (err) {
+      console.error("Application submission error:", err);
+      const errorMessage = err.response?.data?.errors?.[0]?.msg || err.response?.data?.message || "An error occurred. Please try again.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     const handleEscape = (event) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
+      if (event.key === "Escape") onClose();
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
@@ -161,135 +151,55 @@ const ApplicationModal = ({ onClose }) => {
           <CloseIcon />
         </button>
         <div className="p-8">
-          <h3 className="text-2xl font-bold text-gray-800 mb-2">
-            Join as an <span className="text-google-yellow">Ambassador</span>
-          </h3>
-          <p className="text-gray-500 mb-6">
-            We're excited to have you. Let's get you started.
-          </p>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <UserIcon />
-              </div>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                required
-                className="block w-full pl-10 pr-3 py-3 bg-gray-100 border-2 border-transparent rounded-lg text-gray-800 focus:outline-none focus:border-google-yellow transition-colors"
-                placeholder="Full Name"
-              />
+          {success ? (
+            <div className="text-center">
+              <h3 className="text-2xl font-bold text-google-green mb-4">Application Sent!</h3>
+              <p className="text-gray-600 mb-6">Thank you for your interest. We have received your application and will review it shortly. We'll be in touch soon!</p>
+              <button
+                onClick={onClose}
+                className="w-full bg-google-green text-white font-bold py-3 rounded-full hover:opacity-90 transition-all"
+              >
+                Close
+              </button>
             </div>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <MailIcon />
-              </div>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                className="block w-full pl-10 pr-3 py-3 bg-gray-100 border-2 border-transparent rounded-lg text-gray-800 focus:outline-none focus:border-google-yellow transition-colors"
-                placeholder="Email Address"
-              />
-            </div>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <LocationIcon />
-              </div>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-                required
-                className="block w-full pl-10 pr-3 py-3 bg-gray-100 border-2 border-transparent rounded-lg text-gray-800 focus:outline-none focus:border-google-yellow transition-colors"
-                placeholder="Your City / Region"
-              />
-            </div>
-            <textarea
-              name="reason"
-              rows="3"
-              value={formData.reason}
-              onChange={handleInputChange}
-              required
-              className="block w-full px-3 py-3 bg-gray-100 border-2 border-transparent rounded-lg text-gray-800 focus:outline-none focus:border-google-yellow transition-colors resize-none"
-              placeholder="Why do you want to join?"
-            ></textarea>
-            <textarea
-              name="skills"
-              rows="2"
-              value={formData.skills}
-              onChange={handleInputChange}
-              className="block w-full px-3 py-3 bg-gray-100 border-2 border-transparent rounded-lg text-gray-800 focus:outline-none focus:border-google-yellow transition-colors resize-none"
-              placeholder="Relevant skills or experience?"
-            ></textarea>
-            <button
-              type="submit"
-              className="w-full bg-google-yellow text-white font-bold px-10 py-3 rounded-full hover:opacity-90 transition-all duration-300 transform hover:scale-105 shadow-lg"
-            >
-              Submit Application
-            </button>
-          </form>
+          ) : (
+            <>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                Join as an <span className="text-google-yellow">Ambassador</span>
+              </h3>
+              <p className="text-gray-500 mb-6">
+                We're excited to have you. Let's get you started.
+              </p>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Form Inputs */}
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><UserIcon /></div>
+                  <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} required className="block w-full pl-10 pr-3 py-3 bg-gray-100 border-2 border-transparent rounded-lg text-gray-800 focus:outline-none focus:border-google-yellow transition-colors" placeholder="Full Name" />
+                </div>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><MailIcon /></div>
+                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} required className="block w-full pl-10 pr-3 py-3 bg-gray-100 border-2 border-transparent rounded-lg text-gray-800 focus:outline-none focus:border-google-yellow transition-colors" placeholder="Email Address" />
+                </div>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><LocationIcon /></div>
+                  <input type="text" name="location" value={formData.location} onChange={handleInputChange} required className="block w-full pl-10 pr-3 py-3 bg-gray-100 border-2 border-transparent rounded-lg text-gray-800 focus:outline-none focus:border-google-yellow transition-colors" placeholder="Your City / Region" />
+                </div>
+                <textarea name="reason" rows="3" value={formData.reason} onChange={handleInputChange} required className="block w-full px-3 py-3 bg-gray-100 border-2 border-transparent rounded-lg text-gray-800 focus:outline-none focus:border-google-yellow transition-colors resize-none" placeholder="Why do you want to join?"></textarea>
+                <textarea name="skills" rows="2" value={formData.skills} onChange={handleInputChange} className="block w-full px-3 py-3 bg-gray-100 border-2 border-transparent rounded-lg text-gray-800 focus:outline-none focus:border-google-yellow transition-colors resize-none" placeholder="Relevant skills or experience (optional)"></textarea>
+                
+                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+                <button type="submit" disabled={loading} className="w-full bg-google-yellow text-white font-bold px-10 py-3 rounded-full hover:opacity-90 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:bg-opacity-50 disabled:cursor-not-allowed">
+                  {loading ? 'Submitting...' : 'Submit Application'}
+                </button>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 };
-
-const PageHero = ({
-  title,
-  highlightText,
-  subtitle,
-  backgroundImage,
-  highlightColorClass = "text-google-blue",
-}) => (
-  <section
-    className="min-h-[60vh] flex items-center justify-center pt-24 bg-cover bg-[center_bottom_30%] relative text-center"
-    style={{ backgroundImage: `url(${backgroundImage})` }}
-  >
-    <div className="absolute inset-0 bg-black/50"></div>
-    <div className="container mx-auto px-6 relative z-10">
-      <AnimatedSection>
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-white leading-tight mb-4">
-            {title} <span className={highlightColorClass}>{highlightText}</span>
-          </h1>
-          <p className="text-lg text-white/90 font-medium">{subtitle}</p>
-        </div>
-      </AnimatedSection>
-    </div>
-  </section>
-);
-
-const CallToAction = ({
-  onApplyClick,
-  roleName,
-  buttonColorClass = "bg-google-red",
-}) => (
-  <section className="py-20 bg-gray-100">
-    <div className="container mx-auto px-6 text-center">
-      <AnimatedSection>
-        <h2 className="text-4xl font-bold text-gray-800 mb-4">
-          Ready to Volunteer Your Passion?
-        </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-          Join our network of KalaGhar Ambassadors and dedicate your time to a
-          cause that matters. Your effort can change lives.
-        </p>
-        <button
-          onClick={onApplyClick}
-          className={`${buttonColorClass} text-white font-bold px-10 py-4 rounded-full hover:opacity-90 transition-all duration-300 transform hover:scale-105 shadow-lg`}
-        >
-          Volunteer as an {roleName}
-        </button>
-      </AnimatedSection>
-    </div>
-  </section>
-);
 
 const AmbassadorPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);

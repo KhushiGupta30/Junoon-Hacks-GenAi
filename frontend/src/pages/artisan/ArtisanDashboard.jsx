@@ -11,7 +11,6 @@ import {
 } from '../../components/common/Icons';
 import SkeletonCard from '../../components/ui/SkeletonCard';
 import SkeletonStat from '../../components/ui/SkeletonStat';
-import SkeletonListItem from '../../components/ui/SkeletonListItem';
 
 import { Line } from 'react-chartjs-2';
 import {
@@ -93,26 +92,27 @@ const MiniLineChart = ({ title, data, labels, icon, borderColor, bgColor }) => {
 const ArtisanDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ orders: 0, lowInventory: 0 });
+  const [salesData, setSalesData] = useState(null);
+  const [viewsData, setViewsData] = useState(null);
+  const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   useEffect(() => {
     let isMounted = true;
     const fetchDashboardData = async () => {
       try {
-        const [ordersResponse, myProductsResponse] = await Promise.all([
-          api.get('/orders'),
-          api.get('/users/my-products'),
-          
-        ]);
+        const { data } = await api.get('/dashboard/artisan-stats');
 
         if (isMounted) {
-          const activeOrders = ordersResponse.data.orders.filter(order => ['pending', 'confirmed', 'processing', 'in_production'].includes(order.status));
-          const lowStockItems = myProductsResponse.data.products.filter(p => !p.inventory.isUnlimited && p.inventory.quantity < 5);
-          setStats({ orders: activeOrders.length, lowInventory: lowStockItems.length });
-          
+          setStats(data.stats);
+          setSalesData(data.salesData);
+          setViewsData(data.viewsData);
+          setTopProducts(data.topProducts);
         }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
+        setError("Could not load dashboard data. Please try again later.");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -127,25 +127,6 @@ const ArtisanDashboard = () => {
     { title: 'Low Stock Alerts', value: `${stats.lowInventory} items`, icon: <TrendingUpIcon />, color: 'text-google-red', borderColor: 'border-google-red', bgColor: 'bg-google-red', link: '/artisan/products', description: "Replenish your popular items" },
   ];
 
-  
-  const chartLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const mockSalesData = {
-    labels: chartLabels,
-    data: [12, 19, 3, 5, 2, 3, 9],
-  };
-   const mockViewsData = {
-    labels: chartLabels,
-    data: [30, 25, 40, 35, 50, 45, 60],
-  };
-  const mockTopProducts = [
-    { id: 'prod1', name: 'Hand-Painted Scarf', value: '55 Views', image: 'https://placehold.co/40x40/DB4437/FFFFFF?text=S', link: '/artisan/products/edit/prod1' },
-    { id: 'prod2', name: 'Ceramic Vase', value: '48 Views', image: 'https://placehold.co/40x40/4285F4/FFFFFF?text=V', link: '/artisan/products/edit/prod2' },
-    { id: 'prod3', name: 'Wooden Bowl Set', value: '35 Views', image: 'https://placehold.co/40x40/0F9D58/FFFFFF?text=W', link: '/artisan/products/edit/prod3' },
-  ];
-  
-
-
-  
   if (loading || !user) {
     return (
       <div className="px-6 md:px-8 py-8 md:py-10">
@@ -182,6 +163,14 @@ const ArtisanDashboard = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="px-6 md:px-8 py-8 md:py-10 text-center">
+        <h2 className="text-2xl font-bold text-red-500">Something went wrong</h2>
+        <p className="text-gray-600 mt-2">{error}</p>
+      </div>
+    )
+  }
   
   return (
     <div className="px-6 md:px-8 py-8 md:py-10">
@@ -217,23 +206,23 @@ const ArtisanDashboard = () => {
         
         <AnimatedSection className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-8">
            
-            <MiniLineChart
+           {salesData && <MiniLineChart
                 title="Sales (Last 7 Days)"
-                labels={mockSalesData.labels}
-                data={mockSalesData.data}
+                labels={salesData.labels}
+                data={salesData.data}
                 icon={<CurrencyDollarIcon />}
                 borderColor="#34A853"
                 bgColor="rgba(52, 168, 83, 0.1)"
-            />
+            />}
              
-            <MiniLineChart
+            {viewsData && <MiniLineChart
                 title="Product Views (Last 7 Days)"
-                labels={mockViewsData.labels}
-                data={mockViewsData.data}
+                labels={viewsData.labels}
+                data={viewsData.data}
                 icon={<EyeIcon />}
                 borderColor="#4285F4"
                 bgColor="rgba(66, 133, 244, 0.1)"
-            />
+            />}
         </AnimatedSection>
 
         
@@ -241,17 +230,17 @@ const ArtisanDashboard = () => {
           <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 h-full">
             <h2 className="text-base font-medium text-gray-800 mb-4">Top Performing Products</h2>
             <div className="space-y-3">
-              {mockTopProducts.length > 0 ? (
-                mockTopProducts.map((product) => (
+              {topProducts.length > 0 ? (
+                topProducts.map((product) => (
                   <Link
-                    to={product.link || '#'}
+                    to={`/artisan/products/edit/${product.id}`}
                     key={product.id}
                     className="flex items-center p-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    <img src={product.image} alt={product.name} className="w-10 h-10 rounded-md object-cover mr-3 flex-shrink-0" />
+                    <img src={product.images[0]?.url || 'https://placehold.co/40x40/cccccc/ffffff?text=P'} alt={product.name} className="w-10 h-10 rounded-md object-cover mr-3 flex-shrink-0" />
                     <div className="flex-1 overflow-hidden">
                       <p className="text-sm font-medium text-gray-800 truncate">{product.name}</p>
-                      <p className="text-xs text-gray-500">{product.value}</p>
+                      <p className="text-xs text-gray-500">{product.stats?.views || 0} Views</p>
                     </div>
                   </Link>
                 ))
@@ -260,7 +249,7 @@ const ArtisanDashboard = () => {
               )}
             </div>
             
-            {mockTopProducts.length > 0 && (
+            {topProducts.length > 0 && (
                  <div className="mt-4 pt-3 border-t border-gray-100 text-center">
                      <Link to="/artisan/analytics/products" className="text-sm font-medium text-google-blue hover:underline">
                          View all product performance
