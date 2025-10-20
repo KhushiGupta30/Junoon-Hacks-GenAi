@@ -31,11 +31,7 @@ const TagIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-
 
 const IdeaSubmissionFormFields = ({ onSubmit }) => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        category: 'Other',
-    });
+    const [formData, setFormData] = useState({ title: '', description: '', category: 'Other' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -61,33 +57,28 @@ const IdeaSubmissionFormFields = ({ onSubmit }) => {
 
     const FormInput = ({ label, id, ...props }) => (
         <div>
-            <label htmlFor={id} className="block text-sm font-bold text-gray-700 mb-1">{label}</label>
-            <input id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-google-blue focus:border-google-blue sm:text-sm" />
+            <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+            <input id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm" />
         </div>
     );
 
     const FormSelect = ({ label, id, children, ...props }) => (
         <div>
-            <label htmlFor={id} className="block text-sm font-bold text-gray-700 mb-1">{label}</label>
-            <select id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-google-blue focus:border-google-blue sm:text-sm">{children}</select>
+            <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+            <select id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm">{children}</select>
         </div>
     );
 
     return (
-        <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-10 rounded-2xl shadow-lg space-y-8 border border-gray-200">
-            {error && <p className="text-red-600 bg-red-50 p-4 rounded-lg font-medium border border-red-200">{error}</p>}
-            
+        <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200 space-y-6">
+            {error && <div className="text-red-700 bg-red-50 p-3 rounded-md text-sm font-medium border border-red-200">{error}</div>}
+
             <div className="space-y-6">
-                <div className="pb-5 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-google-yellow">Describe Your Idea</h2>
-                    <p className="mt-1 text-sm text-gray-500">Provide the core details of your new concept.</p>
-                </div>
-                
                 <FormInput label="Idea Title" id="title" name="title" type="text" value={formData.title} onChange={handleChange} required placeholder="e.g., Self-Watering Terracotta Planters" />
-                
+
                 <div>
-                    <label htmlFor="description" className="block text-sm font-bold text-gray-700 mb-1">Detailed Description</label>
-                    <textarea id="description" name="description" value={formData.description} onChange={handleChange} required rows="6" placeholder="Describe your idea. What makes it unique? What materials would you use? What's the story behind it?" className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-google-blue focus:border-google-blue sm:text-sm"></textarea>
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Detailed Description</label>
+                    <textarea id="description" name="description" value={formData.description} onChange={handleChange} required rows="5" placeholder="Describe your idea. What makes it unique? What materials would you use? What's the story behind it?" className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm"></textarea>
                 </div>
 
                 <FormSelect label="Category" id="category" name="category" value={formData.category} onChange={handleChange}>
@@ -95,9 +86,12 @@ const IdeaSubmissionFormFields = ({ onSubmit }) => {
                 </FormSelect>
             </div>
 
-            <div className="flex justify-end items-center gap-4 pt-5 border-t border-gray-200">
-                <button type="button" onClick={() => navigate('/artisan/dashboard')} className="bg-gray-100 text-gray-800 font-bold px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
-                <button type="submit" disabled={loading} className="bg-google-blue text-white font-bold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:bg-blue-300 disabled:cursor-not-allowed">
+            <div className="flex justify-end items-center gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onClick={() => navigate('/artisan/dashboard')} className="bg-white text-gray-700 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 border border-gray-300 transition-colors text-sm flex items-center gap-1.5">
+                   {/* Optional: <ArrowLeftIcon className="w-4 h-4" /> */} Cancel
+                </button>
+                <button type="submit" disabled={loading} className="bg-google-blue text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2">
+                    {loading && <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
                     {loading ? 'Submitting...' : 'Submit for Review'}
                 </button>
             </div>
