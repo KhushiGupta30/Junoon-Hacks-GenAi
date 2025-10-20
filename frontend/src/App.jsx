@@ -29,6 +29,7 @@ import MyArtisans from './pages/ambassador/MyArtisans.jsx';
 import CommunityHub from './pages/ambassador/CommunityHub.jsx';
 import Profile from './pages/ambassador/Profile.jsx';
 import FindArtisans from './pages/ambassador/FindArtisans.jsx';
+import ReviewsPage from './pages/artisan/ReviewsPage.jsx';
 
 const AppLayout = () => {
   const location = useLocation();
