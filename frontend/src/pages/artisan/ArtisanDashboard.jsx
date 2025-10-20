@@ -175,7 +175,7 @@ const ArtisanDashboard = () => {
   return (
     <div className="px-6 md:px-8 py-8 md:py-10">
       
-      <AnimatedSection className="mb-10 md:mb-12">
+      <AnimatedSection className="mb-10 pt-8 md:mb-12">
         <div className="relative p-8 md:p-10 rounded-2xl shadow-xl overflow-hidden text-white" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/2.png')`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <header className="relative z-10 flex justify-center items-center text-center">
             

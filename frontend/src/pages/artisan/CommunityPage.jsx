@@ -112,7 +112,7 @@ const CommunityPage = () => {
       <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
 
         <div className="flex-grow lg:w-2/3">
-            <AnimatedSection className="mb-8 text-center">
+            <AnimatedSection className="mb-8 pt-8 text-center">
                 <h1
                     className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
                     style={{
