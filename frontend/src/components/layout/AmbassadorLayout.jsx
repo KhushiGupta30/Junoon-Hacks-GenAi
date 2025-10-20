@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import {
-  LogOut,
-  User,
-  Users,
-  MessageSquare,
-  LayoutDashboard,
-  Bell,
-} from "lucide-react";
+import { LogOut, User, Bell } from "lucide-react";
 
+// Reusable NavItem component
 const NavItem = ({ to, children }) => (
   <NavLink
     to={to}
@@ -27,7 +21,7 @@ const NavItem = ({ to, children }) => (
 );
 
 const AmbassadorHeader = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, notifications, markNotificationAsRead } = useAuth(); // <-- GET REAL DATA
   const navigate = useNavigate();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -35,22 +29,23 @@ const AmbassadorHeader = () => {
   const profileRef = useRef(null);
   const notifRef = useRef(null);
 
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
+      if (profileRef.current && !profileRef.current.contains(event.target))
         setIsProfileOpen(false);
-      }
-      if (notifRef.current && !notifRef.current.contains(event.target)) {
+      if (notifRef.current && !notifRef.current.contains(event.target))
         setIsNotifOpen(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/");
+  const handleNotificationClick = (url) => {
+    if (url) {
+      navigate(url);
+    }
   };
 
   const navLinks = [
@@ -58,11 +53,6 @@ const AmbassadorHeader = () => {
     { name: "My Artisans", href: "/ambassador/artisans" },
     { name: "Find Artisans", href: "/ambassador/find-artisans" },
     { name: "Community Hub", href: "/ambassador/community" },
-  ];
-
-  const notifications = [
-    { id: 1, text: "New artisan application received", time: "1h ago" },
-    { id: 2, text: 'Community event "Art Fair" is next week', time: "3h ago" },
   ];
 
   return (
@@ -83,7 +73,6 @@ const AmbassadorHeader = () => {
                 कला<span className="text-google-blue">Ghar</span>
               </h1>
             </Link>
-
             <nav className="hidden md:flex items-center h-16 space-x-7">
               {navLinks.map((link) => (
                 <NavItem key={link.name} to={link.href}>
@@ -100,27 +89,40 @@ const AmbassadorHeader = () => {
                 className="p-2 rounded-full hover:bg-gray-100 transition relative"
               >
                 <Bell className="h-6 w-6 text-gray-700" />
-                {notifications.length > 0 && (
-                  <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 h-3 w-3 bg-red-500 rounded-full text-white flex items-center justify-center text-[8px]">
+                    {unreadCount}
+                  </span>
                 )}
               </button>
               {isNotifOpen && (
-                <div className="absolute right-0 mt-3 w-72 bg-white rounded-xl shadow-2xl py-2 z-[60] border border-gray-200">
+                <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-2xl z-[60] border border-gray-200">
                   <h3 className="px-4 py-2 text-sm font-semibold text-gray-700 border-b border-gray-100">
                     Notifications
                   </h3>
-                  <ul className="flex flex-col">
-                    {notifications.map((notif) => (
-                      <li
-                        key={notif.id}
-                        className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 transition"
-                      >
-                        <p>{notif.text}</p>
-                        <span className="text-xs text-gray-400">
-                          {notif.time}
-                        </span>
+                  <ul className="flex flex-col max-h-80 overflow-y-auto">
+                    {notifications.length > 0 ? (
+                      notifications.map((notif) => (
+                        <li
+                          key={notif.id}
+                          onClick={() => handleNotificationClick(notif)}
+                          className={`px-4 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-100 transition ${
+                            !notif.isRead ? "bg-blue-50" : ""
+                          }`}
+                        >
+                          <p className="text-sm text-gray-700">
+                            {notif.message}
+                          </p>
+                          <span className="text-xs text-gray-400">
+                            {new Date(notif.createdAt).toLocaleString()}
+                          </span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="p-4 text-center text-sm text-gray-500">
+                        You have no new notifications.
                       </li>
-                    ))}
+                    )}
                   </ul>
                 </div>
               )}
@@ -141,7 +143,6 @@ const AmbassadorHeader = () => {
                   </div>
                 </button>
               </div>
-
               {isProfileOpen && (
                 <div className="absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-2xl py-2 z-[60] border border-gray-200">
                   <div className="px-4 py-2 border-b border-gray-100">
@@ -161,7 +162,7 @@ const AmbassadorHeader = () => {
                       <User size={16} className="mr-2" /> My Profile
                     </NavLink>
                     <button
-                      onClick={handleLogout}
+                      onClick={logout}
                       className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
                     >
                       <LogOut size={16} className="mr-2" /> Sign out
@@ -182,7 +183,6 @@ const AmbassadorLayout = () => {
     <div className="min-h-screen bg-gray-50">
       <AmbassadorHeader />
       <main className="pt-16">
-        {" "}
         <div className="container mx-auto p-4 sm:p-6 lg:p-8">
           <Outlet />
         </div>

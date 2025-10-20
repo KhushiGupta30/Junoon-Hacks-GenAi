@@ -1,30 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import AnimatedSection from '../../components/ui/AnimatedSection'; // Adjust path
+import { Link } from 'react-router-dom';
+import AnimatedSection from '../../components/ui/AnimatedSection';
 import {
     UserCircleIcon,
     OfficeBuildingIcon,
     CreditCardIcon,
-    CogIcon, // Assuming this is in Icons.jsx
-    CameraIcon, // New icon
-    ExclamationCircleIcon // For error/info states
-} from '../../components/common/Icons'; // Adjust path
-// import api from '../../api/axiosConfig'; // Uncomment when using real API
+    CameraIcon,
+    ExclamationCircleIcon
+} from '../../components/common/Icons';
+import api from '../../api/axiosConfig';
 
-// --- Skeleton Component Placeholders ---
-const SkeletonBase = ({ className = "" }) => <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>;
-const SkeletonSidebarCard = () => <SkeletonBase className="h-44 md:h-48" />;
-const SkeletonForm = () => <SkeletonBase className="h-[40rem]" />; // Tall form skeleton
-// --- End Skeletons ---
-
-// --- Reusable Form Components (Google Style) ---
+// --- Reusable Form Components ---
 const FormInput = ({ label, id, ...props }) => (
   <div>
     <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
     <input
       id={id}
       {...props}
-      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 
+      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400
                  focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm
                  disabled:bg-gray-50 disabled:text-gray-500"
     />
@@ -37,14 +30,13 @@ const FormSelect = ({ label, id, children, ...props }) => (
     <select
       id={id}
       {...props}
-      className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm 
+      className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm
                  focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm"
     >
       {children}
     </select>
   </div>
 );
-// --- End Form Components ---
 
 // --- Side Navigation Component ---
 const SideNavItem = ({ icon, children, isActive, onClick }) => (
@@ -73,8 +65,6 @@ const PublicProfileSection = ({ artisanData, setArtisanData }) => {
                 setArtisanData({...artisanData, profilePicture: reader.result});
             };
             reader.readAsDataURL(file);
-            // In a real app, you'd also prepare 'file' to be uploaded to your API
-            // setArtisanData({...artisanData, profilePictureFile: file});
         }
     };
 
@@ -84,23 +74,20 @@ const PublicProfileSection = ({ artisanData, setArtisanData }) => {
                 <h2 className="text-lg font-medium text-gray-800">Public Profile</h2>
                 <p className="mt-1 text-xs text-gray-500">This information will be displayed on your artisan shop page.</p>
             </div>
-            
+           
             <div className="flex items-center gap-5">
                 <div className="relative">
                     <img src={artisanData.profilePicture || 'https://placehold.co/96x96/E8F0FE/4285F4?text=A&font=roboto'} alt="Profile" className="w-24 h-24 rounded-full object-cover border border-gray-200" />
-                    {/* Hidden file input */}
-                    <input 
-                        type="file" 
+                    <input
+                        type="file"
                         ref={fileInputRef}
                         onChange={handleImageChange}
                         accept="image/png, image/jpeg"
-                        className="hidden" 
-                        id="profilePictureInput" // Add id to match label
+                        className="hidden"
+                        id="profilePictureInput"
                     />
-                    {/* Label styled as a button to trigger file input */}
-                    <label 
-                        htmlFor="profilePictureInput" // This will now work
-                        onClick={() => fileInputRef.current.click()} // Keep click handler as fallback
+                    <label
+                        htmlFor="profilePictureInput"
                         className="absolute bottom-0 right-0 bg-white p-1.5 rounded-full shadow-md border border-gray-200 hover:bg-gray-100 transition cursor-pointer"
                     >
                         <CameraIcon className="w-4 h-4 text-gray-600"/>
@@ -126,7 +113,6 @@ const BusinessInfoSection = ({ artisanData, setArtisanData }) => {
                 <h2 className="text-lg font-medium text-gray-800">Business Information</h2>
                 <p className="mt-1 text-xs text-gray-500">Provide details about you and your business operations.</p>
             </div>
-            {/* --- Personal & Contact --- */}
             <div className="space-y-6 pt-4 border-t border-gray-100">
                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Contact Details</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -139,7 +125,6 @@ const BusinessInfoSection = ({ artisanData, setArtisanData }) => {
                     <FormInput label="Pincode" id="pincode" value={artisanData.pincode} onChange={e => setArtisanData({...artisanData, pincode: e.target.value})} placeholder="e.g., 110001" />
                  </div>
             </div>
-             {/* --- Craft Details --- */}
             <div className="space-y-6 pt-4 border-t border-gray-100">
                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Craft Details</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -165,7 +150,6 @@ const BusinessInfoSection = ({ artisanData, setArtisanData }) => {
                     <FormSelect label="Language Preference" id="languagePreference" value={artisanData.languagePreference} onChange={e => setArtisanData({...artisanData, languagePreference: e.target.value})}>
                         <option value="en">English</option>
                         <option value="hi">हिन्दी (Hindi)</option>
-                        {/* Add more languages as needed */}
                     </FormSelect>
                  </div>
             </div>
@@ -197,9 +181,9 @@ const PayoutsSection = ({ artisanData, setArtisanData }) => {
 // --- MAIN PROFILE PAGE COMPONENT ---
 const ArtisanProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
-  const [loading, setLoading] = useState(true); // To simulate fetching data
+  const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  
+ 
   const [artisanData, setArtisanData] = useState({
       studioName: '',
       bio: '',
@@ -221,104 +205,90 @@ const ArtisanProfilePage = () => {
 
   useEffect(() => {
       setLoading(true);
-      // Simulate API fetch on mount
       setTimeout(() => {
-          // You would fetch and set artisanData from your API here
           setLoading(false);
       }, 1000);
   }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
-    console.log("Saving data...", artisanData);
-    // await api.put('/artisan/profile', artisanData); // Real API call
-    await new Promise(res => setTimeout(res, 1500)); // Simulate save
-    setIsSaving(false);
-    // Show a success snackbar here (e.g., "Profile saved!")
+    try {
+        await api.put('/artisan/profile', artisanData);
+    } catch (error) {
+        console.error("Failed to save profile:", error);
+    } finally {
+        setIsSaving(false);
+    }
   }
 
   const renderContent = () => {
+    if (loading) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <aside className="md:col-span-1">
+                    <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 space-y-1 animate-pulse">
+                        <div className="h-10 bg-gray-200 rounded-md"></div>
+                        <div className="h-10 bg-gray-200 rounded-md"></div>
+                        <div className="h-10 bg-gray-200 rounded-md"></div>
+                    </div>
+                </aside>
+                <main className="md:col-span-3">
+                    <div className="h-96 bg-gray-200 rounded-xl animate-pulse"></div>
+                </main>
+            </div>
+        );
+    }
+
+    let currentSection;
     switch (activeTab) {
       case 'business':
-        return <BusinessInfoSection artisanData={artisanData} setArtisanData={setArtisanData} />;
+        currentSection = <BusinessInfoSection artisanData={artisanData} setArtisanData={setArtisanData} />;
+        break;
       case 'payouts':
-        return <PayoutsSection artisanData={artisanData} setArtisanData={setArtisanData} />;
-      case 'profile':
+        currentSection = <PayoutsSection artisanData={artisanData} setArtisanData={setArtisanData} />;
+        break;
       default:
-        return <PublicProfileSection artisanData={artisanData} setArtisanData={setArtisanData} />;
+        currentSection = <PublicProfileSection artisanData={artisanData} setArtisanData={setArtisanData} />;
     }
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <aside className="md:col-span-1 md:sticky md:top-24 self-start">
+                <AnimatedSection>
+                    <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 space-y-1">
+                        <SideNavItem icon={<UserCircleIcon />} isActive={activeTab === 'profile'} onClick={() => setActiveTab('profile')}>Public Profile</SideNavItem>
+                        <SideNavItem icon={<OfficeBuildingIcon />} isActive={activeTab === 'business'} onClick={() => setActiveTab('business')}>Business Info</SideNavItem>
+                        <SideNavItem icon={<CreditCardIcon />} isActive={activeTab === 'payouts'} onClick={() => setActiveTab('payouts')}>Payout Details</SideNavItem>
+                    </div>
+                </AnimatedSection>
+            </aside>
+
+            <main className="md:col-span-3">
+                <AnimatedSection className='pt-8'>
+                    <div className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200">
+                        {currentSection}
+                        <div className="mt-8 pt-5 border-t border-gray-100 flex justify-end">
+                            <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="bg-google-blue text-white font-bold px-5 py-2.5 rounded-lg hover:bg-opacity-90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2"
+                            >
+                                {isSaving && <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
+                                {isSaving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </div>
+                </AnimatedSection>
+            </main>
+        </div>
+    );
   };
 
-  if (loading) {
-      return (
-           // Full page subtle background from LogiPage
-           <div className="bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-[calc(100vh-4rem)] px-4 sm:px-6 md:px-8 py-8 md:py-10">
-               <div className="max-w-screen-xl mx-auto">
-                   <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                        {/* Skeleton Sidebar */}
-                        <aside className="md:col-span-1">
-                            <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 space-y-1 animate-pulse">
-                                <SkeletonBase className="h-10 w-full" />
-                                <SkeletonBase className="h-10 w-full" />
-                                <SkeletonBase className="h-10 w-full" />
-                            </div>
-                        </aside>
-                         {/* Skeleton Main Content */}
-                         <main className="md:col-span-3">
-                            <SkeletonBase className="h-96 w-full rounded-xl" />
-                         </main>
-                   </div>
-               </div>
-           </div>
-       );
-  }
-
   return (
-    // Copied LogiPage outer div styling
     <div className="bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-[calc(100vh-4rem)] px-4 sm:px-6 md:px-8 py-8 md:py-10">
-      <div className="max-w-screen-xl mx-auto">
-        {/* Removed main heading */}
-
-        {/* Main Layout Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          
-          {/* Left Sidebar Navigation */}
-          <aside className="md:col-span-1 md:sticky md:top-24 self-start"> {/* Made sidebar sticky */}
-            <AnimatedSection>
-                {/* Use a white card for nav, as seen in Google Cloud */}
-                <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 space-y-1">
-                    <SideNavItem icon={<UserCircleIcon />} isActive={activeTab === 'profile'} onClick={() => setActiveTab('profile')}>Public Profile</SideNavItem>
-                    <SideNavItem icon={<OfficeBuildingIcon />} isActive={activeTab === 'business'} onClick={() => setActiveTab('business')}>Business Info</SideNavItem>
-                    <SideNavItem icon={<CreditCardIcon />} isActive={activeTab === 'payouts'} onClick={() => setActiveTab('payouts')}>Payout Details</SideNavItem>
-                    {/* <SideNavItem icon={<CogIcon />} isActive={activeTab === 'settings'} onClick={() => setActiveTab('settings')}>Account Settings</S>ideNavItem> */}
-                </div>
-            </AnimatedSection>
-          </aside>
-
-          {/* Right Content Area */}
-          <main className="md:col-span-3">
-            <AnimatedSection>
-              {/* Main content card */}
-              <div className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200">
-                {renderContent()}
-
-                {/* Save Button Footer */}
-                <div className="mt-8 pt-5 border-t border-gray-100 flex justify-end"> {/* Lighter border */}
-                    <button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="bg-google-blue text-white font-bold px-5 py-2.5 rounded-lg hover:bg-opacity-90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2"
-                    >
-                         {isSaving && <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
-                         {isSaving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                </div>
-              </div>
-            </AnimatedSection>
-          </main>
-
+        <div className="max-w-screen-xl mx-auto">
+            {renderContent()}
         </div>
-      </div>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --app-font: var(--env(VITE_APP_FONT)); /* Pull from .env */
+  --app-font: var(--env(VITE_APP_FONT));
 }
 
 @theme {

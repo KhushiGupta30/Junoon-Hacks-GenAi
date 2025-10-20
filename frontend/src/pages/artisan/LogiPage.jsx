@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axiosConfig';
-// Import Shared Components
 import AnimatedSection from '../../components/ui/AnimatedSection';
 import {
     TruckIcon,
@@ -12,7 +11,6 @@ import {
     TagIcon
 } from '../../components/common/Icons';
 
-// --- Skeleton Component Placeholders ---
 const SkeletonBase = ({ className = "" }) => <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>;
 const SkeletonHero = () => <SkeletonBase className="h-40 md:h-48" />;
 const SkeletonSidebarCard = () => <SkeletonBase className="h-48" />;
@@ -20,7 +18,6 @@ const SkeletonPartnerCard = () => <SkeletonBase className="h-40" />;
 const SkeletonSectionHeader = () => <SkeletonBase className="h-10 w-1/2 mb-4" />;
 const SkeletonTipCard = () => <SkeletonBase className="h-24" />;
 
-// --- Tab Component ---
 const TabButton = ({ title, isActive, onClick }) => (
     <button
         onClick={onClick}
@@ -33,12 +30,11 @@ const TabButton = ({ title, isActive, onClick }) => (
     </button>
 );
 
-// --- MAIN LOGISTICS PAGE COMPONENT ---
 const LogisticsPage = () => {
     const [logisticsData, setLogisticsData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState('domestic'); // 'domestic', 'international', 'tips'
+    const [activeTab, setActiveTab] = useState('domestic');
 
     const packagingTips = [
         { title: "Use Double Boxing", description: "For fragile items, use nested boxes with cushioning.", icon: <CubeTransparentIcon className="w-5 h-5 text-gray-400" /> },
@@ -64,7 +60,6 @@ const LogisticsPage = () => {
         fetchLogisticsData();
     }, []);
 
-  // --- Loading State ---
   if (loading) {
     return (
       <div className="flex flex-col lg:flex-row gap-8 px-6 md:px-8 py-8 md:py-10">
@@ -96,7 +91,6 @@ const LogisticsPage = () => {
     );
   }
 
-  // --- Error State ---
   if (error || !logisticsData) {
     return (
       <div className="flex flex-col justify-center items-center min-h-[calc(100vh-10rem)] px-6 text-center">
@@ -110,10 +104,8 @@ const LogisticsPage = () => {
     );
   }
 
-  // --- Main Return (Loaded State) ---
   return (
     <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
-      {/* Main Content Area */}
       <div className="flex-grow lg:w-2/3">
         <AnimatedSection className="mb-8 pt-8 text-center">
           <h1
@@ -130,7 +122,6 @@ const LogisticsPage = () => {
           </p>
         </AnimatedSection>
 
-        {/* Tab Navigation */}
         <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8 pb-4">
           <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
             <TabButton
@@ -151,7 +142,6 @@ const LogisticsPage = () => {
           </div>
         </div>
 
-        {/* Tab Content */}
         <AnimatedSection>
           {activeTab === "domestic" && (
             <div>
@@ -268,7 +258,6 @@ const LogisticsPage = () => {
         </AnimatedSection>
       </div>
 
-      {/* Right Sidebar */}
       <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4">
         <AnimatedSection>
           <div className="bg-green-50/50 p-6 rounded-xl border border-green-200">

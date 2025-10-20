@@ -20,6 +20,27 @@ router.get('/my-mentor', [auth, authorize('artisan')], async (req, res) => {
     }
 });
 
+router.put(
+    "/:requestId/accept",
+    auth,
+    authorize("artisan"),
+    async (req, res) => {
+      try {
+        const { requestId } = req.params;
+        const artisanId = req.user.id;
+  
+        const mentorship = await MentorshipService.acceptMentorshipRequest(
+          requestId,
+          artisanId
+        );
+  
+        res.status(200).json(mentorship);
+      } catch (error) {
+        res.status(500).json({ message: error.message });
+      }
+    }
+  );
+
 // GET /api/mentorship/requests - For an artisan to see pending requests
 router.get('/requests', [auth, authorize('artisan')], async (req, res) => {
     try {

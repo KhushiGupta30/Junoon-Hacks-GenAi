@@ -28,7 +28,7 @@ router.post('/', [auth, authorize('ambassador')], async (req, res) => {
             req.user.id,
             `You successfully created the event: "${newEvent.title}"`,
             'success',
-            `/community-hub` 
+            `/ambassador/community` 
         );
 
         res.status(201).json(newEvent);
@@ -49,7 +49,7 @@ router.post('/:id/join', [auth, authorize('artisan')], async (req, res) => {
             eventCreator,
             `${req.user.name} has joined your event: "${updatedEvent.title}"`,
             'info',
-            `/community-hub`
+            `/ambassador/community`
         );
         
         res.status(200).json({ message: 'Successfully joined event!', event: updatedEvent });

@@ -1,37 +1,36 @@
 const express = require('express');
-const { auth, authorize } = require('../middleware/auth');
-const UserService = require('../services/UserService');
 const router = express.Router();
+const { auth } = require('../middleware/auth');
 
-router.get('/local-data', [auth, authorize('artisan')], async (req, res) => {
+// GET /api/community
+router.get('/', auth, async (req, res) => {
     try {
-        const user = await UserService.findById(req.user.id);
-        const location = user.profile?.location?.city || 'New Delhi';
+        // This data is currently mocked. You can replace this
+        // with dynamic data from your Firestore database later.
+        const communityData = {
+            location: "New Delhi, Delhi",
+            areaAmbassador: {
+                name: "Anjali Singh",
+                avatar: "https://images.unsplash.com/photo-1521146764736-56c929d59c83?auto=format&fit=crop&w=200&q=80",
+                title: "KalaGhar Ambassador - South Delhi",
+                bio: "Seasoned textile artist passionate about helping local artisans access new markets and funding.",
+                specialties: ["Textile Arts", "Business Scaling", "Grant Apps"]
+            },
+            localArtisans: [
+                { id: 1, name: 'Rohan Verma', avatar: 'https://placehold.co/100x100/34A853/FFFFFF?text=RV', craft: 'Pottery', distance: '2.5 km away' },
+                { id: 2, name: 'Meera Patel', avatar: 'https://placehold.co/100x100/4285F4/FFFFFF?text=MP', craft: 'Madhubani Painting', distance: '4.1 km away' },
+            ],
+            upcomingEvents: [
+                { id: 1, title: 'Hauz Khas Village Art Market', date: 'Sat, 27 Sep 2025', location: 'Hauz Khas Village', description: 'Monthly market to showcase and sell creations.' },
+                { id: 2, title: 'Digital Marketing Workshop', date: 'Wed, 01 Oct 2025', location: 'Online via Zoom', description: 'Learn social media skills to boost sales.' },
+            ],
+        };
 
-        const localArtisans = await UserService.findMany({ role: 'artisan', 'profile.location.city': location });
-        const nearbyAmbassadors = await UserService.findMany({ role: 'ambassador', 'profile.location.city': location });
+        res.status(200).json(communityData);
 
-        const mockEvents = [
-            { id: 1, title: 'Hauz Khas Village Art Market', date: 'Sat, 27 Sep 2025', location: 'Hauz Khas Village', description: 'Monthly market to showcase and sell creations.' },
-            { id: 2, title: 'Digital Marketing Workshop', date: 'Wed, 01 Oct 2025', location: 'Online via Zoom', description: 'Learn social media skills to boost sales.' },
-        ];
-        const mockDiscussions = [
-            { id: 1, title: 'Best place for high-quality clay in Delhi?', author: 'Rohan V.', replies: 5, lastReplyTime: '2h ago', link: '#' },
-            { id: 2, title: 'Tips for pricing jewelry for international buyers', author: 'Priya S.', replies: 12, lastReplyTime: '1d ago', link: '#' },
-            { id: 3, title: 'Showcase: My latest wood carving project', author: 'Sanjay K.', replies: 8, lastReplyTime: '3d ago', link: '#' },
-        ];
-
-
-        res.json({
-            location: location,
-            areaAmbassador: nearbyAmbassadors[0] || null,
-            localArtisans: localArtisans,
-            upcomingEvents: mockEvents,
-            discussionTopics: mockDiscussions
-        });
     } catch (error) {
-        console.error('Community data error:', error);
-        res.status(500).json({ message: 'Server error while fetching community data' });
+        console.error("Error fetching community data:", error);
+        res.status(500).json({ message: "Server error while fetching community data." });
     }
 });
 

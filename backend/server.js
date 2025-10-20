@@ -19,6 +19,8 @@ const ambassadorRoutes = require('./routes/ambassador');
 const notificationRoutes = require('./routes/notifications');
 const eventRoutes = require('./routes/events');
 const mentorshipRoutes = require('./routes/mentorship');
+const discussionRoutes = require('./routes/discussions');
+const artisanRoutes = require('./routes/artisan');
 
 const app = express();
 
@@ -59,9 +61,11 @@ app.use('/api/logistics', logisticsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/ambassador', ambassadorRoutes);
+app.use('/api/artisan', artisanRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/mentorship', mentorshipRoutes);
+app.use('/api/discussions', discussionRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useState, useEffect, useContext, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axiosConfig";
 import {
@@ -22,10 +22,33 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]); // <-- NEW STATE
   const navigate = useNavigate();
 
-  // This useEffect now runs only once on initial component mount.
-  // Its job is to re-authenticate a user if a token exists from a previous session.
+  // --- NEW: Function to fetch notifications ---
+  const fetchNotifications = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await api.get('/notifications');
+      setNotifications(response.data.notifications || []);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+  }, [token]);
+
+  // --- NEW: Function to mark a notification as read ---
+  const markNotificationAsRead = useCallback(async (notificationId) => {
+    setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
+    try {
+      await api.put(`/notifications/${notificationId}/read`);
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+      // Optional: revert state on error
+      fetchNotifications();
+    }
+  }, [fetchNotifications]);
+
+
   useEffect(() => {
     const fetchUserOnLoad = async () => {
       if (token) {
@@ -33,35 +56,35 @@ export const AuthProvider = ({ children }) => {
         try {
           const response = await api.get("/auth/me");
           setUser(response.data);
+          // Fetch notifications after user is confirmed
+          await fetchNotifications(); 
         } catch (error) {
           console.error("Token is invalid or expired. Logging out.", error);
           localStorage.removeItem("token");
           setToken(null);
           setUser(null);
+          setNotifications([]);
           delete api.defaults.headers.common["Authorization"];
         }
       }
       setLoading(false);
     };
     fetchUserOnLoad();
-  }, []); // Empty dependency array means this runs only once.
+  }, [token, fetchNotifications]);
 
-  const handleAuthSuccess = (userData, idToken) => {
+  const handleAuthSuccess = async (userData, idToken) => {
     localStorage.setItem("token", idToken);
     api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
     setUser(userData);
-    setToken(idToken); // Update token state
+    setToken(idToken);
+    
+    // Fetch initial notifications on login/register
+    await fetchNotifications(); 
 
-    // Navigate based on user role
     switch (userData.role) {
-      case "artisan":
-        navigate("/artisan/dashboard");
-        break;
-      case "ambassador":
-        navigate("/ambassador/dashboard");
-        break;
-      default:
-        navigate("/buyer");
+      case "artisan": navigate("/artisan/dashboard"); break;
+      case "ambassador": navigate("/ambassador/dashboard"); break;
+      default: navigate("/buyer");
     }
   };
 
@@ -70,11 +93,10 @@ export const AuthProvider = ({ children }) => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
       
-      // Manually set header for the immediate request
       api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
       const response = await api.get("/auth/me");
       
-      handleAuthSuccess(response.data, idToken);
+      await handleAuthSuccess(response.data, idToken);
       return response.data;
     } catch (error) {
       console.error("Login error:", error);
@@ -87,11 +109,10 @@ export const AuthProvider = ({ children }) => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
 
-      // Manually set header for the immediate request
       api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
       const response = await api.post("/auth/register", { name, email, role });
       
-      handleAuthSuccess(response.data.user, idToken);
+      await handleAuthSuccess(response.data.user, idToken);
       return response.data.user;
     } catch (error) {
       console.error("Registration error:", error);
@@ -101,13 +122,14 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await signOut(auth); // Sign out from Firebase
+      await signOut(auth);
     } catch (error) {
       console.error("Firebase sign out error:", error);
     } finally {
       localStorage.removeItem("token");
       setToken(null);
       setUser(null);
+      setNotifications([]); // Clear notifications on logout
       delete api.defaults.headers.common["Authorization"];
       navigate("/");
     }
@@ -118,6 +140,8 @@ export const AuthProvider = ({ children }) => {
     token,
     isAuthenticated: !!token && !!user,
     loading,
+    notifications, // <-- EXPOSE NOTIFICATIONS
+    markNotificationAsRead, // <-- EXPOSE FUNCTION
     login,
     register,
     logout,
