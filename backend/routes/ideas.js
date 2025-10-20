@@ -22,7 +22,6 @@ router.get('/', async (req, res) => {
 
     const ideas = await IdeaService.findPublished(filter, options);
     
-    // Populate artisan data for each idea
     const populatedIdeas = await Promise.all(
       ideas.map(async (idea) => {
         const artisan = await UserService.findById(idea.artisan);
