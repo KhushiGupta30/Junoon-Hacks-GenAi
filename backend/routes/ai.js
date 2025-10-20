@@ -6,6 +6,7 @@ const ProductService = require("../services/ProductService");
 const IdeaService = require("../services/IdeaService");
 const { body, validationResult } = require("express-validator");
 const OrderService = require("../services/OrderService");
+const ConversationService = require("../services/ConversationService");
 
 const router = express.Router();
 
@@ -547,13 +548,17 @@ router.post("/assistant", [auth, authorize("artisan")], async (req, res) => {
                 Do not just list out the raw data.
                 Always start your response by directly addressing the user's request.
                 *** VERY IMPORTANT: Your final output must be a single, valid, parsable JSON object and nothing else.
-                The JSON object must have this exact structure: { "reply": "Your full text response here.", "language": "The BCP-47 language code of your response, e.g., 'en-US' for English or 'hi-IN' for Hindi." }
+                The JSON object must have this exact structure: { "reply": "Your full text response here.", "language": "The B-47 language code of your response, e.g., 'en-US' for English or 'hi-IN' for Hindi." }
             `,
         },
       ],
     };
 
-    const history = conversationHistories[userId] || [personaInstructions];
+    // This part of your code for fetching history is already correct
+    let history = await ConversationService.getHistory(userId);
+    if (!history) {
+        history = [personaInstructions]; // Start a new history if one doesn't exist
+    }
 
     const chat = model.startChat({ history });
 
@@ -613,16 +618,15 @@ router.post("/assistant", [auth, authorize("artisan")], async (req, res) => {
 
       const result2 = await chat.sendMessage(JSON.stringify(functionResponse));
       const finalResponse = await result2.response;
-      console.log(
-        "RAW AI Response (with function call):",
-        finalResponse.text()
-      );
-      conversationHistories[userId] = await chat.getHistory();
+      console.log("RAW AI Response (with function call):", finalResponse.text());
+      const newHistoryAfterFunctionCall = await chat.getHistory();
+      await ConversationService.saveHistory(userId, newHistoryAfterFunctionCall);
       const aiJsonReply = extractJson(finalResponse.text());
       res.json(JSON.parse(aiJsonReply));
     } else {
       console.log("RAW AI Response (direct reply):", response.text());
-      conversationHistories[userId] = await chat.getHistory();
+      const newHistory = await chat.getHistory();
+      await ConversationService.saveHistory(userId, newHistory);
       const aiJsonReply = extractJson(response.text());
       res.json(JSON.parse(aiJsonReply));
     }
