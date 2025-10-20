@@ -1,169 +1,153 @@
 import React, { useState, useEffect, useRef } from 'react';
-// import { useAuth } from '../../context/AuthContext'; // No longer needed here
-// Link, NavLink, MenuIcon, XIcon, LogoutIcon removed as Header is gone
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
-import api from '../../api/axiosConfig';
+import api from '../../api/axiosConfig'; // Adjust path if needed
+// Import Shared Components & Icons
+import AnimatedSection from '../../components/ui/AnimatedSection'; // Adjust path if needed
+import {
+    SparklesIcon, // Used in Sidebar
+    LightBulbIcon, // Used in Sidebar
+    XIcon, // Used in Modal
+    ExclamationCircleIcon, // For Error state
+    ChartBarIcon, // NEW: For Category Chart Title
+    ColorSwatchIcon // NEW: For Materials Chart Title
+} from '../../components/common/Icons'; // Adjust path if needed
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
-// --- Page-Specific Components (Keep These) ---
+// --- Skeleton Component Placeholders ---
+const SkeletonBase = ({ className = "" }) => <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>;
+const SkeletonSidebarCard = () => <SkeletonBase className="h-44 md:h-48" />;
+const SkeletonChartCard = () => <SkeletonBase className="h-64 md:h-80" />; // Larger for charts
+const SkeletonTipItem = () => <SkeletonBase className="h-16 md:h-20" />;
+// --- End Skeletons ---
 
-const AnimatedSection = ({ children, className = "" }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-    const currentRef = ref.current; // Capture ref value
-    if (currentRef) observer.observe(currentRef);
-    
-    return () => { if (currentRef) observer.unobserve(currentRef); };
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      className={`transition-all duration-1000 ease-out ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-      } ${className}`}
-    >
-      {children}
-    </div>
-  );
-};
-
-const SparklesIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-google-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 12l-2.293 2.293a1 1 0 01-1.414 0L4 12m13 1.414l2.293 2.293a1 1 0 010 1.414L14 20l-2.293-2.293a1 1 0 010-1.414l4.586-4.586z" />
-  </svg>
-);
-
-const LightBulbIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-  </svg>
-);
-
-const MegaphoneIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-2.236 9.168-5.516l.153-.352c.2-.463.6-.78 1.084-.78h.548c.552 0 1 .448 1 1v13.586a1 1 0 01-1.707.707l-3.585-3.585A4.008 4.008 0 0113 13H5.436z" />
-    </svg>
-);
-
-// XIcon is used by the modal, so we keep it
-const XIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>);
-
-
-// --- REMOVED ArtisanHeader component ---
-
-// --- REMOVED Footer component ---
-
+// --- Chart Components (Modified Styling) ---
 const CategoryChart = ({ data }) => {
     const chartData = {
         labels: data.labels,
         datasets: [{
-            label: 'Demand by Category (%)',
             data: data.data,
-            backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335'],
-            borderRadius: 5,
+            backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#7FBCFF', '#81C995'], // Added more colors
+            borderRadius: 4,
+            borderSkipped: false,
         }],
     };
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: { display: false },
-            title: { display: true, text: 'Trending Product Categories', font: { size: 16 } },
+            title: { display: false }, // Title moved outside chart component
+            tooltip: {
+                backgroundColor: '#333', // Darker tooltip
+                titleFont: { weight: 'bold'},
+                bodyFont: { size: 12 },
+                padding: 10,
+                cornerRadius: 4,
+                displayColors: false,
+            }
         },
-        scales: { y: { beginAtZero: true } }
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: '#E0E0E0', drawBorder: false }, // Lighter grid lines
+                ticks: { font: { size: 10, family: 'Roboto' }, color: '#5F6368' } // Adjusted ticks
+            },
+            x: {
+                 grid: { display: false },
+                 ticks: { font: { size: 10, family: 'Roboto' }, color: '#5F6368' }
+            }
+        }
     };
-    return <Bar options={options} data={chartData} />;
+    // Container with explicit height
+    return <div className="h-64 md:h-80"><Bar options={options} data={chartData} /></div>;
 };
 
 const TrendingMaterialsChart = ({ data }) => {
     const chartData = {
         labels: data.labels,
         datasets: [{
-            label: 'Popularity',
             data: data.data,
-            backgroundColor: ['#0F9D58', '#DB4437', '#4285F4', '#F4B400'],
+            backgroundColor: ['#0F9D58', '#DB4437', '#4285F4', '#F4B400', '#AB47BC', '#FF7043'], // Added more colors
             borderColor: '#ffffff',
             borderWidth: 2,
         }],
     };
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-            legend: { position: 'top' },
-            title: { display: true, text: 'Trending Craft Materials', font: { size: 16 } },
-        }
+            legend: {
+                position: 'bottom', // Legend at bottom
+                labels: {
+                    font: { size: 11, family: 'Roboto' },
+                    color: '#5F6368',
+                    boxWidth: 15,
+                    padding: 15
+                }
+            },
+            title: { display: false }, // Title moved outside chart component
+             tooltip: {
+                backgroundColor: '#333',
+                titleFont: { weight: 'bold'},
+                bodyFont: { size: 12 },
+                padding: 10,
+                cornerRadius: 4,
+                // Use callbacks for better formatting if needed
+            }
+        },
+        cutout: '60%' // Make doughnut thinner
     };
-    return <Doughnut data={chartData} options={options} />;
+     // Container with explicit height
+    return <div className="h-64 md:h-80"><Doughnut data={chartData} options={options} /></div>;
 };
+// --- End Chart Components ---
 
 
+// --- Trend Detail Modal (Modified Styling) ---
 const TrendDetailModal = ({ trend, onClose }) => {
     const [show, setShow] = useState(false);
-    useEffect(() => {
-        setShow(true);
-    }, []);
-
-    const handleClose = () => {
-        setShow(false);
-        setTimeout(onClose, 300);
-    };
+    useEffect(() => { setShow(true); }, []);
+    const handleClose = () => { setShow(false); setTimeout(onClose, 300); };
 
     return (
-        <div
-            className={`fixed inset-0 z-[100] flex justify-center items-center p-4 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
-            onClick={handleClose}
-        >
-            <div
-                className={`relative bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 transform transition-all duration-300 ${show ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <button onClick={handleClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition-colors">
-                    <XIcon />
-                </button>
-                <div className="flex items-center justify-center mb-4">
-                    <SparklesIcon />
+        <div className={`fixed inset-0 z-[100] flex justify-center items-center p-4 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'} bg-black/60`} onClick={handleClose}>
+            <div className={`relative bg-white w-full max-w-lg rounded-xl shadow-xl p-6 md:p-8 transform transition-all duration-300 ${show ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} onClick={(e) => e.stopPropagation()}>
+                <button onClick={handleClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"><XIcon className="w-5 h-5"/></button>
+                <div className="flex flex-col items-center mb-4">
+                    <div className="p-3 bg-yellow-100/70 rounded-full mb-3">
+                         <SparklesIcon className="h-8 w-8 text-yellow-500" />
+                    </div>
+                    <p className="text-xs font-semibold text-yellow-700 uppercase tracking-wider mb-1">Trend of the Month</p>
+                    <h2 className="text-xl md:text-2xl font-semibold text-gray-800 text-center">{trend.title}</h2>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">{trend.title}</h2>
-                <p className="text-center text-sm font-semibold text-google-blue uppercase tracking-wider mb-4">
-                    Trend of the Month
-                </p>
-                <p className="text-gray-600 text-base mb-6 text-center">{trend.summary}</p>
+                <p className="text-gray-600 text-sm mb-6 text-center">{trend.summary}</p>
+                {/* Keywords styled as chips */}
                 <div className="flex flex-wrap justify-center gap-2">
                     {trend.keywords.map((kw, idx) => (
-                        <span key={idx} className="text-sm font-medium bg-gray-200 text-gray-800 px-3 py-1 rounded-full">{kw}</span>
+                        <span key={idx} className="text-xs font-medium bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full border border-gray-200">{kw}</span>
                     ))}
                 </div>
             </div>
         </div>
     );
 };
+// --- End Modal ---
 
 
 const AITrendsPage = () => {
-  // const { user, logout } = useAuth(); // Removed
   const [trends, setTrends] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(''); // Changed from null
   const [isTrendDetailOpen, setIsTrendDetailOpen] = useState(false);
 
   useEffect(() => {
     const fetchTrends = async () => {
+      setLoading(true);
+      setError('');
       try {
-        setLoading(true);
+        // await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
         const response = await api.get('/ai/trends');
         setTrends(response.data);
       } catch (err) {
@@ -173,116 +157,143 @@ const AITrendsPage = () => {
         setLoading(false);
       }
     };
-
     fetchTrends();
   }, []);
 
-  // Simplified loading check. ProtectedRoute handles the !user case.
+  // --- Loading State ---
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[calc(100vh-10rem)] bg-gray-100">
-        <div className="text-google-blue text-xl font-semibold">Analyzing Latest Trends...</div>
-      </div>
+        <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
+             {/* Main Content Skeleton */}
+            <div className="flex-grow space-y-8 md:space-y-10">
+                <SkeletonBase className="h-10 w-3/4 mb-4"/> {/* Title Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                   <SkeletonChartCard/>
+                   <SkeletonChartCard/>
+                </div>
+            </div>
+            {/* Sidebar Skeleton */}
+            <div className="lg:w-80 flex-shrink-0 space-y-6">
+                <SkeletonSidebarCard />
+                <SkeletonSidebarCard />
+            </div>
+       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-[calc(100vh-10rem)] bg-gray-100">
-        <div className="text-red-500 text-xl font-semibold">{error}</div>
-      </div>
-    );
+  // --- Error State ---
+  if (error || !trends) {
+     return (
+        <div className="flex flex-col justify-center items-center min-h-[calc(100vh-10rem)] px-6 text-center bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE]">
+            <ExclamationCircleIcon className="w-12 h-12 text-red-400 mb-4" />
+            <h2 className="text-xl font-medium text-red-600 mb-2">Oops! Something went wrong.</h2>
+            <p className="text-gray-600 text-sm mb-6">{error || 'Could not load trend data.'}</p>
+        </div>
+      );
   }
 
+  // --- Main Return (Loaded State) ---
   return (
     <>
-      {/* <ArtisanHeader user={user} logout={logout} /> REMOVED */}
-      
-      {/* The <main> tag is no longer needed, as ArtisanLayout has one.
-        We just return the page content directly.
-        The pt-24 padding is also gone, as it's on the layout's <main> tag.
-      */}
-      <div className="container mx-auto px-6 py-16">
-        <AnimatedSection>
-          <div
-            className="relative p-8 rounded-2xl shadow-xl mb-12 overflow-hidden text-white bg-google-blue"
-          >
-            <div className="absolute inset-0 z-0 opacity-20">
-              <svg className="w-full h-full" preserveAspectRatio="xMidYMid slice" viewBox="0 0 800 150" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <pattern id="pattern-circles-dash" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse">
-                    <circle cx="15" cy="15" r="1.5" fill="#fff" opacity="0.1"></circle>
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#pattern-circles-dash)"></rect>
-              </svg>
-            </div>
-            
-            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
-              <div className="flex-1 text-center lg:text-left">
-                <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-3" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                  AI-Powered <span className="text-google-yellow">Trend Hub</span>
-                </h1>
-                <p className="text-lg max-w-lg mx-auto lg:mx-0 text-white/90" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                  Stay ahead of the curve with AI-driven insights to grow your craft business.
-                </p>
-              </div>
+      {/* Copied LogiPage outer div styling */}
+      <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
 
-              <div
-                 onClick={() => setIsTrendDetailOpen(true)}
-                 className="flex-shrink-0 w-64 lg:w-80 bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-center cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
-              >
-                <div className="flex items-center justify-center mb-4">
-                  <SparklesIcon />
+        {/* --- Main Content Area (Left/Top) --- */}
+        <div className="flex-grow lg:w-2/3">
+            {/* Page Title - Styled like LogiPage */}
+            <AnimatedSection className="mb-8 md:mb-10 text-center">
+    <h1
+        className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
+        style={{
+            background: 'linear-gradient(90deg, #699aeaff, #4285F4)',
+            color: '#FFFFFF'
+        }}
+    >
+        AI Trend Hub
+    </h1>
+    <p className="mt-3 text-gray-700 text-sm">
+        Stay ahead with AI-driven insights for your craft business.
+    </p>
+</AnimatedSection>
+
+
+            {/* --- Charts Section --- */}
+            <AnimatedSection className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Category Demand Chart */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div className="flex items-center gap-2 mb-4">
+                        <ChartBarIcon className="w-5 h-5 text-gray-500"/>
+                        <h2 className="text-base font-medium text-gray-800">Trending Product Categories</h2>
+                    </div>
+                    <CategoryChart data={trends.categoryDemand} />
                 </div>
-                <p className="text-sm font-semibold text-google-blue uppercase tracking-wider text-center mb-2">
-                  Trend of the Month
-                </p>
-                <h3 className="text-lg font-bold text-gray-800 text-center">{trends.trendOfMonth.title}</h3>
-                <p className="text-gray-500 text-sm mt-4 text-center italic">Click to see details</p>
-              </div>
-              
-            </div>
-          </div>
-        </AnimatedSection>
 
-        <AnimatedSection className="mb-12 flex flex-col lg:flex-row gap-8 items-center">
-          <div className="w-full lg:w-4/12 flex flex-col items-center text-center text-google-green">
-              <MegaphoneIcon />
-              <h2 className="text-3xl font-bold mt-4">AI-Driven Recommendations</h2>
-              <p className="text-gray-600 mt-2 text-sm">Actionable tips to help you succeed.</p>
-          </div>
-          <div className="w-full lg:w-8/12 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {trends.actionableTips.map((tip, idx) => (
-              <div key={idx} className="relative bg-white p-5 rounded-2xl shadow-md border hover:shadow-xl transition-transform transform hover:-translate-y-1">
-                <div className="absolute -top-3 -right-3 text-google-green opacity-20">
-                  <LightBulbIcon />
+                 {/* Trending Materials Chart */}
+                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                     <div className="flex items-center gap-2 mb-4">
+                        <ColorSwatchIcon className="w-5 h-5 text-gray-500"/>
+                        <h2 className="text-base font-medium text-gray-800">Trending Craft Materials</h2>
+                    </div>
+                    <TrendingMaterialsChart data={trends.trendingMaterials} />
+                 </div>
+            </AnimatedSection>
+        </div>
+
+        {/* --- Right Sidebar --- */}
+        <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4 lg:mt-0">
+
+            {/* Trend of the Month Card */}
+            <AnimatedSection>
+                 {/* Styled like LogiPage sidebar cards */}
+                 <div className="bg-yellow-50/60 p-5 rounded-xl border border-yellow-200/80 text-center">
+                    <div className="inline-flex items-center gap-2 mb-2 bg-yellow-100/70 px-3 py-1 rounded-full">
+                        <SparklesIcon className="h-4 w-4 text-yellow-600" />
+                        <h3 className="text-xs font-semibold text-yellow-800 uppercase tracking-wider">Trend of the Month</h3>
+                    </div>
+                    <p className="text-lg font-semibold text-gray-800 mt-1 mb-3">{trends.trendOfMonth.title}</p>
+                    <button
+                        onClick={() => setIsTrendDetailOpen(true)}
+                        className="w-full bg-white text-yellow-700 border border-yellow-300 font-medium py-1.5 rounded-lg hover:bg-yellow-100/70 transition-colors text-xs"
+                    >
+                       View Details
+                    </button>
                 </div>
-                <h3 className="text-lg font-bold text-gray-800">{tip.title}</h3>
-                <p className="text-gray-600 text-sm mt-1">{tip.description}</p>
-              </div>
-            ))}
-          </div>
-        </AnimatedSection>
+            </AnimatedSection>
 
-        <AnimatedSection className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white p-6 rounded-2xl shadow-lg flex justify-center items-center">
-            <CategoryChart data={trends.categoryDemand} />
-          </div>
-          <div className="bg-white p-6 rounded-2xl shadow-lg flex justify-center items-center">
-            <TrendingMaterialsChart data={trends.trendingMaterials} />
-          </div>
-        </AnimatedSection>
+            {/* AI Actionable Tips Card */}
+             <AnimatedSection>
+                 <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                     <div className="flex items-center gap-3 p-4 border-b border-gray-100">
+                        <LightBulbIcon className="h-6 w-6 text-google-green" />
+                        <h3 className="text-base font-medium text-gray-800">AI Recommendations</h3>
+                     </div>
+                     <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto"> {/* Max height */}
+                         {trends.actionableTips.length > 0 ? trends.actionableTips.map((tip, idx) => (
+                            <div key={idx} className="p-4 hover:bg-gray-50/70 transition-colors">
+                                <h4 className="font-semibold text-sm text-gray-800">{tip.title}</h4>
+                                <p className="text-xs text-gray-600 mt-1">{tip.description}</p>
+                            </div>
+                        )) : (
+                             <p className="text-center text-gray-500 py-6 text-xs px-4">No specific recommendations available right now.</p>
+                        )}
+                    </div>
+                      {/* Optional Footer Link */}
+                    {/* <div className="p-3 text-center bg-gray-50/70 rounded-b-xl border-t border-gray-100">
+                        <Link to="#" className="text-google-blue text-xs font-medium hover:underline">How are these generated?</Link>
+                    </div> */}
+                </div>
+            </AnimatedSection>
+
+        </aside>
       </div>
 
+      {/* Trend Detail Modal */}
       {isTrendDetailOpen && (
         <TrendDetailModal
           trend={trends.trendOfMonth}
           onClose={() => setIsTrendDetailOpen(false)}
         />
       )}
-      
-      {/* <Footer /> REMOVED */}
     </>
   );
 };
