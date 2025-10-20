@@ -49,7 +49,6 @@ const ArtisanHeader = ({ user, logout }) => {
     { name: 'Logistics', href: '/artisan/logistics' },
   ];
 
-  // Dummy notifications
   const notifications = [
     { id: 1, text: 'Your product has been approved', time: '2h ago' },
     { id: 2, text: 'New funding opportunity available', time: '5h ago' },
@@ -58,8 +57,9 @@ const ArtisanHeader = ({ user, logout }) => {
 
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm z-50 shadow-sm border-b border-gray-200">
-      <div className="container mx-auto px-6">
-        <div className="h-16 flex items-center justify-between">
+      {/* ✅ Removed container spacing */}
+      <div className="w-full">
+        <div className="h-16 flex items-center justify-between px-4 sm:px-6 md:px-8">
           {/* --- Left: Logo + Nav --- */}
           <div className="flex items-center h-16">
             <Link
@@ -94,13 +94,11 @@ const ArtisanHeader = ({ user, logout }) => {
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition relative"
               >
                 <BellIcon className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-                {/* Notification Badge */}
                 {notifications.length > 0 && (
                   <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
                 )}
               </button>
 
-              {/* Notification Dropdown */}
               {isNotifOpen && (
                 <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl py-2 z-[60] border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                   <h3 className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700">
@@ -150,7 +148,6 @@ const ArtisanHeader = ({ user, logout }) => {
                 </button>
               </div>
 
-              {/* Profile Dropdown */}
               {isProfileOpen && (
                 <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl py-4 z-[60] border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                   <div className="flex flex-col items-center px-4 pb-4 border-b border-gray-200 dark:border-gray-700">
