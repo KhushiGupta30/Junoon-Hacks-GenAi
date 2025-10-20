@@ -235,7 +235,7 @@ const ReviewsPage = () => {
             
             {/* --- Main Content Area (Left/Top) --- */}
             <div className="flex-grow lg:w-2/3">
-                <AnimatedSection className="mb-6 md:mb-8 text-center">
+                <AnimatedSection className="mb-6 md:mb-8 text-center pt-8">
     <h1
         className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
         style={{

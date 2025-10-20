@@ -55,7 +55,7 @@ const AppLayout = () => {
           }>
             <Route path="dashboard" element={<ArtisanDashboard />} />
             <Route path="products" element={<MyProductsPage />} />
-            <Route path="products/edit/:id" element={<ProductEditPage />} />
+            <Route path="products/new" element={<ProductEditPage />} />
             <Route path="orders" element={<MyOrdersPage />} />
             <Route path="ideas/new" element={<IdeaSubmissionPage />} />
             <Route path="grants" element={<GrantsPage />} />
