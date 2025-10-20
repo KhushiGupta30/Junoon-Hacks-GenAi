@@ -1,31 +1,103 @@
-import "./App.css";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import LandingPage from "./pages/LandingPage";
-import ArtisanPage from "./pages/artisan";
-import AmbassadorPage from "./pages/ambassador";
-import BuyerMarketplace from "./pages/buyermarket";
-import CartPage from "./components/cartpage";
-import ProductPage from "./components/ProductPage";
-import SellerPage from "./components/SellerPage";
-import ScrollToTop from "./components/scrolltotop";
-import { AuthProvider } from "./context/AuthContext.jsx";
-import { CartProvider } from "./context/CartContext.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import ArtisanLayout from "./components/layout/ArtisanLayout.jsx";
-import ArtisanDashboardPage from "./pages/artisan/ArtisanDashboard.jsx";
-import MyProductsPage from "./pages/artisan/MyProductsPage.jsx";
-import ProductEditPage from "./pages/artisan/ProductEditPage.jsx";
-import MyOrdersPage from "./pages/artisan/MyOrdersPage.jsx";
-import IdeaSubmissionPage from "./pages/artisan/IdeaSubmissionPage.jsx";
-import Aitrendpage from "./pages/artisan/AITrendsPage.jsx";
-import GrantsPage from "./pages/artisan/GrantsPage.jsx";
-import LogiPage from "./pages/artisan/LogiPage.jsx";
-import CommunityPage from "./pages/artisan/CommunityPage.jsx";
-import AmbassadorLayout from "./components/layout/AmbassadorLayout";
-import AmbassadorDashboard from "./pages/ambassador/Dashboard";
-import MyArtisans from "./pages/ambassador/MyArtisans";
-import CommunityHub from "./pages/ambassador/CommunityHub";
-import Profile from "./pages/ambassador/Profile";
+// frontend/src/App.jsx
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+
+// --- Core Components & Context ---
+import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import ScrollToTop from './components/scrolltotop';
+
+// --- Layouts ---
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
+import ArtisanLayout from './components/layout/ArtisanLayout';
+import AmbassadorLayout from './components/layout/AmbassadorLayout'; // Correctly imported
+
+// --- Public Pages ---
+import LandingPage from './pages/LandingPage';
+import AmbassadorPage from './pages/ambassador';
+import ArtisanPage from './pages/artisan';
+import BuyerMarket from './pages/buyermarket';
+import SellerPage from './components/SellerPage';
+import CartPage from './components/cartpage';
+import ProductPage from './components/ProductPage';
+
+// --- Artisan Pages ---
+import ArtisanDashboard from './pages/artisan/ArtisanDashboard';
+import MyProductsPage from './pages/artisan/MyProductsPage';
+import ProductEditPage from './pages/artisan/ProductEditPage';
+import MyOrdersPage from './pages/artisan/MyOrdersPage';
+import IdeaSubmissionPage from './pages/artisan/IdeaSubmissionPage';
+import GrantsPage from './pages/artisan/GrantsPage';
+import AITrendsPage from './pages/artisan/AITrendsPage';
+import CommunityPage from './pages/artisan/CommunityPage';
+import LogiPage from './pages/artisan/LogiPage';
+
+// --- Ambassador Pages ---
+import AmbassadorDashboard from './pages/ambassador/Dashboard';
+import MyArtisans from './pages/ambassador/MyArtisans';
+import CommunityHub from './pages/ambassador/CommunityHub';
+import Profile from './pages/ambassador/Profile';
+
+
+// Layout manager to show/hide Header and Footer
+const AppLayout = () => {
+  const location = useLocation();
+  const hideFor = ['/artisan', '/ambassador'];
+  const shouldHide = hideFor.some(path => location.pathname.startsWith(path));
+
+  return (
+    <>
+      {!shouldHide && <Header />}
+      <main>
+        <Routes>
+          {/* --- Public Routes --- */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/ambassador-page" element={<AmbassadorPage />} />
+          <Route path="/artisan-page" element={<ArtisanPage />} />
+          <Route path="/buyer" element={<BuyerMarket />} />
+          <Route path="/seller/:sellerId" element={<SellerPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/products/:id" element={<ProductPage />} />
+
+          {/* --- Artisan Routes --- */}
+          <Route path="/artisan/*" element={
+            <ProtectedRoute role="artisan">
+              <ArtisanLayout />
+            </ProtectedRoute>
+          }>
+            <Route path="dashboard" element={<ArtisanDashboard />} />
+            <Route path="products" element={<MyProductsPage />} />
+            <Route path="products/edit/:id" element={<ProductEditPage />} />
+            <Route path="orders" element={<MyOrdersPage />} />
+            <Route path="ideas" element={<IdeaSubmissionPage />} />
+            <Route path="grants" element={<GrantsPage />} />
+            <Route path="trends" element={<AITrendsPage />} />
+            <Route path="community" element={<CommunityPage />} />
+            <Route path="logistics" element={<LogiPage />} />
+          </Route>
+
+          {/* --- Ambassador Routes (FIXED) --- */}
+          <Route path="/ambassador/*" element={
+            <ProtectedRoute role="ambassador">
+              <AmbassadorLayout />
+            </ProtectedRoute>
+          }>
+            {/* These nested routes will render inside AmbassadorLayout's <Outlet /> */}
+            <Route path="dashboard" element={<AmbassadorDashboard />} />
+            <Route path="artisans" element={<MyArtisans />} />
+            <Route path="community" element={<CommunityHub />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
+          
+        </Routes>
+      </main>
+      {!shouldHide && <Footer />}
+    </>
+  );
+};
+
 
 function App() {
   return (
@@ -33,63 +105,7 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/artisan" element={<ArtisanPage />} />
-            <Route path="/ambassador" element={<AmbassadorPage />} />
-            <Route path="/buyer" element={<BuyerMarketplace />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/product/:id" element={<ProductPage />} />
-            <Route path="/seller/:artisanId" element={<SellerPage />} />
-            <Route
-              element={
-                <ProtectedRoute roles={["artisan"]}>
-                  <ArtisanLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route
-                path="/artisan/dashboard"
-                element={<ArtisanDashboardPage />}
-              />
-              <Route path="/artisan/products" element={<MyProductsPage />} />
-              <Route
-                path="/artisan/products/new"
-                element={<ProductEditPage />}
-              />
-              <Route
-                path="/artisan/products/edit/:productId"
-                element={<ProductEditPage />}
-              />
-              <Route path="/artisan/orders" element={<MyOrdersPage />} />
-              <Route path="/artisan/trends" element={<Aitrendpage />} />
-              <Route path="/artisan/grant" element={<GrantsPage />} />
-              <Route path="/artisan/logistics" element={<LogiPage />} />
-              <Route path="/artisan/community" element={<CommunityPage />} />
-              <Route
-                path="/artisan/ideas/new"
-                element={<IdeaSubmissionPage />}
-              />
-            </Route>
-            <Route
-              path="/ambassador/*"
-              element={
-                <ProtectedRoute role="ambassador">
-                  <AmbassadorLayout>
-                    <Routes>
-                      <Route
-                        path="dashboard"
-                        element={<AmbassadorDashboard />}
-                      />
-                      <Route path="artisans" element={<MyArtisans />} />
-                      <Route path="community" element={<CommunityHub />} />
-                      <Route path="profile" element={<Profile />} />
-                    </Routes>
-                  </AmbassadorLayout>
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
+          <AppLayout />
         </CartProvider>
       </AuthProvider>
     </Router>
