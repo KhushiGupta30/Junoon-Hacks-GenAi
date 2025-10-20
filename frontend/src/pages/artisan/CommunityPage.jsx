@@ -152,9 +152,9 @@ const CommunityPage = () => {
     <h1
         className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
         style={{ 
-             background: 'linear-gradient(90deg, #70d969ff, #0F9D58)', 
+             background: 'linear-gradient(90deg, #699aeaff, #4285F4)',
  
-            color: '#202124'
+            color: '#fbfcfeff'
         }}
     >
         Community Hub
@@ -169,11 +169,11 @@ const CommunityPage = () => {
 
 
             {/* --- Tab Navigation - Styled like LogiPage --- */}
-            <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8 pb-4"> {/* Added pb-4 */}
+            <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8 pb-0"> {/* Removed pb-4 */}
                 <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-                    <TabButton title="Local Events" isActive={activeTab === 'events'} onClick={() => setActiveTab('events')} />
-                    <TabButton title="Nearby Artisans" isActive={activeTab === 'artisans'} onClick={() => setActiveTab('artisans')} />
-                    {/* Discussions tab removed */}
+                    {/* ADDED COUNT PROPS */}
+                    <TabButton title="Local Events" isActive={activeTab === 'events'} onClick={() => setActiveTab('events')} count={communityData.upcomingEvents.length} />
+                    <TabButton title="Nearby Artisans" isActive={activeTab === 'artisans'} onClick={() => setActiveTab('artisans')} count={communityData.localArtisans.length} />
                 </div>
             </div>
 

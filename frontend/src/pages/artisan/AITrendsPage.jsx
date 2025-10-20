@@ -205,7 +205,7 @@ const AITrendsPage = () => {
     <h1
         className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
         style={{
-            background: 'linear-gradient(90deg, #699aeaff, #4285F4)',
+            background: 'linear-gradient(90deg, #f66356ff, #DB4437)', 
             color: '#FFFFFF'
         }}
     >

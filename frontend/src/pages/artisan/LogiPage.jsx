@@ -116,7 +116,7 @@ const LogisticsPage = () => {
     <h1
         className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
         style={{ 
-            background: 'linear-gradient(90deg, #FDD835, #FFC107)', 
+            background: 'linear-gradient(90deg, #70d969ff, #0F9D58)', 
             color: '#202124' 
         }}
     >
@@ -129,18 +129,19 @@ const LogisticsPage = () => {
 
 
                 {/* Tab Navigation */}
-                <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8 pb-4">
-                    <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-                        <TabButton title="Domestic Partners" isActive={activeTab === 'domestic'} onClick={() => setActiveTab('domestic')} />
-                        <TabButton title="International Partners" isActive={activeTab === 'international'} onClick={() => setActiveTab('international')} />
-                        <TabButton title="Packaging Tips" isActive={activeTab === 'tips'} onClick={() => setActiveTab('tips')} />
+               <div className="border-b border-gray-200 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8">
+                    <div className="flex space-x-1 sm:space-x-2 overflow-x-auto scrollbar-hide">
+                        {/* ADDED COUNT PROPS */}
+                        <TabButton title="Domestic Partners" isActive={activeTab === 'domestic'} onClick={() => setActiveTab('domestic')} count={logisticsData.domesticPartners.length} />
+                        <TabButton title="International Partners" isActive={activeTab === 'international'} onClick={() => setActiveTab('international')} count={logisticsData.internationalPartners.length} />
+                        <TabButton title="Packaging Tips" isActive={activeTab === 'tips'} onClick={() => setActiveTab('tips')} count={packagingTips.length} />
                     </div>
                 </div>
 
                 {/* Tab Content */}
-                <AnimatedSection>
+                <AnimatedSection className="mt-8">
                     {activeTab === 'domestic' && (
-                        <div>
+                        <div> 
                             <div className="flex items-center gap-3 mb-6">
                                 <TruckIcon className="h-7 w-7 text-google-blue" />
                                 <h2 className="text-xl font-medium text-gray-800">Available Domestic Partners</h2>

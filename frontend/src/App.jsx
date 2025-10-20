@@ -22,6 +22,8 @@ import GrantsPage from './pages/artisan/GrantsPage.jsx';
 import LogiPage from './pages/artisan/LogiPage.jsx';
 import CommunityPage from './pages/artisan/CommunityPage.jsx';
 import AmbassadorDashboardPage from './pages/ambassadordashboard.jsx';
+import ArtisanProfilePage from './pages/artisan/ArtisanProfilePage.jsx';
+import ReviewsPage from './pages/artisan/ReviewsPage.jsx';
 
 function App() {
 
@@ -55,6 +57,9 @@ function App() {
               <Route path="/artisan/logistics" element={<LogiPage/>} />
               <Route path="/artisan/community" element={<CommunityPage/>} />
               <Route path="/artisan/ideas/new" element={<IdeaSubmissionPage />} />
+              <Route path='/artisan/ArtisanProfilePage' element={<ArtisanProfilePage/>}/>
+              <Route path='/artisan/reviews' element={<ReviewsPage/>}/>
+
             </Route>
             <Route path="/ambassador/dashboard" element={<AmbassadorDashboardPage />} />
 

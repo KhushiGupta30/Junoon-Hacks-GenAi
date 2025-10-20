@@ -43,6 +43,7 @@ const ArtisanHeader = ({ user, logout }) => {
     { name: 'Manage Products', href: '/artisan/products' },
     { name: 'Orders', href: '/artisan/orders' },
     { name: 'New Idea', href: '/artisan/ideas/new' },
+    { name: 'My Reviews', href: '/artisan/reviews' },
     { name: 'AI Trend Report', href: '/artisan/trends' },
     { name: 'Funding', href: '/artisan/grant' },
     
@@ -167,9 +168,13 @@ const ArtisanHeader = ({ user, logout }) => {
                       {user.email}
                     </p>
 
-                    <button className="mt-3 px-4 py-2 text-sm font-medium text-google-blue border border-google-blue rounded-full hover:bg-google-blue hover:text-white transition">
+                    <Link 
+                      to="/artisan/ArtisanProfilePage" // This links to your ArtisanProfilePage
+                      onClick={() => setIsProfileOpen(false)} // Close dropdown on click
+                      className="mt-3 px-4 py-1.5 text-sm font-medium text-google-blue border border-gray-300 rounded-full hover:bg-google-blue/10 transition duration-150"
+                    >
                       Manage your Account
-                    </button>
+                    </Link>
                   </div>
 
                   <div className="flex flex-col space-y-1 mt-2 px-2">
