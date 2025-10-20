@@ -45,8 +45,9 @@ const ArtisanHeader = ({ user, logout }) => {
     { name: 'New Idea', href: '/artisan/ideas/new' },
     { name: 'AI Trend Report', href: '/artisan/trends' },
     { name: 'Funding', href: '/artisan/grant' },
-    { name: 'Community', href: '/artisan/community' },
+    
     { name: 'Logistics', href: '/artisan/logistics' },
+    { name: 'Community', href: '/artisan/community' },
   ];
 
   const notifications = [

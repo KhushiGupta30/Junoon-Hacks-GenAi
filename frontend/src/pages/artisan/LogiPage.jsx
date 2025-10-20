@@ -112,10 +112,21 @@ const LogisticsPage = () => {
 
             {/* Main Content Area */}
             <div className="flex-grow lg:w-2/3">
-                <AnimatedSection className="mb-8">
-                    <h1 className="text-3xl font-semibold text-gray-800 tracking-tight">Logistics Hub</h1>
-                    <p className="mt-1 text-gray-500">Manage shipping partners, get suggestions, and find packaging tips.</p>
-                </AnimatedSection>
+                <AnimatedSection className="mb-8 text-center">
+    <h1
+        className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
+        style={{ 
+            background: 'linear-gradient(90deg, #FDD835, #FFC107)', 
+            color: '#202124' 
+        }}
+    >
+        Logistics Hub
+    </h1>
+    <p className="mt-3 text-gray-700 text-sm">
+        Manage shipping partners, get suggestions, and find packaging tips.
+    </p>
+</AnimatedSection>
+
 
                 {/* Tab Navigation */}
                 <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8 pb-4">
