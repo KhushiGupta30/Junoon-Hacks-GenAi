@@ -19,33 +19,33 @@ const getInternalPlatformUpdates = async (userId) => {
     marketTrends: {
       trending: "Block Printing",
       demandIncrease: "+45% this month",
-      topCategory: "Textiles"
+      topCategory: "Textiles",
     },
     fundingOpportunities: [
       {
         name: "Craft Innovation Grant",
         amount: "₹50,000",
         deadline: "30 days",
-        eligibility: "For artisans with 6+ months on platform"
-      }
+        eligibility: "For artisans with 6+ months on platform",
+      },
     ],
     communityHighlights: [
       {
         type: "success_story",
         title: "Local artisan reaches ₹1L in sales",
-        artisan: "Priya from Jaipur"
+        artisan: "Priya from Jaipur",
       },
       {
         type: "new_feature",
         title: "Video uploads now available for products",
-        description: "Showcase your craft process"
-      }
+        description: "Showcase your craft process",
+      },
     ],
     personalMilestones: {
       daysOnPlatform: 120,
       totalSales: 45,
-      nextMilestone: "50 sales - unlock Premium Badge"
-    }
+      nextMilestone: "50 sales - unlock Premium Badge",
+    },
   };
 };
 
@@ -58,22 +58,22 @@ const searchWebForEvents = async (query, location) => {
       location: `${location} Craft Center`,
       date: "Next Saturday, 10 AM",
       description: `Learn advanced ${query} techniques from master artisans`,
-      registrationUrl: "https://example.com/register"
+      registrationUrl: "https://example.com/register",
     },
     {
       title: `${location} Artisan Market`,
       location: `Central ${location}`,
       date: "This Sunday, 9 AM - 6 PM",
       description: "Monthly market featuring local handicrafts",
-      registrationUrl: "https://example.com/market"
+      registrationUrl: "https://example.com/market",
     },
     {
       title: "Traditional Crafts Exhibition",
       location: `${location} Museum`,
       date: "Opening next week",
       description: `Featuring ${query} and other traditional crafts`,
-      registrationUrl: "https://example.com/exhibition"
-    }
+      registrationUrl: "https://example.com/exhibition",
+    },
   ];
 };
 
@@ -189,12 +189,10 @@ router.post(
       res.json({ description });
     } catch (error) {
       console.error("AI description generation error:", error);
-      res
-        .status(500)
-        .json({
-          message:
-            "The AI service is currently busy. Please try again in a moment.",
-        });
+      res.status(500).json({
+        message:
+          "The AI service is currently busy. Please try again in a moment.",
+      });
     }
   }
 );
@@ -285,13 +283,11 @@ router.post(
       res.json(suggestion);
     } catch (error) {
       console.error("AI price suggestion error:", error);
-      res
-        .status(500)
-        .json({
-          message:
-            error.message ||
-            "The AI service is currently busy. Please try again.",
-        });
+      res.status(500).json({
+        message:
+          error.message ||
+          "The AI service is currently busy. Please try again.",
+      });
     }
   }
 );
@@ -476,13 +472,11 @@ router.post(
       res.json(insights);
     } catch (error) {
       console.error("AI personal insights error:", error);
-      res
-        .status(500)
-        .json({
-          message:
-            error.message ||
-            "The AI service is currently busy. Please try again.",
-        });
+      res.status(500).json({
+        message:
+          error.message ||
+          "The AI service is currently busy. Please try again.",
+      });
     }
   }
 );
@@ -619,65 +613,66 @@ router.post("/assistant", [auth, authorize("artisan")], async (req, res) => {
 
       const result2 = await chat.sendMessage(JSON.stringify(functionResponse));
       const finalResponse = await result2.response;
-      console.log("RAW AI Response (with function call):", finalResponse.text()); 
+      console.log(
+        "RAW AI Response (with function call):",
+        finalResponse.text()
+      );
       conversationHistories[userId] = await chat.getHistory();
       const aiJsonReply = extractJson(finalResponse.text());
       res.json(JSON.parse(aiJsonReply));
-
     } else {
-        console.log("RAW AI Response (direct reply):", response.text());
+      console.log("RAW AI Response (direct reply):", response.text());
       conversationHistories[userId] = await chat.getHistory();
       const aiJsonReply = extractJson(response.text());
       res.json(JSON.parse(aiJsonReply));
     }
   } catch (error) {
     console.error("AI Assistant error:", error);
-    res
-      .status(500)
-      .json({
-        message: "The AI assistant is having trouble. Please try again.",
-      });
+    res.status(500).json({
+      message: "The AI assistant is having trouble. Please try again.",
+    });
   }
 });
 
-const textToSpeech = require('@google-cloud/text-to-speech');
-const fs = require('fs');
-const path = require('path');
+const textToSpeech = require("@google-cloud/text-to-speech");
+const fs = require("fs");
+const path = require("path");
 
-// Creates a client
+const credentials = JSON.parse(process.env.GOOGLE_CREDS);
+
 const ttsClient = new textToSpeech.TextToSpeechClient({
-    keyFilename: path.join(__dirname, '..', 'google-credentials.json') // Assumes credentials file is in the root
+  credentials,
 });
 
+router.post("/synthesize-speech", auth, async (req, res) => {
+  const { text, languageCode } = req.body; // e.g., languageCode: "hi-IN"
 
-router.post('/synthesize-speech', auth, async (req, res) => {
-    const { text, languageCode } = req.body; // e.g., languageCode: "hi-IN"
+  if (!text || !languageCode) {
+    return res
+      .status(400)
+      .json({ message: "Text and language code are required." });
+  }
 
-    if (!text || !languageCode) {
-        return res.status(400).json({ message: "Text and language code are required." });
-    }
+  try {
+    const request = {
+      input: { text: text },
+      // Select the language and SSML voice gender (optional)
+      voice: { languageCode: languageCode, ssmlGender: "FEMALE" },
+      // select the type of audio encoding
+      audioConfig: { audioEncoding: "MP3" },
+    };
 
-    try {
-        const request = {
-            input: { text: text },
-            // Select the language and SSML voice gender (optional)
-            voice: { languageCode: languageCode, ssmlGender: 'FEMALE' },
-            // select the type of audio encoding
-            audioConfig: { audioEncoding: 'MP3' },
-        };
+    // Performs the text-to-speech request
+    const [response] = await ttsClient.synthesizeSpeech(request);
 
-        // Performs the text-to-speech request
-        const [response] = await ttsClient.synthesizeSpeech(request);
-        
-        // Convert the audio content to a Base64 string to send as JSON
-        const audioBase64 = response.audioContent.toString('base64');
+    // Convert the audio content to a Base64 string to send as JSON
+    const audioBase64 = response.audioContent.toString("base64");
 
-        res.json({ audioContent: audioBase64 });
-
-    } catch (error) {
-        console.error("Google TTS Error:", error);
-        res.status(500).json({ message: "Failed to synthesize speech." });
-    }
+    res.json({ audioContent: audioBase64 });
+  } catch (error) {
+    console.error("Google TTS Error:", error);
+    res.status(500).json({ message: "Failed to synthesize speech." });
+  }
 });
 
 module.exports = router;
