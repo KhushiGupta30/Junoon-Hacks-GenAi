@@ -91,12 +91,13 @@ const MentorshipWidget = () => {
   const fetchData = useCallback(async () => {
     try {
       const mentorRes = await api.get("/mentorship/my-mentor");
-      if (mentorRes.data.mentor) {
+      if (mentorRes.data && mentorRes.data.mentor) {
         setMentor(mentorRes.data.mentor);
-        setRequests([]); // If they have a mentor, don't show requests
+        setRequests([]); 
       } else {
         const requestsRes = await api.get("/mentorship/requests");
-        setRequests(requestsRes.data.requests);
+        // Filter out any requests that are missing an ambassador
+        setRequests(requestsRes.data.requests.filter(req => req.ambassador));
       }
     } catch (error) {
       console.error("Error fetching mentorship data:", error);
@@ -119,6 +120,8 @@ const MentorshipWidget = () => {
       console.error(error);
     }
   };
+  
+  // ... the rest of the MentorshipWidget component logic remains the same...
 
   if (loading) {
     return (
@@ -147,6 +150,7 @@ const MentorshipWidget = () => {
     );
   }
 
+  // This check is now safe because we filtered the requests array
   if (requests.length > 0) {
     return (
       <AnimatedSection className="mb-6">
