@@ -112,6 +112,7 @@ const CommunityPage = () => {
       <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
 
         <div className="flex-grow lg:w-2/3">
+<<<<<<< HEAD
             <AnimatedSection className="mb-8 text-center">
     <h1
         className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
@@ -128,6 +129,23 @@ const CommunityPage = () => {
         Connect locally in <span className="font-medium text-gray-800">{communityData.location}</span>
     </p>
 </AnimatedSection>
+=======
+            <AnimatedSection className="mb-8 pt-8 text-center">
+                <h1
+                    className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
+                    style={{
+                        background: 'linear-gradient(90deg, #70d969ff, #0F9D58)',
+                        color: '#202124'
+                    }}
+                >
+                    Community Hub
+                </h1>
+                <p className="mt-3 text-gray-700 text-sm flex items-center justify-center gap-1.5">
+                    <LocationMarkerIcon className="w-4 h-4 text-gray-500" />
+                    Connect locally in <span className="font-medium text-gray-800">{communityData.location}</span>
+                </p>
+            </AnimatedSection>
+>>>>>>> ca37c53893a6a0265b2000abef52a0385e870042
 
 
 
