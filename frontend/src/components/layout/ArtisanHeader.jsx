@@ -45,7 +45,7 @@ const ArtisanHeader = ({ user, logout }) => {
     { name: 'New Idea', href: '/artisan/ideas/new' },
     { name: 'My Reviews', href: '/artisan/reviews' },
     { name: 'AI Trend Report', href: '/artisan/trends' },
-    { name: 'Funding', href: '/artisan/grant' },
+    { name: 'Funding', href: '/artisan/grants' },
     
     { name: 'Logistics', href: '/artisan/logistics' },
     { name: 'Community', href: '/artisan/community' },

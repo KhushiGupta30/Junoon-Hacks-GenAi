@@ -133,9 +133,11 @@ const MentorshipWidget = () => {
 const ArtisanDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ orders: 0, lowInventory: 0 });
+  // --- Use mock data for charts/lists until API is ready ---
   const [salesData, setSalesData] = useState(null);
   const [viewsData, setViewsData] = useState(null);
   const [topProducts, setTopProducts] = useState([]);
+  // ---
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -145,10 +147,26 @@ const ArtisanDashboard = () => {
       try {
         const { data } = await api.get('/dashboard/artisan-stats');
         if (isMounted) {
-          setStats(data.stats);
-          setSalesData(data.salesData);
-          setViewsData(data.viewsData);
-          setTopProducts(data.topProducts);
+          // Process stats
+          const activeOrders = ordersResponse.data.orders.filter(order => ['pending', 'confirmed', 'processing', 'in_production'].includes(order.status));
+          const lowStockItems = myProductsResponse.data.products.filter(p => !p.inventory.isUnlimited && p.inventory.quantity < 5);
+          setStats({ orders: activeOrders.length, lowInventory: lowStockItems.length });
+
+          // --- SET MOCK DATA (Replace when API is ready) ---
+          const chartLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+          setSalesData({
+            labels: chartLabels,
+            data: [12, 19, 3, 5, 2, 3, 9],
+          });
+           setViewsData({
+            labels: chartLabels,
+            data: [30, 25, 40, 35, 50, 45, 60],
+          });
+          setTopProducts([
+            { id: 'prod1', name: 'Hand-Painted Scarf', stats: { views: 55 }, images: [{url: 'https://placehold.co/40x40/DB4437/FFFFFF?text=S'}], link: '/artisan/products/edit/prod1' },
+            { id: 'prod2', name: 'Ceramic Vase', stats: { views: 48 }, images: [{url: 'https://placehold.co/40x40/4285F4/FFFFFF?text=V'}], link: '/artisan/products/edit/prod2' },
+          ]);
+          // --- END MOCK DATA ---
         }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -159,7 +177,7 @@ const ArtisanDashboard = () => {
     };
     fetchDashboardData();
     return () => { isMounted = false; };
-  }, []);
+  }, []); // Empty array, runs once
 
   const statsData = [
     { title: 'New Orders', value: stats.orders, icon: <ArchiveIcon />, color: 'text-google-blue', borderColor: 'border-google-blue', bgColor: 'bg-google-blue', link: '/artisan/orders', description: "View and manage incoming orders" },
@@ -168,7 +186,8 @@ const ArtisanDashboard = () => {
   ];
 
   if (loading || !user) {
-    return (
+    // ... (Skeleton loading state remains the same) ...
+     return (
       <div className="px-6 md:px-8 py-8 md:py-10">
         <div className="h-40 bg-gray-200 rounded-2xl shadow-xl mb-10 md:mb-12 animate-pulse"></div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10 md:mb-12">
@@ -199,15 +218,18 @@ const ArtisanDashboard = () => {
   }
 
   if (error) {
-    return (
-      <div className="px-6 md:px-8 py-8 md:py-10 text-center">
-        <h2 className="text-2xl font-bold text-red-500">Something went wrong</h2>
-        <p className="text-gray-600 mt-2">{error}</p>
+    // ... (Error state remains the same) ...
+     return (
+       <div className="px-6 md:px-8 py-8 md:py-10 text-center min-h-[calc(100vh-10rem)] flex flex-col justify-center items-center">
+        <ExclamationCircleIcon className="w-12 h-12 text-red-400 mb-4" />
+        <h2 className="text-xl font-medium text-red-600 mb-2">Something went wrong</h2>
+        <p className="text-gray-600 text-sm">{error}</p>
       </div>
     )
   }
   
   return (
+    // ... (Main return JSX remains the same, it will now be populated by the fetched+mock data) ...
     <div className="px-6 md:px-8 py-8 md:py-10">
       <MentorshipWidget />
 
@@ -235,6 +257,7 @@ const ArtisanDashboard = () => {
            {salesData && <MiniLineChart title="Sales (Last 7 Days)" labels={salesData.labels} data={salesData.data} icon={<CurrencyDollarIcon />} borderColor="#34A853" bgColor="rgba(52, 168, 83, 0.1)" />}
            {viewsData && <MiniLineChart title="Product Views (Last 7 Days)" labels={viewsData.labels} data={viewsData.data} icon={<EyeIcon />} borderColor="#4285F4" bgColor="rgba(66, 133, 244, 0.1)" />}
         </AnimatedSection>
+
 
         <AnimatedSection className="lg:col-span-1">
           <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 h-full">
