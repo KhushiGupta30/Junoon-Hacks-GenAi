@@ -1,4 +1,3 @@
-// src/components/ui/SkeletonStat.jsx
 import React from 'react';
 
 const SkeletonStat = () => (
