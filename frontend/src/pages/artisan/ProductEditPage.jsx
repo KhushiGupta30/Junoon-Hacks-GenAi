@@ -354,7 +354,7 @@ const ProductEditPage = () => {
 
             {/* --- Main Content Area (Form) --- */}
             <div className="flex-grow lg:w-2/3">
-                <AnimatedSection className="mb-8">
+                <AnimatedSection className="mb-8 pt-8">
                     <h1 className="text-3xl font-semibold text-gray-800 tracking-tight">{isEditMode ? 'Edit Product' : 'Add New Product'}</h1>
                     <p className="mt-1 text-gray-500">
                         {isEditMode ? `Editing "${initialData?.name || 'product'}"` : 'Fill out the details to list a new creation.'}

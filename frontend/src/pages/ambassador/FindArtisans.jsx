@@ -3,7 +3,6 @@ import api from '../../api/axiosConfig';
 import { UserPlus, Search, Info, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-// --- Skeleton Loader Component ---
 const ArtisanCardSkeleton = () => (
     <div className="p-4 bg-white border rounded-lg shadow-sm animate-pulse">
         <div className="flex items-center space-x-4">
@@ -17,9 +16,8 @@ const ArtisanCardSkeleton = () => (
     </div>
 );
 
-// --- Individual Artisan Card Component ---
 const ArtisanCard = ({ artisan }) => {
-    const [status, setStatus] = useState('loading'); // loading, available, pending, active, mentored_by_other
+    const [status, setStatus] = useState('loading');
 
     useEffect(() => {
         let isMounted = true;
@@ -118,6 +116,7 @@ const FindArtisans = () => {
         };
         fetchArtisans();
     }, []);
+    console.log(artisans);
 
     const filteredArtisans = useMemo(() => {
         if (!searchTerm) return artisans;

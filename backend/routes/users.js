@@ -154,7 +154,8 @@ router.get('/artisans/unmentored', auth, async (req, res) => {
 router.get('/artisans', auth, async (req, res) => {
   try {
       const allArtisans = await UserService.findMany({ role: 'artisan' });
-      res.json({ artisans: allArtisans.map(UserService.toJSON) });
+      const filteredArtisans = allArtisans.filter(artisan => artisan.id !== req.user.id);
+      res.json({ artisans: filteredArtisans.map(UserService.toJSON) });
   } catch (error) {
       console.error("Error fetching all artisans:", error);
       res.status(500).json({ message: "Server error" });
