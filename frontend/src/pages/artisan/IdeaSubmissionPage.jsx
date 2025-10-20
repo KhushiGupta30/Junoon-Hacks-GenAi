@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../api/axiosConfig'; // Keep your real API import
-// import { useAuth } from '../../context/AuthContext'; // Removed
+import api from '../../api/axiosConfig';
 
-// --- REUSABLE ANIMATED SECTION COMPONENT ---
 const AnimatedSection = ({ children, className = "" }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
@@ -14,7 +12,7 @@ const AnimatedSection = ({ children, className = "" }) => {
         observer.disconnect();
       }
     }, { threshold: 0.1 });
-    const currentRef = ref.current; // Capture ref value
+    const currentRef = ref.current;
     if (currentRef) observer.observe(currentRef);
     
     return () => { if (currentRef) observer.unobserve(currentRef); };
@@ -26,15 +24,11 @@ const AnimatedSection = ({ children, className = "" }) => {
   );
 };
 
-// --- ICONS (Only keep ones used by this page) ---
 const LightBulbIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>);
-
-// --- REMOVED ArtisanHeader component ---
-
-// --- REMOVED Footer component ---
+const ClockIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>);
+const TagIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5a2 2 0 012 2v5a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" /></svg>);
 
 
-// --- INTERNAL FORM FIELDS COMPONENT (Keep) ---
 const IdeaSubmissionFormFields = ({ onSubmit }) => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -111,11 +105,38 @@ const IdeaSubmissionFormFields = ({ onSubmit }) => {
     );
 };
 
+const RecentIdeaSkeleton = () => (
+    <div className="bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
+        <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+        <div className="flex items-center space-x-4">
+            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+        </div>
+    </div>
+);
 
-// --- MAIN PAGE COMPONENT (IdeaSubmissionPage.jsx) ---
 const IdeaSubmissionPage = () => {
   const navigate = useNavigate();
-  // const { user, logout } = useAuth(); // Removed
+  const [recentIdeas, setRecentIdeas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchRecentIdeas = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const response = await api.get('/ideas?limit=5&sortBy=createdAt');
+            setRecentIdeas(response.data.ideas.map(idea => ({...idea, submittedAt: new Date(idea.createdAt)})));
+        } catch (err) {
+            console.error("Failed to fetch recent ideas:", err);
+            setError("Could not load recent ideas.");
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchRecentIdeas();
+  }, []);
 
   const handleFormSubmit = async (formData) => {
     try {
@@ -125,22 +146,17 @@ const IdeaSubmissionPage = () => {
     } catch (err) {
         console.error("Failed to submit idea:", err);
         const errorMessage = err.response?.data?.message || err.message || "Failed to submit your idea. Please try again.";
-        // Re-throw the error so the form's internal state can handle displaying it
         throw new Error(errorMessage);
     }
   };
   
   return (
-    <>
-      {/* <ArtisanHeader user={user} logout={logout} /> REMOVED */}
-      
-      {/* Page content wrapper with padding */}
-      <div className="container mx-auto px-6 py-16">
+    <div className="container mx-auto px-6 py-16">
         <AnimatedSection className="mb-12">
            <div className="flex flex-col md:flex-row justify-center items-center text-center gap-6 bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
             <div className="flex items-center gap-6">
               <div className="text-google-yellow hidden sm:block"><LightBulbIcon /></div>
-              <div >
+              <div>
                 <h1 className="text-4xl font-extrabold text-gray-800">Submit a New Idea</h1>
                 <p className="mt-1 text-gray-600">Share your next masterpiece to get feedback and pre-orders from the community.</p>
               </div>
@@ -148,13 +164,44 @@ const IdeaSubmissionPage = () => {
           </div>
         </AnimatedSection>
         
-        <AnimatedSection>
-          <IdeaSubmissionFormFields onSubmit={handleFormSubmit} />
-        </AnimatedSection>
-      </div>
-
-      {/* <Footer /> REMOVED */}
-    </>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+            <div className="lg:col-span-3">
+                <AnimatedSection>
+                    <IdeaSubmissionFormFields onSubmit={handleFormSubmit} />
+                </AnimatedSection>
+            </div>
+            <div className="lg:col-span-2">
+                <AnimatedSection>
+                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+                        <h3 className="text-lg font-bold text-gray-800 border-b pb-3 mb-4">Recently Submitted Ideas</h3>
+                        <div className="space-y-4">
+                            {loading ? (
+                                <>
+                                    <RecentIdeaSkeleton />
+                                    <RecentIdeaSkeleton />
+                                    <RecentIdeaSkeleton />
+                                </>
+                            ) : error ? (
+                                <p className="text-red-500 text-sm text-center py-4">{error}</p>
+                            ) : recentIdeas.length > 0 ? (
+                                recentIdeas.map(idea => (
+                                    <div key={idea.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200/80">
+                                        <h4 className="font-bold text-sm text-gray-800 truncate">{idea.title}</h4>
+                                        <div className="flex items-center text-xs text-gray-500 mt-1 space-x-4">
+                                            <span className="flex items-center gap-1.5"><TagIcon /> {idea.category}</span>
+                                            <span className="flex items-center gap-1.5"><ClockIcon /> {idea.submittedAt.toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-gray-500 text-sm text-center py-8">Be the first to submit an idea!</p>
+                            )}
+                        </div>
+                    </div>
+                </AnimatedSection>
+            </div>
+        </div>
+    </div>
   );
 };
 
