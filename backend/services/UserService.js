@@ -7,7 +7,6 @@ class UserService extends BaseService {
   }
 
   async create(userData) {
-    // Hash password before saving (if password provided)
     if (userData.password) {
       userData.password = await bcrypt.hash(userData.password, 12);
     }
@@ -19,7 +18,6 @@ class UserService extends BaseService {
     return await this.findOne({ email });
   }
 
-  // New method to find user by Firebase UID
   async findByUID(firebaseUid) {
     return await this.findOne({ firebaseUid });
   }

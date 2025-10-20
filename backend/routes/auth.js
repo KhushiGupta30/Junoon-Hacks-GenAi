@@ -46,7 +46,10 @@ router.post('/register', [
       name,
       email,
       role,
-      firebaseUid
+      firebaseUid,
+      unmentored: true,
+      city: "",
+      state: ""
     });
 
     res.status(201).json({
