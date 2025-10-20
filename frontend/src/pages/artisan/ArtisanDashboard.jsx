@@ -13,8 +13,6 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
-// --- Child Components for the Dashboard ---
-
 const MiniLineChart = ({ title, data, labels, icon, borderColor, bgColor }) => {
     const chartData = {
         labels: labels,
@@ -78,7 +76,6 @@ const MentorshipWidget = () => {
     const handleAccept = async (mentorshipId) => {
         try {
             await api.put(`/mentorship/accept/${mentorshipId}`);
-            // Refetch data to update the UI
             setLoading(true);
             fetchData();
         } catch (error) {
@@ -125,19 +122,15 @@ const MentorshipWidget = () => {
         );
     }
 
-    return null; // Render nothing if no mentor and no requests
+    return null;
 };
-
-// --- Main Dashboard Component ---
 
 const ArtisanDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ orders: 0, lowInventory: 0 });
-  // --- Use mock data for charts/lists until API is ready ---
   const [salesData, setSalesData] = useState(null);
   const [viewsData, setViewsData] = useState(null);
   const [topProducts, setTopProducts] = useState([]);
-  // ---
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -146,12 +139,10 @@ const ArtisanDashboard = () => {
     const fetchDashboardData = async () => {
       try {
         const response = await axios.get('/dashboard/artisan-stats');
-        // Assuming the endpoint returns an object with orders and myProducts arrays
         setOrders(response.data.orders);
         setMyProducts(response.data.myProducts);
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
-        // Handle error appropriately
       } finally {
         setLoading(false);
       }
@@ -198,7 +189,6 @@ const ArtisanDashboard = () => {
   }
 
   if (error) {
-    // ... (Error state remains the same) ...
      return (
        <div className="px-6 md:px-8 py-8 md:py-10 text-center min-h-[calc(100vh-10rem)] flex flex-col justify-center items-center">
         <ExclamationCircleIcon className="w-12 h-12 text-red-400 mb-4" />
@@ -209,7 +199,6 @@ const ArtisanDashboard = () => {
   }
   
   return (
-    // ... (Main return JSX remains the same, it will now be populated by the fetched+mock data) ...
     <div className="px-6 md:px-8 py-8 md:py-10">
       <MentorshipWidget />
 
