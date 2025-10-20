@@ -28,6 +28,7 @@ import AmbassadorDashboard from './pages/ambassador/Dashboard.jsx';
 import MyArtisans from './pages/ambassador/MyArtisans.jsx';
 import CommunityHub from './pages/ambassador/CommunityHub.jsx';
 import Profile from './pages/ambassador/Profile.jsx';
+import ReviewsPage from './pages/artisan/ReviewsPage.jsx';
 
 const AppLayout = () => {
   const location = useLocation();
@@ -56,11 +57,12 @@ const AppLayout = () => {
             <Route path="products" element={<MyProductsPage />} />
             <Route path="products/edit/:id" element={<ProductEditPage />} />
             <Route path="orders" element={<MyOrdersPage />} />
-            <Route path="ideas" element={<IdeaSubmissionPage />} />
+            <Route path="ideas/new" element={<IdeaSubmissionPage />} />
             <Route path="grants" element={<GrantsPage />} />
             <Route path="trends" element={<AITrendsPage />} />
             <Route path="community" element={<CommunityPage />} />
             <Route path="logistics" element={<LogiPage />} />
+            <Route path ="reviews" element={<ReviewsPage />} />
           </Route>
 
           <Route path="/ambassador/*" element={
