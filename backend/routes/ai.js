@@ -552,6 +552,8 @@ router.post("/assistant", [auth, authorize("artisan")], async (req, res) => {
                 When you present data, synthesize it into a natural, human-like paragraph.
                 Do not just list out the raw data.
                 Always start your response by directly addressing the user's request.
+                *** VERY IMPORTANT: Your final output must be a single, valid, parsable JSON object and nothing else.
+                The JSON object must have this exact structure: { "reply": "Your full text response here.", "language": "The BCP-47 language code of your response, e.g., 'en-US' for English or 'hi-IN' for Hindi." }
             `,
         },
       ],
@@ -617,11 +619,16 @@ router.post("/assistant", [auth, authorize("artisan")], async (req, res) => {
 
       const result2 = await chat.sendMessage(JSON.stringify(functionResponse));
       const finalResponse = await result2.response;
+      console.log("RAW AI Response (with function call):", finalResponse.text()); 
       conversationHistories[userId] = await chat.getHistory();
-      res.json({ reply: finalResponse.text() });
+      const aiJsonReply = extractJson(finalResponse.text());
+      res.json(JSON.parse(aiJsonReply));
+
     } else {
+        console.log("RAW AI Response (direct reply):", response.text());
       conversationHistories[userId] = await chat.getHistory();
-      res.json({ reply: response.text() });
+      const aiJsonReply = extractJson(response.text());
+      res.json(JSON.parse(aiJsonReply));
     }
   } catch (error) {
     console.error("AI Assistant error:", error);
@@ -631,6 +638,46 @@ router.post("/assistant", [auth, authorize("artisan")], async (req, res) => {
         message: "The AI assistant is having trouble. Please try again.",
       });
   }
+});
+
+const textToSpeech = require('@google-cloud/text-to-speech');
+const fs = require('fs');
+const path = require('path');
+
+// Creates a client
+const ttsClient = new textToSpeech.TextToSpeechClient({
+    keyFilename: path.join(__dirname, '..', 'google-credentials.json') // Assumes credentials file is in the root
+});
+
+
+router.post('/synthesize-speech', auth, async (req, res) => {
+    const { text, languageCode } = req.body; // e.g., languageCode: "hi-IN"
+
+    if (!text || !languageCode) {
+        return res.status(400).json({ message: "Text and language code are required." });
+    }
+
+    try {
+        const request = {
+            input: { text: text },
+            // Select the language and SSML voice gender (optional)
+            voice: { languageCode: languageCode, ssmlGender: 'FEMALE' },
+            // select the type of audio encoding
+            audioConfig: { audioEncoding: 'MP3' },
+        };
+
+        // Performs the text-to-speech request
+        const [response] = await ttsClient.synthesizeSpeech(request);
+        
+        // Convert the audio content to a Base64 string to send as JSON
+        const audioBase64 = response.audioContent.toString('base64');
+
+        res.json({ audioContent: audioBase64 });
+
+    } catch (error) {
+        console.error("Google TTS Error:", error);
+        res.status(500).json({ message: "Failed to synthesize speech." });
+    }
 });
 
 module.exports = router;
