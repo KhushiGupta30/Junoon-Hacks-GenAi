@@ -697,16 +697,12 @@ router.post("/synthesize-speech", auth, async (req, res) => {
   try {
     const request = {
       input: { text: text },
-      // Select the language and SSML voice gender (optional)
       voice: { languageCode: languageCode, ssmlGender: "FEMALE" },
-      // select the type of audio encoding
       audioConfig: { audioEncoding: "MP3" },
     };
 
-    // Performs the text-to-speech request
     const [response] = await ttsClient.synthesizeSpeech(request);
 
-    // Convert the audio content to a Base64 string to send as JSON
     const audioBase64 = response.audioContent.toString("base64");
 
     res.json({ audioContent: audioBase64 });
