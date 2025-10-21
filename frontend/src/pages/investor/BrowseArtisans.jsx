@@ -65,7 +65,7 @@ const ArtisanCard = ({ artisan }) => (
         </div>
         <div className="mt-auto pt-4">
             <Link 
-                to={`/seller/${artisan.id}`} // Adjusted path to match your App.jsx
+                to={`/investor/seller/${artisan.id}`} // Adjusted path to match your App.jsx
                 className="block w-full text-center bg-google-blue text-white font-medium py-2 px-4 rounded-lg text-sm hover:bg-opacity-90 transition-colors shadow-sm"
             >
                 View Profile & Invest
@@ -235,7 +235,7 @@ const BrowseArtisans = () => {
                          </p>
                          <div className="space-y-3">
                             {aiMatchedArtisans.length > 0 ? aiMatchedArtisans.map(artisan => (
-                                <Link to={`/seller/${artisan.id}`} key={artisan.id} className="block bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                                <Link to={`/investor/seller/${artisan.id}`} key={artisan.id} className="block bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                     <div className="flex items-center gap-3">
                                         <img src={artisan.profile?.avatar || `https://ui-avatars.com/api/?name=${artisan.name.replace(' ','+')}`} alt={artisan.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                                         <div className="min-w-0">
