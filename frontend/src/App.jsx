@@ -56,6 +56,7 @@ const AppLayout = () => {
           <Route path="/ambassador-page" element={<AmbassadorPage />} />
           <Route path="/artisan-page" element={<ArtisanPage />} />
           <Route path="/buyer" element={<BuyerMarket />} />
+          <Route path="/market" element={<BuyerMarket/>} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/seller/:artisanId" element={<SellerPage />} />
           <Route path="/product/:id" element={<ProductPage />} />
