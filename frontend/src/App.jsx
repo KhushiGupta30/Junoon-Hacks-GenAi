@@ -41,6 +41,7 @@ import InvestorLayout from "./components/layout/InvestorLayout.jsx";
 import InvestorDashboard from "./pages/investor/InverstorDashboard.jsx";
 import BrowseArtisans from "./pages/investor/BrowseArtisans.jsx";
 import InvestmentPortfolio from "./pages/investor/InvestmentPortfolio.jsx";
+import InvestorProfile from "./pages/investor/InvestorProfile.jsx";
 
 const AppLayout = () => {
   const location = useLocation();
@@ -111,6 +112,7 @@ const AppLayout = () => {
             <Route path="browse-artisans" element={<BrowseArtisans />} />
             <Route path="portfolio" element={<InvestmentPortfolio />} />
             <Route path="seller/:artisanId" element={<SellerPage />} />
+            <Route path ="profile" element={<InvestorProfile/>}/>
 
 
           </Route>
