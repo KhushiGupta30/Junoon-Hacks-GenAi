@@ -110,6 +110,9 @@ const AppLayout = () => {
             <Route path="dashboard" element={<InvestorDashboard />} />
             <Route path="browse-artisans" element={<BrowseArtisans />} />
             <Route path="portfolio" element={<InvestmentPortfolio />} />
+            <Route path="seller/:artisanId" element={<SellerPage />} />
+
+
           </Route>
         </Routes>
       </main>

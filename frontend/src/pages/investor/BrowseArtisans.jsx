@@ -78,7 +78,7 @@ const BrowseArtisans = () => {
                                 </div>
                             </div>
                             <div className="mt-4">
-                                <Link to={`/seller/${artisan.id}`} className="flex-1 text-center bg-blue-500 text-white font-semibold py-2 px-4 rounded-md text-sm hover:bg-blue-600 transition w-full block">
+                                <Link to={`../seller/${artisan.id}`} className="flex-1 text-center bg-blue-500 text-white font-semibold py-2 px-4 rounded-md text-sm hover:bg-blue-600 transition w-full block">
                                     View Profile & Invest
                                 </Link>
                             </div>
