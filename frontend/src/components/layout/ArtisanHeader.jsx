@@ -56,7 +56,9 @@ const ArtisanHeader = () => {
     { name: 'Dashboard', href: '/artisan/dashboard' },
     { name: 'My Products', href: '/artisan/products' },
     { name: 'Orders', href: '/artisan/orders' },
+    { name: 'New Idea', href: '/artisan/ideas/new' },
     { name: 'AI Trends', href: '/artisan/trends' },
+    { name: 'Funding', href: '/artisan/grant' },
     { name: 'Community', href: '/artisan/community' },
     { name: 'Logistics', href: '/artisan/logistics' },
   ];
