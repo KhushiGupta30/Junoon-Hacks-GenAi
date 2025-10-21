@@ -44,7 +44,7 @@ import InvestmentPortfolio from "./pages/investor/InvestmentPortfolio.jsx";
 
 const AppLayout = () => {
   const location = useLocation();
-  const hideFor = ["/artisan", "/ambassador"];
+  const hideFor = ["/artisan", "/ambassador","/investor"];
   const shouldHide = hideFor.some((path) => location.pathname.startsWith(path));
 
   return (
