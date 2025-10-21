@@ -36,7 +36,7 @@ export default function LandingPage() {
         <ExplainerCarousel />
         <Roles onRoleSelect={handleRoleSelect} />
       </main>
-      <Footer />
+      
       <LoginModal 
         isOpen={isModalOpen} 
         onClose={handleCloseModal} 
