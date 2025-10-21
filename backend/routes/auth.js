@@ -4,7 +4,7 @@ const { body, validationResult } = require('express-validator');
 const UserService = require('../services/UserService');
 const { auth } = require('../middleware/auth');
 const { admin } = require('../firebase');
-const { getCoordsForCity } = require('../utils/geocoding'); // Import our new utility
+const { getCoordsForCity } = require('../utils/geolocation'); // Import our new utility
 
 const router = express.Router();
 
