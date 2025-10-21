@@ -65,7 +65,7 @@ const ArtisanCard = ({ artisan }) => (
         </div>
         <div className="mt-auto pt-4">
             <Link 
-                to={`/seller/${artisan.id}`} // Adjusted path to match your App.jsx
+                to={`/investor/seller/${artisan.id}`} // Adjusted path to match your App.jsx
                 className="block w-full text-center bg-google-blue text-white font-medium py-2 px-4 rounded-lg text-sm hover:bg-opacity-90 transition-colors shadow-sm"
             >
                 View Profile & Invest
