@@ -151,7 +151,7 @@ const CommunityPage = () => {
             <AnimatedSection className="mb-8 pt-8 text-center">
                 <h1
                     className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
-                    style={{ background: 'linear-gradient(90deg, #70d969ff, #0F9D58)', color: '#202124' }}
+                    style={{ background: 'linear-gradient(90deg, #70d969ff, #0F9D58)', color: '#fafbfdff' }}
                 >
                     Community Hub
                 </h1>

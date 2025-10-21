@@ -211,7 +211,7 @@ const MyOrdersPage = () => {
             className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
             style={{
               background: "linear-gradient(90deg, #FDD835, #FFC107)",
-              color: "#202124",
+              color: "#f7f8faff",
             }}
           >
             Customer Orders
