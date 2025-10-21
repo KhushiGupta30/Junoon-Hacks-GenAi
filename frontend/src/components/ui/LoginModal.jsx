@@ -1,6 +1,48 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 
+// The data structure you provided, now available in the component
+const indianStatesAndCities = {
+    "Andaman and Nicobar Islands": ["Port Blair"],
+    "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool"],
+    "Arunachal Pradesh": ["Itanagar"],
+    "Assam": ["Guwahati", "Dibrugarh", "Silchar"],
+    "Bihar": ["Patna", "Gaya", "Bhagalpur"],
+    "Chandigarh": ["Chandigarh"],
+    "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur"],
+    "Dadra and Nagar Haveli and Daman and Diu": ["Daman", "Silvassa"],
+    "Delhi": ["New Delhi"],
+    "Goa": ["Panaji", "Vasco da Gama", "Margao"],
+    "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot"],
+    "Haryana": ["Faridabad", "Gurugram", "Panipat"],
+    "Himachal Pradesh": ["Shimla", "Dharamshala"],
+    "Jammu and Kashmir": ["Srinagar", "Jammu"],
+    "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad"],
+    "Karnataka": ["Bengaluru", "Mysuru", "Hubballi-Dharwad"],
+    "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode"],
+    "Ladakh": ["Leh"],
+    "Lakshadweep": ["Kavaratti"],
+    "Madhya Pradesh": ["Indore", "Bhopal", "Jabalpur", "Gwalior"],
+    "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane"],
+    "Manipur": ["Imphal"],
+    "Meghalaya": ["Shillong"],
+    "Mizoram": ["Aizawl"],
+    "Nagaland": ["Kohima", "Dimapur"],
+    "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela"],
+    "Puducherry": ["Puducherry"],
+    "Punjab": ["Ludhiana", "Amritsar", "Jalandhar"],
+    "Rajasthan": ["Jaipur", "Jodhpur", "Kota", "Udaipur"],
+    "Sikkim": ["Gangtok"],
+    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli"],
+    "Telangana": ["Hyderabad", "Warangal", "Nizamabad"],
+    "Tripura": ["Agartala"],
+    "Uttar Pradesh": ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi"],
+    "Uttarakhand": ["Dehradun", "Haridwar"],
+    "West Bengal": ["Kolkata", "Asansol", "Siliguri"]
+};
+
+const states = Object.keys(indianStatesAndCities);
+
 const LoginModal = ({ isOpen, onClose, selectedRole }) => {
     const { login, register } = useAuth();
     const [isLoginView, setIsLoginView] = useState(true);
@@ -10,30 +52,46 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState(selectedRole || 'buyer');
+    const [state, setState] = useState('');
+    const [city, setCity] = useState('');
+    const [language, setLanguage] = useState('en');
     
+    // State to hold the list of cities for the selected state
+    const [availableCities, setAvailableCities] = useState([]);
+
     // UI State
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        // When the modal opens, set the role from props
         if (isOpen) {
             setRole(selectedRole || 'buyer');
-            setError(''); // Clear previous errors
-            setIsLoginView(true); // Default to login view when opening
-            // Clear form fields
+            setError('');
+            setIsLoginView(true);
+            // Clear all form fields
+            setName('');
             setEmail('');
             setPassword('');
-            setName('');
+            setState('');
+            setCity('');
+            setLanguage('en');
+            setAvailableCities([]);
         }
     }, [isOpen, selectedRole]);
 
-    // Update role state if selectedRole prop changes while modal is open
     useEffect(() => {
         if (selectedRole) {
             setRole(selectedRole);
         }
     }, [selectedRole]);
+
+    // This new handler updates the city list when the state changes
+    const handleStateChange = (e) => {
+        const selectedState = e.target.value;
+        setState(selectedState);
+        setCity(''); // Reset city selection
+        setAvailableCities(indianStatesAndCities[selectedState] || []);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -42,55 +100,44 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
 
         try {
             if (isLoginView) {
-                console.log('Attempting login with:', email);
                 await login(email, password);
-                onClose(); // Close modal on success
+                onClose();
             } else {
-                console.log('Attempting registration with:', { name, email, role });
-                await register(name, email, password, role);
-                onClose(); // Close modal on success
+                await register({ name, email, password, role, state, city, language });
+                onClose();
             }
         } catch (err) {
-            console.error('Auth error:', err);
-            
-            // Handle specific Firebase error codes
             let errorMessage = 'An unexpected error occurred.';
-            
-            if (err.code === 'auth/invalid-email') {
-                errorMessage = 'Invalid email address format.';
-            } else if (err.code === 'auth/user-disabled') {
-                errorMessage = 'This account has been disabled.';
-            } else if (err.code === 'auth/user-not-found') {
-                errorMessage = 'No account found with this email.';
-            } else if (err.code === 'auth/wrong-password') {
-                errorMessage = 'Incorrect password.';
-            } else if (err.code === 'auth/email-already-in-use') {
-                errorMessage = 'An account already exists with this email.';
-            } else if (err.code === 'auth/weak-password') {
-                errorMessage = 'Password should be at least 6 characters.';
-            } else if (err.code === 'auth/network-request-failed') {
-                errorMessage = 'Network error. Please check your connection.';
-            } else if (err.code === 'auth/too-many-requests') {
-                errorMessage = 'Too many failed attempts. Please try again later.';
-            } else if (err.response?.data?.message) {
+            if (err.code) { // Handle Firebase specific errors
+                switch (err.code) {
+                    case 'auth/invalid-email': errorMessage = 'Invalid email address format.'; break;
+                    case 'auth/user-not-found': errorMessage = 'No account found with this email.'; break;
+                    case 'auth/wrong-password': errorMessage = 'Incorrect password.'; break;
+                    case 'auth/email-already-in-use': errorMessage = 'An account already exists with this email.'; break;
+                    case 'auth/weak-password': errorMessage = 'Password should be at least 6 characters.'; break;
+                    default: errorMessage = err.message;
+                }
+            } else if (err.response?.data?.message) { // Handle backend API errors
                 errorMessage = err.response.data.message;
             } else if (err.message) {
                 errorMessage = err.message;
             }
-            
             setError(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
-    // Reset form when switching between login and register
     const toggleView = () => {
         setIsLoginView(!isLoginView);
         setError('');
+        setName('');
         setEmail('');
         setPassword('');
-        setName('');
+        setState('');
+        setCity('');
+        setLanguage('en');
+        setAvailableCities([]);
     };
 
     if (!isOpen) return null;
@@ -117,6 +164,7 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
           
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLoginView && (
+              <>
                 <input 
                   type="text" 
                   placeholder="Your Name" 
@@ -125,6 +173,41 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
                   required 
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
                 />
+                
+                {/* --- STATE DROPDOWN --- */}
+                <select 
+                  value={state} 
+                  onChange={handleStateChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-500 focus:text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="" disabled>Select your State</option>
+                  {states.sort().map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+
+                {/* --- DYNAMIC CITY DROPDOWN --- */}
+                <select 
+                  value={city} 
+                  onChange={(e) => setCity(e.target.value)}
+                  required
+                  disabled={!state} // Disabled until a state is chosen
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-500 focus:text-black focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                >
+                  <option value="" disabled>{state ? "Select your City" : "Please select a state first"}</option>
+                  {availableCities.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+
+                {/* --- LANGUAGE DROPDOWN --- */}
+                <select 
+                  value={language} 
+                  onChange={(e) => setLanguage(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-500 focus:text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="en">English</option>
+                  <option value="hi">Hindi (हिन्दी)</option>
+                </select>
+              </>
             )}
             
             <input 
@@ -155,6 +238,7 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
                       value={role} 
                       onChange={(e) => setRole(e.target.value)} 
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={!!selectedRole}
                     >
                         <option value="buyer">Buyer</option>
                         <option value="artisan">Artisan</option>

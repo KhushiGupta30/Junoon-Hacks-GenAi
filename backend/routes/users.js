@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const UserService = require('../services/UserService');
 const ProductService = require('../services/ProductService');
 const { auth, authorize } = require('../middleware/auth');
+const { getDistance } = require('../utils/geolocation');
 
 const router = express.Router();
 
@@ -45,6 +46,48 @@ router.put('/profile', auth, async (req, res) => {
     console.error('Update profile error:', error);
     res.status(500).json({ message: 'Server error while updating profile' });
   }
+});
+
+
+router.get('/artisans/nearest', auth, async (req, res) => {
+    try {
+        const currentUser = req.user;
+        const userLocation = currentUser.profile?.location;
+
+        if (!userLocation?.latitude || !userLocation?.longitude) {
+            return res.status(400).json({ message: "Your location is not set. Please update your profile." });
+        }
+
+        const allArtisans = await UserService.findMany({ role: 'artisan' });
+
+        const artisansWithDistance = allArtisans
+            .filter(artisan =>
+                // Filter out the current user and artisans without location
+                artisan.id !== currentUser.id &&
+                artisan.profile?.location?.latitude &&
+                artisan.profile?.location?.longitude
+            )
+            .map(artisan => {
+                const distance = getDistance(
+                    userLocation.latitude,
+                    userLocation.longitude,
+                    artisan.profile.location.latitude,
+                    artisan.profile.location.longitude
+                );
+                return { ...UserService.toJSON(artisan), distance: Math.round(distance * 10) / 10 }; // round to 1 decimal place
+            });
+
+        // Sort by distance (closest first)
+        artisansWithDistance.sort((a, b) => a.distance - b.distance);
+
+        // Return top 10 nearest artisans
+        res.json({ artisans: artisansWithDistance.slice(0, 10) });
+
+    } catch (error)
+    {
+        console.error('Get nearest artisans error:', error);
+        res.status(500).json({ message: 'Server error while fetching nearest artisans' });
+    }
 });
 
 // GET /api/users/artisans - Fetches a paginated and filtered list of artisans

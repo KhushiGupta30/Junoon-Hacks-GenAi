@@ -1,8 +1,10 @@
+// backend/routes/auth.js
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const UserService = require('../services/UserService');
 const { auth } = require('../middleware/auth');
 const { admin } = require('../firebase');
+const { getCoordsForCity } = require('../utils/geocoding'); // Import our new utility
 
 const router = express.Router();
 
@@ -10,6 +12,11 @@ router.post('/register', [
   body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
   body('role').isIn(['artisan', 'buyer', 'investor', 'ambassador']).withMessage('Invalid role'),
+  // --- NEW VALIDATION RULES ---
+  body('state').trim().notEmpty().withMessage('State is required'),
+  body('city').trim().notEmpty().withMessage('City is required'),
+  body('language').isIn(['en', 'hi']).withMessage('Invalid language selected'),
+
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -17,7 +24,8 @@ router.post('/register', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, role } = req.body;
+    // --- DESTRUCTURE NEW FIELDS ---
+    const { name, email, role, state, city, language } = req.body;
     
     const authHeader = req.header('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -41,15 +49,30 @@ router.post('/register', [
       return res.status(400).json({ message: 'User already exists with this email or Firebase UID' });
     }
 
+    // --- GET COORDINATES FROM CITY ---
+    const coords = getCoordsForCity(city);
+    if (!coords) {
+        // You can choose to fail or save without coords. Failing is better for data integrity.
+        return res.status(400).json({ message: `Location data for "${city}" is not available yet. Please choose a nearby major city.` });
+    }
+
+    // --- CREATE NEW USER WITH ALL DATA ---
     const user = await UserService.create({
       name,
       email,
       role,
       firebaseUid,
-      unmentored: true,
-      uninvested: true,
-      city: "",
-      state: ""
+      profile: {
+          location: {
+              city,
+              state,
+              latitude: coords.latitude,
+              longitude: coords.longitude
+          }
+      },
+      settings: {
+          language
+      }
     });
 
     res.status(201).json({
@@ -63,16 +86,16 @@ router.post('/register', [
 });
 
 router.get('/me', auth, async (req, res) => {
-  try {
-    res.json(req.user);
-  } catch (error) {
-    console.error('Get user error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
+    try {
+        res.json(req.user);
+    } catch (error) {
+        console.error('Get user error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
 router.post('/logout', auth, (req, res) => {
-  res.json({ message: 'Logged out successfully' });
+    res.json({ message: 'Logged out successfully' });
 });
 
 module.exports = router;

@@ -75,7 +75,6 @@ export const AuthProvider = ({ children }) => {
     
     await fetchNotifications(); 
 
-    // *** FIX: Added investor role and updated default buyer route ***
     switch (userData.role) {
       case "artisan":
         navigate("/artisan/dashboard");
@@ -87,7 +86,7 @@ export const AuthProvider = ({ children }) => {
         navigate("/investor/dashboard");
         break;
       default:
-        navigate("/market"); // Default for buyers
+        navigate("/market");
         break;
     }
   };
@@ -108,13 +107,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password, role) => {
+  // --- START OF THE ONLY CHANGES ---
+
+  const register = async (userData) => { // FIX 1: Accept one object 'userData'
     try {
+      // FIX 2: Destructure the object to get all the variables
+      const { name, email, password, role, state, city, language } = userData;
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
 
       api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
-      const response = await api.post("/auth/register", { name, email, role });
+      
+      // FIX 3: Send all the new fields to the backend
+      const response = await api.post("/auth/register", { name, email, role, state, city, language });
       
       await handleAuthSuccess(response.data.user, idToken);
       return response.data.user;
@@ -123,6 +129,8 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
+
+  // --- END OF THE ONLY CHANGES ---
 
   const logout = async () => {
     try {

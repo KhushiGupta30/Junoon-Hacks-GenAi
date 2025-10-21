@@ -1,17 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../api/axiosConfig';
-import { UserPlus, Search, Info, Users } from 'lucide-react';
+import { UserPlus, Search, Info, Users, MapPin } from 'lucide-react'; // Added MapPin
 import { useAuth } from '../../context/AuthContext';
 
 const ArtisanCardSkeleton = () => (
     <div className="p-4 bg-white border rounded-lg shadow-sm animate-pulse">
-        <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-full bg-gray-200"></div>
-            <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-            </div>
-        </div>
+        <div className="flex items-center space-x-4"><div className="w-16 h-16 rounded-full bg-gray-200"></div><div className="flex-1 space-y-2"><div className="h-4 bg-gray-200 rounded w-3/4"></div><div className="h-3 bg-gray-200 rounded w-1/2"></div></div></div>
         <div className="mt-4 h-9 w-full bg-gray-200 rounded-lg"></div>
     </div>
 );
@@ -64,12 +58,21 @@ const ArtisanCard = ({ artisan }) => {
 
     return (
         <div className="p-4 bg-white border rounded-lg shadow-sm flex flex-col justify-between">
-            <div className="flex items-center space-x-4">
-                 <img src={artisan.profile?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(artisan.name)}&background=random`} alt={artisan.name} className="w-16 h-16 rounded-full object-cover"/>
-                 <div className="flex-1 min-w-0">
-                     <h3 className="font-bold text-gray-800 truncate">{artisan.name}</h3>
-                     <p className="text-sm text-gray-500 capitalize truncate">{artisan.artisanProfile?.craftSpecialty?.join(', ') || 'General Craft'}</p>
+            <div className="flex items-start justify-between">
+                 <div className="flex items-center space-x-4 min-w-0">
+                    <img src={artisan.profile?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(artisan.name)}&background=random`} alt={artisan.name} className="w-16 h-16 rounded-full object-cover"/>
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-gray-800 truncate">{artisan.name}</h3>
+                        <p className="text-sm text-gray-500 capitalize truncate">{artisan.artisanProfile?.craftSpecialty?.join(', ') || 'General Craft'}</p>
+                    </div>
                  </div>
+                 {/* DYNAMIC DISTANCE DISPLAY */}
+                 {artisan.distance !== undefined && (
+                    <div className="flex items-center text-xs text-gray-500 font-medium bg-gray-100 px-2 py-1 rounded-full flex-shrink-0">
+                        <MapPin size={12} className="mr-1" />
+                        {artisan.distance} km away
+                    </div>
+                 )}
             </div>
             <div className="mt-4 pt-4 border-t border-gray-100">
                 {renderButton()}
@@ -105,10 +108,11 @@ const FindArtisans = () => {
     useEffect(() => {
         const fetchArtisans = async () => {
             try {
-                const res = await api.get('/users/artisans/unmentored');
+                // CHANGED: Fetches nearest artisans instead of all unmentored
+                const res = await api.get('/users/artisans/nearest');
                 setArtisans(res.data.artisans || []);
             } catch (err) {
-                setError("Could not fetch the list of artisans. Please try refreshing the page.");
+                setError(err.response?.data?.message || "Could not fetch artisans. Please try refreshing the page.");
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -116,7 +120,6 @@ const FindArtisans = () => {
         };
         fetchArtisans();
     }, []);
-    console.log(artisans);
 
     const filteredArtisans = useMemo(() => {
         if (!searchTerm) return artisans;
