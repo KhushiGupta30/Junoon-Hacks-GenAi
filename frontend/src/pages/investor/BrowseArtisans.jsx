@@ -235,7 +235,7 @@ const BrowseArtisans = () => {
                          </p>
                          <div className="space-y-3">
                             {aiMatchedArtisans.length > 0 ? aiMatchedArtisans.map(artisan => (
-                                <Link to={`/seller/${artisan.id}`} key={artisan.id} className="block bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                                <Link to={`/investor/seller/${artisan.id}`} key={artisan.id} className="block bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                     <div className="flex items-center gap-3">
                                         <img src={artisan.profile?.avatar || `https://ui-avatars.com/api/?name=${artisan.name.replace(' ','+')}`} alt={artisan.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                                         <div className="min-w-0">
