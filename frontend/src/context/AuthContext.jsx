@@ -22,10 +22,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState([]); // <-- NEW STATE
+  const [notifications, setNotifications] = useState([]);
   const navigate = useNavigate();
 
-  // --- NEW: Function to fetch notifications ---
   const fetchNotifications = useCallback(async () => {
     if (!token) return;
     try {
@@ -36,18 +35,15 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // --- NEW: Function to mark a notification as read ---
   const markNotificationAsRead = useCallback(async (notificationId) => {
     setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
     try {
       await api.put(`/notifications/${notificationId}/read`);
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
-      // Optional: revert state on error
       fetchNotifications();
     }
   }, [fetchNotifications]);
-
 
   useEffect(() => {
     const fetchUserOnLoad = async () => {
@@ -56,7 +52,6 @@ export const AuthProvider = ({ children }) => {
         try {
           const response = await api.get("/auth/me");
           setUser(response.data);
-          // Fetch notifications after user is confirmed
           await fetchNotifications(); 
         } catch (error) {
           console.error("Token is invalid or expired. Logging out.", error);
@@ -78,13 +73,22 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     setToken(idToken);
     
-    // Fetch initial notifications on login/register
     await fetchNotifications(); 
 
+    // *** FIX: Added investor role and updated default buyer route ***
     switch (userData.role) {
-      case "artisan": navigate("/artisan/dashboard"); break;
-      case "ambassador": navigate("/ambassador/dashboard"); break;
-      default: navigate("/buyer");
+      case "artisan":
+        navigate("/artisan/dashboard");
+        break;
+      case "ambassador":
+        navigate("/ambassador/dashboard");
+        break;
+      case "investor":
+        navigate("/investor/dashboard");
+        break;
+      default:
+        navigate("/market"); // Default for buyers
+        break;
     }
   };
 
@@ -129,7 +133,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("token");
       setToken(null);
       setUser(null);
-      setNotifications([]); // Clear notifications on logout
+      setNotifications([]);
       delete api.defaults.headers.common["Authorization"];
       navigate("/");
     }
@@ -140,8 +144,8 @@ export const AuthProvider = ({ children }) => {
     token,
     isAuthenticated: !!token && !!user,
     loading,
-    notifications, // <-- EXPOSE NOTIFICATIONS
-    markNotificationAsRead, // <-- EXPOSE FUNCTION
+    notifications,
+    markNotificationAsRead,
     login,
     register,
     logout,

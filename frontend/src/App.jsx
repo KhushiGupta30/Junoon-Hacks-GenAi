@@ -37,6 +37,10 @@ import Profile from "./pages/ambassador/Profile.jsx";
 import FindArtisans from "./pages/ambassador/FindArtisans.jsx";
 import DiscussionPage from "./pages/artisan/DiscussionPage.jsx";
 import DiscussionThreadPage from "./pages/artisan/DiscussionThreadPage.jsx";
+import InvestorLayout from "./components/layout/InvestorLayout.jsx";
+import InvestorDashboard from "./pages/investor/InverstorDashboard.jsx";
+import BrowseArtisans from "./pages/investor/BrowseArtisans.jsx";
+import InvestmentPortfolio from "./pages/investor/InvestmentPortfolio.jsx";
 
 const AppLayout = () => {
   const location = useLocation();
@@ -93,6 +97,18 @@ const AppLayout = () => {
             <Route path="community" element={<CommunityHub />} />
             <Route path="profile" element={<Profile />} />
             <Route path="find-artisans" element={<FindArtisans />} />
+          </Route>
+          <Route
+            path="/investor/*"
+            element={
+              <ProtectedRoute roles={["investor"]}>
+                <InvestorLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<InvestorDashboard />} />
+            <Route path="browse-artisans" element={<BrowseArtisans />} />
+            <Route path="portfolio" element={<InvestmentPortfolio />} />
           </Route>
         </Routes>
       </main>

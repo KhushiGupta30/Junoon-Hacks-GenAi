@@ -116,4 +116,41 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+router.post(
+  '/',
+  [
+    auth,
+    authorize('investor'), // Only investors can use this endpoint
+    body('artisanId', 'Artisan ID is required').notEmpty(),
+    body('amount', 'Investment amount must be a positive number').isFloat({ gt: 0 })
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const { artisanId, amount } = req.body;
+      const investorId = req.user.id;
+      const investorName = req.user.name;
+
+      const newInvestment = await InvestmentService.create({
+        investorId,
+        investorName,
+        artisanId,
+        amount,
+      });
+
+      res.status(201).json({
+        message: 'Investment successful!',
+        investment: newInvestment,
+      });
+    } catch (error) {
+      console.error('Failed to create investment:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  }
+);
+
 module.exports = router;

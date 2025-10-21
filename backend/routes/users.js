@@ -100,8 +100,22 @@ router.get('/artisans/unmentored', auth, async (req, res) => {
     }
 });
 
+router.get('/artisans/uninvested', auth, async (req, res) => {
+  try {
+      const uninvestedArtisans = await UserService.findMany({ 
+          role: 'artisan',
+          uninvested: true
+      });
 
-// GET /api/users/artisans/:id - Fetches a single artisan's public profile and products
+      const filteredArtisans = uninvestedArtisans.filter(artisan => artisan.id !== req.user.id);
+
+      res.json({ artisans: filteredArtisans.map(UserService.toJSON) });
+  } catch (error) {
+      console.error("Error fetching unmentored artisans:", error);
+      res.status(500).json({ message: "Server error" });
+  }
+});
+
 router.get('/artisans/:id', async (req, res) => {
   try {
     const artisan = await UserService.findById(req.params.id);
@@ -128,7 +142,6 @@ router.get('/artisans/:id', async (req, res) => {
   }
 });
 
-// GET /api/users/my-products - Fetches the logged-in artisan's products
 router.get('/my-products', [auth, authorize('artisan')], async (req, res) => {
   try {
     const { page = 1, limit = 12, status } = req.query;

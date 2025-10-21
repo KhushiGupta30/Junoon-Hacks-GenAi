@@ -19,7 +19,6 @@ router.post('/register', [
 
     const { name, email, role } = req.body;
     
-    // Get Firebase UID from the authorization token
     const authHeader = req.header('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ message: 'No token provided' });
@@ -48,6 +47,7 @@ router.post('/register', [
       role,
       firebaseUid,
       unmentored: true,
+      uninvested: true,
       city: "",
       state: ""
     });
