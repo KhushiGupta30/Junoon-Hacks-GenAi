@@ -105,7 +105,50 @@ router.post(
         billingAddress: billingAddress || shippingAddress,
         payment,
       };
+      const artisan = await UserService.findById(orderItems[0].artisan); // Assuming one artisan per order for simplicity
+      const originCity = artisan.profile.location.city;
+      const destinationCity = shippingAddress.city;
 
+      const originCoords = cityCoordinates[originCity];
+      const destinationCoords = cityCoordinates[destinationCity];
+
+      let distanceKm = 0;
+      let durationHours = 0;
+
+      if (originCoords && destinationCoords) {
+          // 2. Call Google Distance Matrix API
+          const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+          const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originCoords.lat},${originCoords.lon}&destinations=${destinationCoords.lat},${destinationCoords.lon}&key=${apiKey}`;
+          
+          try {
+              const response = await fetch(url);
+              const data = await response.json();
+              if (data.rows[0].elements[0].status === "OK") {
+                  distanceKm = data.rows[0].elements[0].distance.value / 1000; // Convert meters to km
+                  durationHours = data.rows[0].elements[0].duration.value / 3600; // Convert seconds to hours
+              }
+          } catch (apiError) {
+              console.error("Distance Matrix API call failed:", apiError);
+              // Continue without this data, or handle error appropriately
+          }
+      }
+
+      // 3. Estimate Package Weight (You should make this more accurate)
+      let totalWeightKg = 0;
+      for (const item of orderItems) {
+          // In the future, get this from ProductService: product.weightKg
+          totalWeightKg += (item.quantity * 0.5); // Assuming each item is 0.5 kg for now
+      }
+
+      // 4. Add logistics data to the order
+      orderData.logistics = {
+          originCity,
+          destinationCity,
+          distanceKm: Math.round(distanceKm),
+          estimatedDurationHours: Math.round(durationHours),
+          packageWeightKg: totalWeightKg,
+          recommendations: [] // Will be populated later by the hub
+      };
       const order = await OrderService.create(orderData);
 
       // Populate product and artisan data
