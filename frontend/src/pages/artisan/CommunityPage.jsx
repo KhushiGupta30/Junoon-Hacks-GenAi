@@ -83,20 +83,18 @@ const CommunityPage = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // The API calls now correctly fetch dynamic and separate data
                 const [communityRes, mentorshipRes, discussionsRes] = await Promise.all([
-                    api.get('/community'), // This now returns dynamic data based on user auth
+                    api.get('/community'),
                     api.get('/mentorship/requests'),
                     api.get('/discussions') 
                 ]);
 
                 setCommunityData(communityRes.data);
-                // Correctly access the 'requests' array from the response object
-                setMentorshipRequests(mentorshipRes.data.requests || []);
+                setMentorshipRequests(mentorshipRes.data);
                 setDiscussions(discussionsRes.data.slice(0, 5));
 
             } catch (err) {
-                setError(err.response?.data?.message || 'Could not load community data. Please try again later.');
+                setError('Could not load community data. Please try again later.');
                 console.error("Error fetching data:", err);
             } finally {
                 setLoading(false);
@@ -108,12 +106,10 @@ const CommunityPage = () => {
 
     const handleAcceptRequest = async (requestId) => {
         try {
-            // BUG FIX: The mentorship ID is in `request.id`, not `request._id` based on your API response structure
-            await api.put(`/mentorship/accept/${requestId}`);
-            setMentorshipRequests(prevRequests => prevRequests.filter(req => req.id !== requestId));
+            await api.put(`/mentorship/${requestId}/accept`);
+            setMentorshipRequests(prevRequests => prevRequests.filter(req => req._id !== requestId));
         } catch (error) {
             console.error("Error accepting mentorship request:", error);
-            alert("Failed to accept request.");
         }
     };
 
@@ -147,74 +143,173 @@ const CommunityPage = () => {
     }
 
 
-   return (
-        <>
-            <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
-                <div className="flex-grow lg:w-2/3">
-                    <AnimatedSection className="mb-8 pt-8 text-center">
-                        {/* ... (No change in header) ... */}
-                        <h1 className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md" style={{ background: 'linear-gradient(90deg, #70d969ff, #0F9D58)', color: '#fafbfdff' }}>Community Hub</h1>
-                        {/* THIS IS NOW DYNAMIC */}
-                        <p className="mt-3 text-gray-700 text-sm flex items-center justify-center gap-1.5">
-                            <LocationMarkerIcon className="w-4 h-4 text-gray-500" />
-                            Connect locally in <span className="font-medium text-gray-800">{communityData.location}</span>
-                        </p>
-                    </AnimatedSection>
+  return (
+    <>
+      <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
 
-                    <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8 pb-4">
-                        <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-                            <TabButton title="Local Events" isActive={activeTab === 'events'} onClick={() => setActiveTab('events')} />
-                            <TabButton title="Nearby Artisans" isActive={activeTab === 'artisans'} onClick={() => setActiveTab('artisans')} />
-                            <TabButton title="Mentorship Requests" isActive={activeTab === 'mentorship'} onClick={() => setActiveTab('mentorship')} />
-                        </div>
-                    </div>
+        <div className="flex-grow lg:w-2/3">
+            <AnimatedSection className="mb-8 pt-8 text-center">
+                <h1
+                    className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
+                    style={{ background: 'linear-gradient(90deg, #70d969ff, #0F9D58)', color: '#fafbfdff' }}
+                >
+                    Community Hub
+                </h1>
+                <p className="mt-3 text-gray-700 text-sm flex items-center justify-center gap-1.5">
+                    <LocationMarkerIcon className="w-4 h-4 text-gray-500" />
+                    Connect locally in <span className="font-medium text-gray-800">{communityData.location}</span>
+                </p>
+            </AnimatedSection>
 
-                    <AnimatedSection>
-                        {/* THIS IS NOW DYNAMIC */}
-                        {activeTab === 'events' && ( <div className="space-y-5">
-                            <div className="flex items-center gap-3 mb-4 px-1"><CalendarIcon className="h-6 w-6 text-google-red opacity-80" /><h2 className="text-lg font-medium text-gray-700">Upcoming Events</h2></div>
-                            {communityData.upcomingEvents.length > 0 ? communityData.upcomingEvents.map((event) => (
-                                <div key={event.id} className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                                    <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3"><div className="flex-1"><h3 className="text-sm font-semibold text-gray-800">{event.title}</h3><p className="text-xs font-medium text-google-red mt-1">{event.date} &bull; {event.location}</p><p className="text-xs text-gray-600 mt-1.5">{event.description}</p></div><button className="bg-google-red text-white font-medium px-4 py-1 rounded-md text-xs hover:bg-opacity-90 transition-colors whitespace-nowrap self-start sm:self-center mt-2 sm:mt-0">Register</button></div>
-                                </div>)) : (<p className="text-center text-gray-500 py-10 text-sm">No upcoming events scheduled in your area.</p>)}
-                        </div>)}
-                        
-                        {/* THIS IS NOW DYNAMIC */}
-                        {activeTab === 'artisans' && ( <div className="space-y-4">
-                            <div className="flex items-center gap-3 mb-4 px-1"><UsersIcon className="h-6 w-6 text-google-green opacity-80" /><h2 className="text-lg font-medium text-gray-700">Artisans Near You</h2></div>
-                            {communityData.localArtisans.length > 0 ? communityData.localArtisans.map((artisan) => (
-                                <div key={artisan.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow flex items-center justify-between gap-4">
-                                    <div className="flex items-center gap-3 overflow-hidden"><img src={artisan.avatar || 'https://placehold.co/100x100/34A853/FFFFFF?text=A'} alt={artisan.name} className="h-10 w-10 rounded-full flex-shrink-0" /><div className="overflow-hidden"><h3 className="font-semibold text-sm text-gray-800 truncate">{artisan.name}</h3><p className="text-xs text-gray-500 truncate">{artisan.craft}</p><p className="text-xs text-google-blue font-medium mt-0.5">{artisan.distance}</p></div></div><button className="border border-google-blue text-google-blue font-medium px-3 py-1 rounded-md text-xs hover:bg-google-blue/10 transition-colors whitespace-nowrap">View Profile</button>
-                                </div>)) : (<p className="text-center text-gray-500 py-10 text-sm">No other artisans found nearby yet.</p>)}
-                        </div>)}
-                        
-                        {/* THIS IS DYNAMIC (with bug fix) */}
-                        {activeTab === 'mentorship' && ( <div className="space-y-4">
-                            <div className="flex items-center gap-3 mb-4 px-1"><UsersIcon className="h-6 w-6 text-google-blue opacity-80" /><h2 className="text-lg font-medium text-gray-700">Mentorship Requests</h2></div>
-                            {mentorshipRequests.length > 0 ? (mentorshipRequests.map((request) => (
-                                <div key={request.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center justify-between gap-4 hover:shadow-md transition-shadow">
-                                    <div className="flex items-center gap-3"><img src={request.ambassador?.avatar || 'https://placehold.co/100x100/4285F4/FFFFFF?text=A'} alt={request.ambassador?.name} className="h-10 w-10 rounded-full" /><div><p className="font-semibold text-sm text-gray-800">{request.ambassador?.name || 'Unknown Ambassador'}</p><p className="text-xs text-gray-500">Wants to be your mentor</p></div></div>
-                                    <button onClick={() => handleAcceptRequest(request.id)} className="bg-google-green text-white font-medium px-4 py-1.5 rounded-md text-xs hover:bg-opacity-90 transition-colors whitespace-nowrap">Accept</button>
-                                </div>))
-                            ) : (<p className="text-center text-gray-500 py-10 text-sm">You have no new mentorship requests.</p>)}
-                        </div>)}
-                    </AnimatedSection>
+            <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8 pb-4">
+                <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
+                    <TabButton title="Local Events" isActive={activeTab === 'events'} onClick={() => setActiveTab('events')} />
+                    <TabButton title="Nearby Artisans" isActive={activeTab === 'artisans'} onClick={() => setActiveTab('artisans')} />
+                    <TabButton title="Mentorship Requests" isActive={activeTab === 'mentorship'} onClick={() => setActiveTab('mentorship')} />
                 </div>
-
-                <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4">
-                    {/* THIS IS NOW DYNAMIC */}
-                    <AnimatedSection>
-                        <div className="bg-blue-50/60 p-6 rounded-xl border border-blue-200/80">
-                            <div className="flex items-center gap-3 mb-3"><UsersIcon className="h-6 w-6 text-google-blue" /><h3 className="text-base font-medium text-gray-800">Your Ambassador</h3></div>
-                            <div className="flex flex-col items-center text-center"><img src={communityData.areaAmbassador.avatar} alt={communityData.areaAmbassador.name} className="h-16 w-16 rounded-full border-4 border-white shadow-md mb-2 mx-auto" /><h4 className="text-sm font-semibold text-gray-800">{communityData.areaAmbassador.name}</h4><p className="text-xs text-gray-500 font-medium mb-3">{communityData.areaAmbassador.title}</p><button onClick={() => setIsAmbassadorDetailOpen(true)} className="w-full bg-white text-google-blue border border-blue-200 font-medium py-1.5 rounded-lg hover:bg-blue-100/70 transition-colors text-xs mt-1">View Details & Contact</button></div>
-                        </div>
-                    </AnimatedSection>
-                    {/* ... (Discussions section remains the same) ... */}
-                </aside>
             </div>
-            {isAmbassadorDetailOpen && (<AmbassadorDetailModal ambassador={communityData.areaAmbassador} onClose={() => setIsAmbassadorDetailOpen(false)} />)}
-        </>
-    );
+
+            <AnimatedSection>
+                {activeTab === 'events' && (
+                     <div className="space-y-5">
+                        <div className="flex items-center gap-3 mb-4 px-1">
+                            <CalendarIcon className="h-6 w-6 text-google-red opacity-80" />
+                            <h2 className="text-lg font-medium text-gray-700">Upcoming Events</h2>
+                        </div>
+                        {communityData.upcomingEvents.length > 0 ? communityData.upcomingEvents.map((event) => (
+                            <div key={event.id} className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                                <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3">
+                                    <div className="flex-1">
+                                        <h3 className="text-sm font-semibold text-gray-800">{event.title}</h3>
+                                        <p className="text-xs font-medium text-google-red mt-1">{event.date} &bull; {event.location}</p>
+                                        <p className="text-xs text-gray-600 mt-1.5">{event.description}</p>
+                                    </div>
+                                    <button className="bg-google-red text-white font-medium px-4 py-1 rounded-md text-xs hover:bg-opacity-90 transition-colors whitespace-nowrap self-start sm:self-center mt-2 sm:mt-0">
+                                        Register
+                                    </button>
+                                </div>
+                            </div>
+                        )) : (
+                            <p className="text-center text-gray-500 py-10 text-sm">No upcoming events scheduled.</p>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'artisans' && (
+                     <div className="space-y-4">
+                        <div className="flex items-center gap-3 mb-4 px-1">
+                            <UsersIcon className="h-6 w-6 text-google-green opacity-80" />
+                            <h2 className="text-lg font-medium text-gray-700">Artisans Near You</h2>
+                        </div>
+                        {communityData.localArtisans.length > 0 ? communityData.localArtisans.map((artisan) => (
+                            <div key={artisan.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                    <img src={artisan.avatar} alt={artisan.name} className="h-10 w-10 rounded-full flex-shrink-0" />
+                                    <div className="overflow-hidden">
+                                        <h3 className="font-semibold text-sm text-gray-800 truncate">{artisan.name}</h3>
+                                        <p className="text-xs text-gray-500 truncate">{artisan.craft}</p>
+                                        <p className="text-xs text-google-blue font-medium mt-0.5">{artisan.distance}</p>
+                                    </div>
+                                </div>
+                                <button className="border border-google-blue text-google-blue font-medium px-3 py-1 rounded-md text-xs hover:bg-google-blue/10 transition-colors whitespace-nowrap">
+                                    View Profile
+                                </button>
+                            </div>
+                        )) : (
+                             <p className="text-center text-gray-500 py-10 text-sm">No other artisans found nearby yet.</p>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'mentorship' && (
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3 mb-4 px-1">
+                            <UsersIcon className="h-6 w-6 text-google-blue opacity-80" />
+                            <h2 className="text-lg font-medium text-gray-700">Mentorship Requests</h2>
+                        </div>
+                         {mentorshipRequests.length > 0 ? (
+                            mentorshipRequests.map((request) => (
+                                <div key={request._id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center justify-between gap-4 hover:shadow-md transition-shadow">
+                                    <div className="flex items-center gap-3">
+                                        <img src={request.ambassador.avatar || 'https://placehold.co/100x100/4285F4/FFFFFF?text=A'} alt={request.ambassador.name} className="h-10 w-10 rounded-full" />
+                                        <div>
+                                            <p className="font-semibold text-sm text-gray-800">{request.ambassador.name}</p>
+                                            <p className="text-xs text-gray-500">Wants to be your mentor</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleAcceptRequest(request._id)}
+                                        className="bg-google-green text-white font-medium px-4 py-1.5 rounded-md text-xs hover:bg-opacity-90 transition-colors whitespace-nowrap"
+                                    >
+                                        Accept
+                                    </button>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-gray-500 py-10 text-sm">You have no new mentorship requests.</p>
+                        )}
+                    </div>
+                )}
+            </AnimatedSection>
+        </div>
+
+        <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4">
+            <AnimatedSection>
+                <div className="bg-blue-50/60 p-6 rounded-xl border border-blue-200/80">
+                    <div className="flex items-center gap-3 mb-3">
+                        <UsersIcon className="h-6 w-6 text-google-blue" />
+                        <h3 className="text-base font-medium text-gray-800">Your Ambassador</h3>
+                    </div>
+                     <div className="flex flex-col items-center text-center">
+                         <img src={communityData.areaAmbassador.avatar} alt={communityData.areaAmbassador.name} className="h-16 w-16 rounded-full border-4 border-white shadow-md mb-2 mx-auto" />
+                        <h4 className="text-sm font-semibold text-gray-800">{communityData.areaAmbassador.name}</h4>
+                        <p className="text-xs text-gray-500 font-medium mb-3">{communityData.areaAmbassador.title}</p>
+                        <button
+                            onClick={() => setIsAmbassadorDetailOpen(true)}
+                            className="w-full bg-white text-google-blue border border-blue-200 font-medium py-1.5 rounded-lg hover:bg-blue-100/70 transition-colors text-xs mt-1"
+                        >
+                           View Details & Contact
+                        </button>
+                    </div>
+                </div>
+            </AnimatedSection>
+
+            <AnimatedSection>
+                 <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                     <div className="flex items-center gap-3 p-4 border-b border-gray-100">
+                        <ChatAlt2Icon className="h-6 w-6 text-gray-500" />
+                        <h3 className="text-base font-medium text-gray-800">Active Discussions</h3>
+                     </div>
+                     <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+                         {discussions.length > 0 ? discussions.map(topic => (
+                            <Link to={`/artisan/discussions/${topic._id}`} key={topic._id} className="block p-4 hover:bg-gray-50/70 transition-colors">
+                                <p className="font-medium text-sm text-gray-800 hover:text-google-blue leading-snug">{topic.title}</p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Started by {topic.author.name}
+                                </p>
+                            </Link>
+                        )) : (
+                             <p className="text-center text-gray-500 py-6 text-xs px-4">No active discussions to show.</p>
+                        )}
+                    </div>
+                     {discussions.length > 0 && (
+                         <div className="p-3 text-center bg-gray-50/70 rounded-b-xl border-t border-gray-100">
+                             <Link to="/artisan/discussions" className="text-google-blue text-xs font-medium hover:underline">View All Discussions</Link>
+                         </div>
+                     )}
+                </div>
+            </AnimatedSection>
+        </aside>
+      </div>
+
+      {isAmbassadorDetailOpen && (
+        <AmbassadorDetailModal
+          ambassador={communityData.areaAmbassador}
+          onClose={() => setIsAmbassadorDetailOpen(false)}
+        />
+      )}
+    </>
+  );
 };
 
 export default CommunityPage;
