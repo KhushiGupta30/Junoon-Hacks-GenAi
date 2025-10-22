@@ -28,7 +28,6 @@ router.post('/', [auth, authorize('investor')], [
       investor: req.user.id
     });
 
-    // Populate investor and artisan data
     const investor = await UserService.findById(investment.investor);
     const populatedInvestment = {
       ...investment,
@@ -120,7 +119,7 @@ router.post(
   '/',
   [
     auth,
-    authorize('investor'), // Only investors can use this endpoint
+    authorize('investor'),
     body('artisanId', 'Artisan ID is required').notEmpty(),
     body('amount', 'Investment amount must be a positive number').isFloat({ gt: 0 })
   ],

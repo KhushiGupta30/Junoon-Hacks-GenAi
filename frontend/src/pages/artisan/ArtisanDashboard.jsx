@@ -131,7 +131,7 @@ const MentorshipWidget = () => {
 
   if (mentor) {
     return (
-      <AnimatedSection className="mb-6">
+      <AnimatedSection className="pt-8">
         <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-lg flex justify-between items-center">
           <div className="flex items-center">
             <UserCheck className="h-6 w-6 mr-3" />

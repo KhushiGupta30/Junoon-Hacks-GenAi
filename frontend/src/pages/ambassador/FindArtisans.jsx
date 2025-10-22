@@ -109,7 +109,7 @@ const FindArtisans = () => {
         const fetchArtisans = async () => {
             try {
                 // CHANGED: Fetches nearest artisans instead of all unmentored
-                const res = await api.get('/users/artisans/nearest');
+                const res = await api.get('/users/artisans/unmentored');
                 setArtisans(res.data.artisans || []);
             } catch (err) {
                 setError(err.response?.data?.message || "Could not fetch artisans. Please try refreshing the page.");
