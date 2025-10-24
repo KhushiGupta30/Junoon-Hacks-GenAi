@@ -4,8 +4,20 @@ const ProductService = require('../services/ProductService');
 const UserService = require('../services/UserService');
 const { auth, authorize } = require('../middleware/auth');
 
+// --- NEW: Import Multer for file uploads ---
+const multer = require('multer');
+
 const router = express.Router();
 
+// --- NEW: Configure Multer ---
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5 MB limit
+  },
+});
+
+// --- GET (All products) Route ---
 router.get('/', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
@@ -42,8 +54,6 @@ router.get('/', [
     }
     if (artisan) filter.artisan = artisan;
     if (search) {
-      // Note: Firestore doesn't have full-text search built-in
-      // You might want to implement this using Algolia or similar
       console.log('Search functionality needs to be implemented with external service');
     }
 
@@ -90,6 +100,7 @@ router.get('/', [
   }
 });
 
+// --- GET (Single product) Route ---
 router.get('/:id', async (req, res) => {
   try {
     const product = await ProductService.findById(req.params.id);
@@ -136,82 +147,122 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', [auth, authorize('artisan')], [
-  body('name').trim().isLength({ min: 1, max: 200 }).withMessage('Product name is required and must be under 200 characters'),
-  body('description').isLength({ min: 10, max: 2000 }).withMessage('Description must be between 10 and 2000 characters'),
-  body('category').isIn(['Pottery', 'Textiles', 'Painting', 'Woodwork', 'Metalwork', 'Sculpture', 'Jewelry', 'Other']).withMessage('Invalid category'),
-  body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
-  body('images').isArray({ min: 1 }).withMessage('At least one image is required')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+// --- MODIFIED: POST (Create product) Route ---
+router.post(
+  '/', 
+  [auth, authorize('artisan'), upload.single('productImage')], // Add multer middleware
+  [ // Validations for text fields
+    body('name').trim().isLength({ min: 1, max: 200 }).withMessage('Product name is required and must be under 200 characters'),
+    body('description').isLength({ min: 10, max: 2000 }).withMessage('Description must be between 10 and 2000 characters'),
+    body('category').isIn(['Pottery', 'Textiles', 'Painting', 'Woodwork', 'Metalwork', 'Sculpture', 'Jewelry', 'Other']).withMessage('Invalid category'),
+    body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
+  ], 
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Check for file
+      if (!req.file) {
+        return res.status(400).json({ message: 'Product image is required.' });
+      }
+
+      const productData = {
+        ...req.body,
+        artisan: req.user.id
+      };
+      
+      // Parse inventory if it was stringified
+      if (productData.inventory && typeof productData.inventory === 'string') {
+        try {
+          productData.inventory = JSON.parse(productData.inventory);
+        } catch (e) {
+          return res.status(400).json({ message: 'Invalid inventory format.' });
+        }
+      }
+
+      // Use the new service method
+      const product = await ProductService.createWithImage(productData, req.file);
+
+      // --- THIS FIXES THE ReferenceError ---
+      // Populate artisan data *after* product is created
+      const artisan = await UserService.findById(product.artisan);
+      const populatedProduct = {
+        ...product,
+        artisan: artisan ? {
+          id: artisan.id,
+          name: artisan.name,
+          profile: artisan.profile
+        } : null
+      };
+
+      res.status(201).json({
+        message: 'Product created successfully',
+        product: populatedProduct // Now this variable is defined
+      });
+    } catch (error) {
+      console.error('Create product with image error:', error);
+      res.status(500).json({ message: 'Server error while creating product' });
     }
-
-    const productData = {
-      ...req.body,
-      artisan: req.user.id
-    };
-
-    const product = await ProductService.create(productData);
-
-    // Populate artisan data
-    const artisan = await UserService.findById(product.artisan);
-    const populatedProduct = {
-      ...product,
-      artisan: artisan ? {
-        id: artisan.id,
-        name: artisan.name,
-        profile: artisan.profile
-      } : null
-    };
-
-    res.status(201).json({
-      message: 'Product created successfully',
-      product: populatedProduct
-    });
-  } catch (error) {
-    console.error('Create product error:', error);
-    res.status(500).json({ message: 'Server error while creating product' });
   }
-});
+);
 
-router.put('/:id', [auth, authorize('artisan')], async (req, res) => {
-  try {
-    const product = await ProductService.findById(req.params.id);
+// --- MODIFIED: PUT (Update product) Route ---
+router.put(
+  '/:id', 
+  [auth, authorize('artisan'), upload.single('productImage')], // Add multer middleware
+  async (req, res) => {
+    try {
+      const product = await ProductService.findById(req.params.id);
 
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+
+      if (product.artisan !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied: You can only update your own products' });
+      }
+      
+      const updateData = { ...req.body };
+      
+      // Parse inventory if it was stringified
+      if (updateData.inventory && typeof updateData.inventory === 'string') {
+        try {
+          updateData.inventory = JSON.parse(updateData.inventory);
+        } catch (e) {
+          return res.status(400).json({ message: 'Invalid inventory format.' });
+        }
+      }
+
+      // Use the new service method
+      const updatedProduct = await ProductService.updateWithImage(req.params.id, updateData, req.file);
+
+      // --- THIS FIXES THE ReferenceError ---
+      // Populate artisan data
+      const artisan = await UserService.findById(updatedProduct.artisan);
+      const populatedProduct = {
+        ...updatedProduct,
+        artisan: artisan ? {
+          id: artisan.id,
+          name: artisan.name,
+          profile: artisan.profile
+        } : null
+      };
+
+      res.json({
+        message: 'Product updated successfully',
+        product: populatedProduct // Now this variable is defined
+      });
+    } catch (error) {
+      console.error('Update product with image error:', error);
+      res.status(500).json({ message: 'Server error while updating product' });
     }
-
-    if (product.artisan !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied: You can only update your own products' });
-    }
-
-    const updatedProduct = await ProductService.update(req.params.id, req.body);
-
-    // Populate artisan data
-    const artisan = await UserService.findById(updatedProduct.artisan);
-    const populatedProduct = {
-      ...updatedProduct,
-      artisan: artisan ? {
-        id: artisan.id,
-        name: artisan.name,
-        profile: artisan.profile
-      } : null
-    };
-
-    res.json({
-      message: 'Product updated successfully',
-      product: populatedProduct
-    });
-  } catch (error) {
-    console.error('Update product error:', error);
-    res.status(500).json({ message: 'Server error while updating product' });
   }
-});
+);
 
+// --- DELETE Route ---
 router.delete('/:id', [auth, authorize('artisan')], async (req, res) => {
   try {
     const product = await ProductService.findById(req.params.id);
@@ -233,6 +284,7 @@ router.delete('/:id', [auth, authorize('artisan')], async (req, res) => {
   }
 });
 
+// --- Review Routes ---
 router.post('/:id/reviews', [auth, authorize('buyer')], [
   body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
   body('comment').optional().isLength({ max: 1000 }).withMessage('Comment must be under 1000 characters')
