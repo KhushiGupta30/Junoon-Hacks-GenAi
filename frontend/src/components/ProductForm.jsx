@@ -126,6 +126,7 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
         setIsGenerating(true);
         setError('');
         try {
+            console.log(`Form name is ${formData.name}`)
             const response = await api.post('/ai/generate-description', {
                 name: formData.name,
                 category: formData.category,

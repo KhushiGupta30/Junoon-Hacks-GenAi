@@ -1,414 +1,335 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import api from "../../api/axiosConfig";
-import AnimatedSection from "../../components/ui/AnimatedSection";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import api from '../../api/axiosConfig';
+import { useAuth } from '../../context/AuthContext';
 import {
-  PlusIcon,
-  TagIcon,
-  ExclamationTriangleIcon,
-  InformationCircleIcon,
-  PencilIcon,
+  PencilSquareIcon,
   TrashIcon,
-  ExclamationCircleIcon,
-} from "../../components/common/Icons";
+  EyeIcon,
+  PlusIcon,
+  MagnifyingGlassIcon
+} from '../../components/common/Icons'; // Assuming you have these
+import AnimatedSection from '../../components/ui/AnimatedSection';
+import SkeletonListItem from '../../components/ui/SkeletonListItem'; // For loading
 
-const SkeletonBase = ({ className = "" }) => (
-  <div className={`bg-gray-200 rounded animate-pulse ${className}`}></div>
-);
-const SkeletonTableRow = () => (
-  <tr className="border-b border-gray-100">
-    <td className="p-4">
-      <div className="flex items-center space-x-4">
-        <SkeletonBase className="w-12 h-12 rounded-md flex-shrink-0" />
-        <div className="space-y-2">
-          <SkeletonBase className="h-4 w-24" />
-          <SkeletonBase className="h-3 w-16" />
-        </div>
-      </div>
-    </td>
-    <td className="p-4 text-center">
-      <SkeletonBase className="h-5 w-16 rounded-full mx-auto" />
-    </td>
-    <td className="p-4 text-right">
-      <SkeletonBase className="h-4 w-12 ml-auto" />
-    </td>
-    <td className="p-4 text-right">
-      <SkeletonBase className="h-4 w-20 ml-auto" />
-    </td>
-    <td className="p-4 text-right">
-      <div className="flex justify-end space-x-2">
-        <SkeletonBase className="h-7 w-12 rounded-md" />
-        <SkeletonBase className="h-7 w-16 rounded-md" />
-      </div>
-    </td>
-  </tr>
-);
-const SkeletonSidebarCard = ({ height = "h-48" }) => (
-  <SkeletonBase className={`rounded-xl ${height}`} />
-);
-const SkeletonButton = () => (
-  <SkeletonBase className="h-10 w-full rounded-lg" />
-);
+// --- ProductRow Component ---
+// This is where the TypeError fix goes (around line 90)
+const ProductRow = ({ product, onEdit, onDelete }) => {
+  const navigate = useNavigate();
 
-const ProductRow = React.memo(
-  (
-    { product, onDelete } 
-  ) => (
-    <tr className="border-b border-gray-100 hover:bg-gray-50/70 transition-colors">
-      <td className="px-4 py-3">
-        <div className="flex items-center space-x-3">
-          <img
-            src={
-              product.images[0]?.url ||
-              "https://placehold.co/100x100/CCCCCC/FFFFFF?text=N/A"
-            }
-            alt={product.name}
-            className="w-10 h-10 object-cover rounded flex-shrink-0"
-          />
-          <div className="min-w-0">
-            <p className="font-medium text-sm text-gray-800 truncate">
-              {product.name}
-            </p>
-            <p className="text-xs text-gray-500 truncate">{product.category}</p>
+  const handleView = () => {
+    navigate(`/product/${product.id}`); // Or product._id
+  };
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'draft':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <tr>
+      <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-6">
+        <div className="flex items-center">
+          <div className="h-11 w-11 flex-shrink-0">
+            <img
+              className="h-11 w-11 rounded-lg object-cover"
+              src={product.images?.[0]?.url || 'https://via.placeholder.com/150'}
+              alt={product.name}
+            />
+          </div>
+          <div className="ml-4">
+            <div className="font-medium text-gray-900">{product.name}</div>
+            <div className="mt-1 text-gray-500">{product.category}</div>
           </div>
         </div>
       </td>
-      <td className="px-4 py-3 text-center">
+      <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
         <span
-          className={`px-2 py-0.5 text-xs font-medium rounded-full border ${
-            product.status === "active"
-              ? "bg-green-50 text-green-700 border-green-200"
-              : product.status === "draft"
-              ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-              : "bg-gray-100 text-gray-600 border-gray-200"
-          }`}
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusClass(
+            product.status
+          )}`}
         >
           {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
         </span>
       </td>
-      <td className="px-4 py-3 text-right font-medium text-gray-700">
-        ${product.price.toFixed(2)}
+      <td className="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">
+        {/*
+          *
+          * FIX 1 (TypeError):
+          * Was: ${product.price.toFixed(2)}
+          * Now: Parse price to a float before calling toFixed()
+          *
+          */}
+        ${(parseFloat(product.price) || 0).toFixed(2)}
       </td>
-      <td className="px-4 py-3 text-right text-gray-600">
-        {product.inventory.isUnlimited
-          ? "Made to Order"
-          : product.inventory.quantity}
+      <td className="px-3 py-4 text-sm text-gray-500">
+        {product.inventory?.isUnlimited ? (
+          <span className="text-gray-700">Made to Order</span>
+        ) : (
+          <span className="text-gray-900">{product.inventory?.quantity ?? 0} in stock</span>
+        )}
       </td>
-      <td className="px-4 py-3 text-right">
-        <div className="flex justify-end space-x-1">
-          {" "}
-          <Link
-            to={`/artisan/products/edit/${product._id}`}
-            className="p-1.5 text-gray-500 hover:text-google-blue hover:bg-blue-50 rounded-md transition-colors"
+      <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+        <div className="flex items-center justify-end space-x-3">
+          <button
+            onClick={handleView}
+            className="text-google-blue hover:text-blue-700"
+            title="View Product"
+          >
+            <EyeIcon className="h-5 w-5" />
+            <span className="sr-only">View</span>
+          </button>
+          <button
+            onClick={onEdit}
+            className="text-google-green hover:text-green-700"
             title="Edit Product"
           >
-            <PencilIcon className="w-4 h-4" />
-          </Link>
+            <PencilSquareIcon className="h-5 w-5" />
+            <span className="sr-only">Edit</span>
+          </button>
           <button
-            onClick={() => onDelete(product._id)}
-            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            onClick={onDelete}
+            className="text-google-red hover:text-red-700"
             title="Delete Product"
           >
-            <TrashIcon className="w-4 h-4" />
+            <TrashIcon className="h-5 w-5" />
+            <span className="sr-only">Delete</span>
           </button>
         </div>
       </td>
     </tr>
-  )
-); 
+  );
+};
 
+
+// --- Main MyProductsPage Component ---
 const MyProductsPage = () => {
-  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const fetchProducts = useCallback(async () => {
-    setError("");
-    try {
-      const response = await api.get("/users/my-products");
-      setProducts(
-        Array.isArray(response.data.products) ? response.data.products : []
-      );
-    } catch (err) {
-      setError("Failed to fetch your products. Please try again.");
-      console.error("Fetch products error:", err);
-      setProducts([]);
-    } finally {
-
-    }
-  }, []); 
+  const categories = [
+    'All', 'Pottery', 'Textiles', 'Painting', 'Woodwork', 
+    'Metalwork', 'Sculpture', 'Jewelry', 'Other'
+  ];
+  const statuses = ['All', 'Active', 'Draft', 'Inactive'];
 
   useEffect(() => {
-    let isMounted = true; 
-    setLoading(true); 
-    fetchProducts().finally(() => {
-      if (isMounted) {
-        setLoading(false); 
+    const fetchProducts = async () => {
+      if (!user) return;
+      setLoading(true);
+      setError('');
+      try {
+        const response = await api.get(`/artisan/${user.uid}/products`);
+        setProducts(response.data.products);
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+        setError('Failed to load products. Please try again.');
+      } finally {
+        setLoading(false);
       }
-    });
-    return () => {
-      isMounted = false;
-    }; 
-  }, [fetchProducts]); 
+    };
+    fetchProducts();
+  }, [user]);
+
+  const handleEdit = (product) => {
+    navigate(`/artisan/products/edit/${product.id}`); // Or product._id
+  };
 
   const handleDelete = async (productId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this product? This action cannot be undone."
-      )
-    ) {
-      const originalProducts = [...products]; 
-      setProducts((prevProducts) =>
-        prevProducts.filter((p) => p._id !== productId)
-      );
-      setError("");
+    if (window.confirm('Are you sure you want to delete this product? This cannot be undone.')) {
       try {
         await api.delete(`/products/${productId}`);
-        console.log("Product deleted successfully.");
+        setProducts(products.filter(p => p.id !== productId)); // Or product._id
       } catch (err) {
-        setProducts(originalProducts);
-        setError("Failed to delete product. Please try again.");
-        console.error("Delete product error:", err);
+        console.error('Failed to delete product:', err);
+        setError('Failed to delete product. Please try again.');
       }
     }
   };
 
-  const { lowStockItems, quickStats } = useMemo(() => {
-    const lowStockThreshold = 5;
-    const lowStock = products.filter(
-      (p) =>
-        !p.inventory.isUnlimited && p.inventory.quantity < lowStockThreshold
-    );
-    const stats = {
-      total: products.length,
-      active: products.filter((p) => p.status === "active").length,
-      draft: products.filter((p) => p.status === "draft").length,
-      inactive: products.filter((p) => p.status === "inactive").length,
-    };
-    return { lowStockItems: lowStock, quickStats: stats };
-  }, [products]);
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || product.status.toLowerCase() === statusFilter.toLowerCase();
+    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+    return matchesSearch && matchesStatus && matchesCategory;
+  });
 
-  if (loading) {
-    return (
-      <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
-        <div className="flex-grow space-y-8">
-          <SkeletonBase className="h-10 w-3/4 mb-4" /> 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-96 animate-pulse" />{" "}
-        </div>
-        <div className="lg:w-80 flex-shrink-0 space-y-6">
-          <SkeletonButton />
-          <SkeletonSidebarCard height="h-64" />
-          <SkeletonSidebarCard height="h-48" />
+  const renderStats = () => (
+    <dl className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+      <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+        <dt className="truncate text-sm font-medium text-gray-500">Total Products</dt>
+        <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{products.length}</dd>
+      </div>
+      <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+        <dt className="truncate text-sm font-medium text-gray-500">Active Listings</dt>
+        <dd className="mt-1 text-3xl font-semibold tracking-tight text-google-green">{products.filter(p => p.status === 'active').length}</dd>
+      </div>
+      <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+        <dt className="truncate text-sm font-medium text-gray-500">Drafts</dt>
+        <dd className="mt-1 text-3xl font-semibold tracking-tight text-google-yellow">{products.filter(p => p.status === 'draft').length}</dd>
+      </div>
+    </dl>
+  );
+
+  const renderFilters = () => (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="relative">
+        <label htmlFor="search" className="sr-only">Search</label>
+        <input
+          type="text"
+          name="search"
+          id="search"
+          className="block w-full rounded-md border-gray-300 pl-10 shadow-sm focus:border-google-blue focus:ring-google-blue sm:text-sm"
+          placeholder="Search by name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
         </div>
       </div>
-    );
-  }
-
-  if (error && products.length === 0) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-[calc(100vh-10rem)] px-6 text-center bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE]">
-        <ExclamationCircleIcon className="w-12 h-12 text-red-400 mb-4" />
-        <h2 className="text-xl font-medium text-red-600 mb-2">
-          Oops! Something went wrong.
-        </h2>
-        <p className="text-gray-600 text-sm mb-6">{error}</p>
-        <button
-          onClick={() => {
-            setLoading(true);
-            fetchProducts();
-          }}
-          className="inline-flex items-center px-4 py-2 bg-google-blue text-white rounded-md text-sm hover:brightness-95"
+      <div>
+        <label htmlFor="status" className="sr-only">Filter by status</label>
+        <select
+          id="status"
+          name="status"
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-google-blue focus:ring-google-blue sm:text-sm"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
         >
-          Retry
-        </button>
+          {statuses.map(status => (
+            <option key={status} value={status}>{status}</option>
+          ))}
+        </select>
       </div>
-    );
-  }
+      <div>
+        <label htmlFor="category" className="sr-only">Filter by category</label>
+        <select
+          id="category"
+          name="category"
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-google-blue focus:ring-google-blue sm:text-sm"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        >
+          {categories.map(category => (
+            <option key={category} value={category}>{category}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+
+  const renderProductList = () => (
+    <div className="mt-8 flow-root">
+      <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+          <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+            <table className="min-w-full divide-y divide-gray-300">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                    Product
+                  </th>
+                  <th scope="col" className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                    Status
+                  </th>
+                  <th scope="col" className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">
+                    Price
+                  </th>
+                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    Stock
+                  </th>
+                  <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                    <span className="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {/*
+                  *
+                  * FIX 2 (Key Prop):
+                  * Was: <ProductRow product={product} ... />
+                  * Now: Add the 'key' prop with a unique ID from the product
+                  *
+                  */}
+                {filteredProducts.map((product) => (
+                  <ProductRow
+                    key={product.id || product._id} // <-- FIX IS HERE
+                    product={product}
+                    onEdit={() => handleEdit(product)}
+                    onDelete={() => handleDelete(product.id || product._id)}
+                  />
+                ))}
+              </tbody>
+            </table>
+            {filteredProducts.length === 0 && (
+              <p className="py-6 text-center text-gray-500">No products match your filters.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
-      <div className="flex-grow lg:w-2/3">
-        <AnimatedSection className="mb-8 pt-8 text-center">
-          <h1
-            className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
-            style={{
-              background: "linear-gradient(90deg, #f66356ff, #DB4437)",
-              color: "#FFFFFF",
-            }}
-          >
-            My Products
-          </h1>
-          <p className="mt-3 text-gray-700 text-sm">
-            Manage your creations available on the marketplace.
-          </p>
-        </AnimatedSection>
-
-        {error && products.length > 0 && (
-          <div className="mb-4 text-sm text-red-700 bg-red-100 p-3 rounded-lg border border-red-200 flex justify-between items-center">
-            <span>{error}</span>
-            <button
-              onClick={() => setError("")}
-              className="text-red-800 hover:text-red-900"
+    <AnimatedSection>
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <div className="sm:flex sm:items-center">
+          <div className="sm:flex-auto">
+            <h1 className="text-2xl font-semibold text-gray-900">My Products</h1>
+            <p className="mt-2 text-sm text-gray-700">
+              A list of all the products in your shop including their name, price, stock, and status.
+            </p>
+          </div>
+          <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+            <Link
+              to="/artisan/products/new"
+              className="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-google-blue px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
-              &times;
-            </button>
+              <PlusIcon className="h-5 w-5" />
+              Add New Product
+            </Link>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mt-4 rounded-md bg-red-50 p-4">
+            <p className="text-sm font-medium text-red-800">{error}</p>
           </div>
         )}
 
-        <AnimatedSection>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            {products.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50/70 border-b border-gray-200">
-                    <tr className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <th className="px-4 py-3 text-left">Product</th>
-                      <th className="px-4 py-3 text-center">Status</th>
-                      <th className="px-4 py-3 text-right">Price</th>
-                      <th className="px-4 py-3 text-right">Stock</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {products.map((product) => (
-                      <ProductRow
-                        key={product._id}
-                        product={product}
-                        onDelete={handleDelete}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              !error && (
-                <div className="text-center py-16 px-6">
-                  <div className="inline-flex items-center justify-center p-4 bg-gray-100 rounded-full mb-4 text-gray-400">
-                    <TagIcon className="w-10 h-10" />
-                  </div>
-                  <h2 className="text-xl font-medium text-gray-700">
-                    No Products Yet!
-                  </h2>
-                  <p className="text-gray-500 mt-2 text-sm">
-                    Click the "Add New Product" button in the sidebar to start
-                    selling.
-                  </p>
-                </div>
-              )
-            )}
-          </div>
-        </AnimatedSection>
+        <div className="mt-8">
+          {loading ? (
+            <div className="space-y-4">
+              <SkeletonListItem />
+              <SkeletonListItem />
+              <SkeletonListItem />
+            </div>
+          ) : (
+            <>
+              {renderStats()}
+              <div className="mt-8">{renderFilters()}</div>
+              {renderProductList()}
+            </>
+          )}
+        </div>
       </div>
-      
-
-      <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4 lg:mt-0">
-        <AnimatedSection>
-          <button
-            onClick={() => navigate("/artisan/products/new")}
-            className="w-full flex items-center justify-center bg-google-blue text-white font-bold px-4 py-3 rounded-lg hover:bg-opacity-90 transition-colors shadow-md text-sm" // Prominent button
-          >
-            <PlusIcon className="w-5 h-5 mr-1.5" />
-            Add New Product
-          </button>
-        </AnimatedSection>
-
-        <AnimatedSection>
-          <div
-            className={`rounded-xl shadow-sm border ${
-              lowStockItems.length > 0
-                ? "bg-red-50/60 border-red-200/80"
-                : "bg-white border-gray-200"
-            }`}
-          >
-            <div className="flex items-center gap-3 p-4 border-b border-gray-100">
-              <ExclamationTriangleIcon
-                className={`h-6 w-6 ${
-                  lowStockItems.length > 0 ? "text-red-500" : "text-gray-400"
-                }`}
-              />
-              <h3 className="text-base font-medium text-gray-800">
-                Low Inventory
-              </h3>
-            </div>
-            <div className="divide-y divide-gray-100 max-h-60 overflow-y-auto">
-              {lowStockItems.length > 0 ? (
-                lowStockItems.map((item) => (
-                  <Link
-                    to={`/artisan/products/edit/${item._id}`}
-                    key={item._id}
-                    className="block p-4 hover:bg-red-50/50 transition-colors"
-                  >
-                    <div className="flex justify-between items-start">
-                      <p className="font-medium text-sm text-gray-800 leading-snug flex-1 pr-2">
-                        {item.name}
-                      </p>
-                      <span className="text-sm font-bold text-red-600 flex-shrink-0">
-                        {item.inventory.quantity} left
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {item.category}
-                    </p>
-                  </Link>
-                ))
-              ) : (
-                <p className="text-center text-gray-500 py-6 text-xs px-4">
-                  All products are sufficiently stocked.
-                </p>
-              )}
-            </div>
-            {lowStockItems.length > 0 && (
-              <div className="p-3 text-center bg-gray-50/70 rounded-b-xl border-t border-gray-100">
-                <Link
-                  to="/artisan/products?filter=low_stock"
-                  className="text-google-blue text-xs font-medium hover:underline"
-                >
-                  View all low stock
-                </Link>
-              </div>
-            )}
-          </div>
-        </AnimatedSection>
-
-        <AnimatedSection>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center gap-3 p-4 border-b border-gray-100">
-              <InformationCircleIcon className="h-6 w-6 text-gray-500" />
-              <h3 className="text-base font-medium text-gray-800">
-                Product Summary
-              </h3>
-            </div>
-            <div className="p-4 space-y-3">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Total Products:</span>
-                <span className="font-semibold text-gray-800">
-                  {quickStats.total}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Active Listings:</span>
-                <span className="font-semibold text-green-700">
-                  {quickStats.active}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Drafts:</span>
-                <span className="font-semibold text-yellow-700">
-                  {quickStats.draft}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Inactive:</span>
-                <span className="font-semibold text-gray-500">
-                  {quickStats.inactive}
-                </span>
-              </div>
-            </div>
-          </div>
-        </AnimatedSection>
-      </aside>
-    </div>
+    </AnimatedSection>
   );
 };
 
