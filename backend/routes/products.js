@@ -34,7 +34,7 @@ router.get('/', [
 
     const {
       page = 1,
-      limit = 12,
+      limit = 20,
       category,
       minPrice,
       maxPrice,

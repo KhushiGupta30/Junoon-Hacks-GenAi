@@ -1,0 +1,7 @@
+[
+    {
+      "origin": ["https://localhost:5173", "https://junoon-hacks-gen-ai.vercel.app"],
+      "method": ["GET"],
+      "maxAgeSeconds": 3600
+    }
+]
