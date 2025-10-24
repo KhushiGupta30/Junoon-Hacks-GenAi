@@ -134,7 +134,7 @@ const MyProductsPage = () => {
       setLoading(true);
       setError('');
       try {
-        const response = await api.get(`/artisan/${user.uid}/products`);
+        const response = await api.get(`/artisan/${user.id}/products`);
         setProducts(response.data.products);
       } catch (err) {
         console.error('Failed to fetch products:', err);
@@ -287,7 +287,7 @@ const MyProductsPage = () => {
   );
 
   return (
-    <AnimatedSection>
+    <AnimatedSection className='pt-8'>
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
