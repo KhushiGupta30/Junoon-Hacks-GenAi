@@ -6,9 +6,110 @@ import {
     OfficeBuildingIcon,
     CreditCardIcon,
     CameraIcon,
-    ExclamationCircleIcon
+    ExclamationCircleIcon,
+    CollectionIcon,
+    ChatAltIcon,
+    StarIcon
 } from '../../components/common/Icons';
 import api from '../../api/axiosConfig';
+
+export const ArtisanProfileCard = ({ artisan }) => (
+    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+        <img
+            src={artisan.profile?.avatarUrl || 'https://placehold.co/128x128/E8F0FE/4285F4?text=A&font=roboto'}
+            alt={artisan.name}
+            className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white shadow-lg flex-shrink-0"
+        />
+        <div className="text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{artisan.name}</h1>
+            <p className="text-sm font-medium text-google-blue mt-1">{artisan.artisanProfile?.craftSpecialty?.join(', ') || 'Artisan'}</p>
+            {artisan.profile?.location && (
+                <p className="text-xs text-gray-500 mt-1">{artisan.profile.location.city}, {artisan.profile.location.state}</p>
+            )}
+            <p className="text-sm text-gray-600 mt-3">{artisan.profile?.bio || 'No bio available.'}</p>
+        </div>
+    </div>
+);
+
+export const ArtisanStats = ({ productsCount, reviewCount, rating }) => (
+    <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <CollectionIcon className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+            <p className="text-xl font-bold text-gray-800">{productsCount}</p>
+            <p className="text-xs text-gray-500">Products</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <ChatAltIcon className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+            <p className="text-xl font-bold text-gray-800">{reviewCount}</p>
+            <p className="text-xs text-gray-500">Reviews</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
+             <StarIcon className="w-6 h-6 text-yellow-400 mx-auto mb-1" />
+            <p className="text-xl font-bold text-gray-800">{rating ? Number(rating).toFixed(1) : 'N/A'}</p>
+            <p className="text-xs text-gray-500">Rating</p>
+        </div>
+    </div>
+);
+
+// Helper StarRating component (if not already defined elsewhere)
+const StarRatingDisplay = ({ rating, size = "h-4 w-4" }) => (
+    <div className="flex items-center">
+        {[...Array(5)].map((_, i) => (
+            <StarIcon
+                key={i}
+                className={`${size} ${i < Math.round(rating) ? 'text-yellow-400' : 'text-gray-300'}`}
+            />
+        ))}
+    </div>
+);
+
+
+export const RecentProducts = ({ products }) => (
+    <div>
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Products</h2>
+        {products && products.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {products.map(product => (
+                    <Link to={`/product/${product._id || product.id}`} key={product._id || product.id} className="block group">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden group-hover:shadow-md transition-shadow">
+                             <img src={product.images?.[0]?.url || '/placeholder.png'} alt={product.name} className="h-40 w-full object-cover"/>
+                            <div className="p-3">
+                                <p className="text-sm font-medium text-gray-800 truncate group-hover:text-google-blue">{product.name}</p>
+                                <p className="text-xs text-google-green font-semibold mt-1">${(product.price || 0).toFixed(2)}</p>
+                            </div>
+                        </div>
+                    </Link>
+                ))}
+            </div>
+        ) : (
+            <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded border">No products listed yet.</p>
+        )}
+    </div>
+);
+
+export const Reviews = ({ reviews }) => (
+    <div>
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Reviews</h2>
+        {reviews && reviews.length > 0 ? (
+            <div className="space-y-4">
+                {reviews.map(review => (
+                    <div key={review._id || review.id} className="bg-white p-4 rounded-lg border border-gray-200">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <StarRatingDisplay rating={review.rating} />
+                                <p className="text-xs text-gray-500 mt-1">by {review.customerName || 'Anonymous'}</p>
+                            </div>
+                            <p className="text-xs text-gray-400">{new Date(review.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <p className="text-sm text-gray-700 mt-2">{review.comment}</p>
+                    </div>
+                ))}
+            </div>
+        ) : (
+             <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded border">No reviews yet.</p>
+        )}
+    </div>
+);
 
 // --- Reusable Form Components ---
 const FormInput = ({ label, id, ...props }) => (

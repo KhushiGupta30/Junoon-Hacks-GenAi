@@ -3,6 +3,7 @@ const { body, validationResult, query } = require('express-validator');
 const ProductService = require('../services/ProductService');
 const UserService = require('../services/UserService');
 const { auth, authorize } = require('../middleware/auth');
+const { db } = require('../firebase');
 
 // --- NEW: Import Multer for file uploads ---
 const multer = require('multer');
@@ -97,6 +98,34 @@ router.get('/', [
   } catch (error) {
     console.error('Get products error:', error);
     res.status(500).json({ message: 'Server error while fetching products' });
+  }
+});
+router.get('/artisan/:id', auth, async (req, res) => {
+  try {
+    const artisanId = req.params.id;
+    const limit = parseInt(req.query.limit, 10) || 10;
+
+    const productsRef = db.collection('products');
+    // Find products where the 'artisan' field matches the ID
+    const snapshot = await productsRef
+      .where('artisan', '==', artisanId)
+      .orderBy('createdAt', 'desc')
+      .limit(limit)
+      .get();
+
+    if (snapshot.empty) {
+      return res.json([]); // Return empty array, not an error
+    }
+
+    const products = [];
+    snapshot.forEach(doc => {
+      products.push({ id: doc.id, ...doc.data() });
+    });
+
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching artisan products:', error);
+    res.status(500).send('Server Error');
   }
 });
 

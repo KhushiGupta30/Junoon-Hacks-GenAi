@@ -4,7 +4,7 @@ const UserService = require('../services/UserService');
 const ProductService = require('../services/ProductService');
 const { auth, authorize } = require('../middleware/auth');
 const { getDistance } = require('../utils/geolocation');
-
+const { db } = require('../firebase');
 const router = express.Router();
 
 // GET /api/users/profile - Fetches the profile of the logged-in user
@@ -215,5 +215,28 @@ router.get('/my-products', [auth, authorize('artisan')], async (req, res) => {
     res.status(500).json({ message: 'Server error while fetching products' });
   }
 });
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const userRef = db.collection('users').doc(req.params.id);
+    const doc = await userRef.get();
 
+    if (!doc.exists) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Return public-safe data
+    const userData = doc.data();
+    res.json({
+      id: doc.id,
+      name: userData.name,
+      role: userData.role,
+      profile: userData.profile, // Public profile info
+      artisanProfile: userData.artisanProfile, // Public artisan info
+      // DO NOT return sensitive fields like email, password hash, etc.
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 module.exports = router;
