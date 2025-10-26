@@ -50,7 +50,7 @@ export const BuyerHeader = () => (
 
 const ProductCard = ({ product }) => {
     const { addToCart } = useCart();
-
+    
     const handleAddToCart = (e) => {
         e.preventDefault(); // Prevent navigation when clicking the button
         e.stopPropagation();
@@ -78,7 +78,8 @@ const ProductCard = ({ product }) => {
                     </Link>
                 </h3>
                 <div className="flex justify-between items-center mt-4 flex-grow">
-                    <p className="text-xl font-semibold text-google-green"> ${product.price.toFixed(2)} </p>
+                    {/* --- THIS IS THE EDITED LINE --- */}
+                    <p className="text-xl font-semibold text-google-green"> ${(Number(product.price) || 0).toFixed(2)} </p>
                     <button onClick={handleAddToCart} className="bg-google-blue text-white font-semibold px-5 py-2 rounded-lg hover:bg-google-red transition-colors duration-300 transform group-hover:scale-105">
                         Add to Cart
                     </button>
