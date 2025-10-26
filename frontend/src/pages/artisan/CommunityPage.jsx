@@ -1,8 +1,8 @@
 // File: frontend/src/pages/artisan/CommunityPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../api/axiosConfig'; //
-import AnimatedSection from '../../components/ui/AnimatedSection'; //
+import api from '../../api/axiosConfig';
+import AnimatedSection from '../../components/ui/AnimatedSection';
 import {
     UsersIcon,
     CalendarIcon,
@@ -10,36 +10,30 @@ import {
     XIcon,
     LocationMarkerIcon,
     ExclamationCircleIcon,
-    TicketIcon, 
-  ExternalLinkIcon,
-} from '../../components/common/Icons'; //
-import ArtisanProfileModal from '../../components/modal/ArtisanProfileModal'; //
+    TicketIcon, // Icon for events
+    ExternalLinkIcon, // Icon for external links
+} from '../../components/common/Icons';
+import ArtisanProfileModal from '../../components/modal/ArtisanProfileModal';
 
 // Simple skeleton components for loading state
-const SkeletonBase = ({ className = "" }) => <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>; //
-const SkeletonSidebarCard = () => <SkeletonBase className="h-44 md:h-48" />; //
-const SkeletonEventCard = () => ( //
+const SkeletonBase = ({ className = "" }) => <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>;
+const SkeletonSidebarCard = () => <SkeletonBase className="h-44 md:h-48" />;
+const SkeletonEventCard = () => (
      <div className="bg-white p-5 rounded-lg border border-gray-200 animate-pulse space-y-3">
         <SkeletonBase className="h-5 w-3/4"/>
         <SkeletonBase className="h-4 w-1/2"/>
         <SkeletonBase className="h-4 w-full"/>
      </div>
 );
-const SkeletonDiscussionItem = () => ( //
+const SkeletonDiscussionItem = () => (
     <div className="py-3 px-4 animate-pulse">
         <SkeletonBase className="h-4 w-4/5 mb-1.5"/>
         <SkeletonBase className="h-3 w-1/2"/>
     </div>
 );
 
-const SkeletonEventItem = () => (
-  <div className="py-3 animate-pulse">
-    <SkeletonBase className="h-4 w-4/5 mb-1.5" />
-    <SkeletonBase className="h-3 w-1/2" />
-  </div>
-);
 // Tab button component with active state styling
-const TabButton = ({ title, isActive, onClick }) => ( //
+const TabButton = ({ title, isActive, onClick }) => (
     <button
         onClick={onClick}
         className={`px-4 py-2.5 text-sm transition-colors relative whitespace-nowrap ${
@@ -53,7 +47,7 @@ const TabButton = ({ title, isActive, onClick }) => ( //
 );
 
 // Modal to show ambassador details
-const AmbassadorDetailModal = ({ ambassador, onClose }) => { //
+const AmbassadorDetailModal = ({ ambassador, onClose }) => {
     const [show, setShow] = useState(false);
     useEffect(() => { setShow(true); }, []);
     const handleClose = () => { setShow(false); setTimeout(onClose, 300); };
@@ -73,7 +67,7 @@ const AmbassadorDetailModal = ({ ambassador, onClose }) => { //
     );
 };
 
-const CommunityPage = () => { //
+const CommunityPage = () => {
     const [communityData, setCommunityData] = useState(null);
     const [mentorshipRequests, setMentorshipRequests] = useState([]);
     const [discussions, setDiscussions] = useState([]);
@@ -81,67 +75,87 @@ const CommunityPage = () => { //
     const [error, setError] = useState(null);
     const [isAmbassadorDetailOpen, setIsAmbassadorDetailOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('events');
-    const [selectedArtisanId, setSelectedArtisanId] = useState(null); // State for the profile modal
+    const [selectedArtisanId, setSelectedArtisanId] = useState(null);
+
+    // NEW: State for API-fetched events
     const [localEvents, setLocalEvents] = useState([]);
+    // NEW: Separate loading state for events
     const [eventsLoading, setEventsLoading] = useState(true);
 
-    // Fetch initial data for the community hub
-    useEffect(() => { //
+    // MODIFIED: Fetch all data in parallel
+    useEffect(() => {
         const fetchData = async () => {
-            setLoading(true);
+            setLoading(true); // For main page skeleton
+            setEventsLoading(true); // For events tab skeleton
+            setError(null);
             try {
-                const [communityRes, mentorshipRes, discussionsRes] = await Promise.all([
-                    api.get('/community'), //
-                    api.get('/mentorship/requests'), //
-                    api.get('/discussions') //
+                const [
+                  communityRes,
+                  mentorshipRes,
+                  discussionsRes,
+                  nearbyEventsRes // Fetch nearby events
+                ] = await Promise.all([
+                    api.get('/community'),
+                    api.get('/mentorship/requests'),
+                    api.get('/discussions'),
+                    api.get('/events/nearby') // Added API call
                 ]);
 
                 setCommunityData(communityRes.data);
-                setMentorshipRequests(mentorshipRes.data.requests); // Use .requests based on backend route
-                setDiscussions(discussionsRes.data.slice(0, 5)); // Limit discussions shown
+                setMentorshipRequests(mentorshipRes.data.requests);
+                setDiscussions(discussionsRes.data.slice(0, 5));
+                setLocalEvents(nearbyEventsRes.data); // Store API events
 
             } catch (err) {
                 setError('Could not load community data. Please try again later.');
                 console.error("Error fetching data:", err);
             } finally {
                 setLoading(false);
+                setEventsLoading(false); // Stop events loading
             }
         };
-        const fetchLocalEvents = async () => {
-      setEventsLoading(true);
-      try {
-        const res = await api.get('/events/nearby');
-        setLocalEvents(res.data);
-      } catch (err) {
-        console.error('Error fetching local events:', err);
-      } finally {
-        setEventsLoading(false);
-      }
-    };
 
-    fetchData();
-    fetchLocalEvents(); // <-- CALL THE NEW FUNCTION
-  }, []);
+        fetchData();
+    }, []);
+
+    // NEW: Combine manual events and API events
+    const combinedEvents = useMemo(() => {
+        const manualEvents = (communityData?.upcomingEvents || []).map(event => ({
+            ...event,
+            id: event.id,
+            isManual: true, // Flag for rendering
+        }));
+
+        const apiEvents = (localEvents || []).map(event => ({
+            ...event,
+            id: event.link, // Use link as a unique key
+            isManual: false, // Flag for rendering
+        }));
+
+        // You can add sorting logic here if dates are standardized
+        return [...manualEvents, ...apiEvents];
+    }, [communityData, localEvents]);
+
+
     // Handle accepting a mentorship request
-    const handleAcceptRequest = async (requestId) => { //
+    const handleAcceptRequest = async (requestId) => {
         try {
-            await api.put(`/mentorship/${requestId}/accept`); // Correct endpoint based on backend
-            // Remove the accepted request from the list
+            await api.put(`/mentorship/${requestId}/accept`);
             setMentorshipRequests(prevRequests => prevRequests.filter(req => req.id !== requestId));
         } catch (error) {
             console.error("Error accepting mentorship request:", error);
-            // Optionally show an error message to the user
         }
     };
 
     // Show skeletons while loading
-    if (loading) { //
+    if (loading) {
         return (
            <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
              <div className="flex-grow space-y-8 md:space-y-10">
-                <SkeletonBase className="h-10 w-3/4 mb-4"/>
-                <SkeletonBase className="h-10 w-full mb-6"/>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <SkeletonBase className="h-10 w-3/4 mb-4 mx-auto"/>
+                <SkeletonBase className="h-6 w-1/2 mb-6 mx-auto"/>
+                <SkeletonBase className="h-12 w-full mb-8" />
+                <div className="space-y-5">
                     <SkeletonEventCard />
                     <SkeletonEventCard />
                 </div>
@@ -155,7 +169,7 @@ const CommunityPage = () => { //
     }
 
     // Show error message if data failed to load
-    if (error || !communityData) { //
+    if (error || !communityData) {
        return (
             <div className="flex flex-col justify-center items-center min-h-[calc(100vh-10rem)] px-6 text-center bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE]">
                  <ExclamationCircleIcon className="w-12 h-12 text-red-400 mb-4" />
@@ -172,7 +186,7 @@ const CommunityPage = () => { //
 
                 {/* Main Content Area */}
                 <div className="flex-grow lg:w-2/3">
-                    <AnimatedSection className="mb-8 pt-8 text-center"> {/* */}
+                    <AnimatedSection className="mb-8 pt-8 text-center">
                         {/* Page Header */}
                         <h1
                             className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
@@ -187,51 +201,81 @@ const CommunityPage = () => { //
                     </AnimatedSection>
 
                     {/* Tab Navigation */}
-                    <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8 pb-4"> {/* */}
+                    <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8 pb-4">
                         <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-                            <TabButton title="Local Events" isActive={activeTab === 'events'} onClick={() => setActiveTab('events')} />
+                            <TabButton title="Upcoming Events" isActive={activeTab === 'events'} onClick={() => setActiveTab('events')} />
                             <TabButton title="Nearby Artisans" isActive={activeTab === 'artisans'} onClick={() => setActiveTab('artisans')} />
                             <TabButton title="Mentorship Requests" isActive={activeTab === 'mentorship'} onClick={() => setActiveTab('mentorship')} />
                         </div>
                     </div>
 
                     {/* Tab Content */}
-                    <AnimatedSection> {/* */}
-                        {/* Events Tab */}
-                        {activeTab === 'events' && ( //
+                    <AnimatedSection>
+                        {/* MODIFIED: "Events" tab now renders the combined list */}
+                        {activeTab === 'events' && (
                              <div className="space-y-5">
                                 <div className="flex items-center gap-3 mb-4 px-1">
                                     <CalendarIcon className="h-6 w-6 text-google-red opacity-80" />
-                                    <h2 className="text-lg font-medium text-gray-700">Upcoming Events</h2>
+                                    <h2 className="text-lg font-medium text-gray-700">Upcoming Events & Exhibitions</h2>
                                 </div>
-                                {communityData.upcomingEvents.length > 0 ? communityData.upcomingEvents.map((event) => (
-                                    <div key={event.id} className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                                        <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3">
-                                            <div className="flex-1">
-                                                <h3 className="text-sm font-semibold text-gray-800">{event.title}</h3>
-                                                <p className="text-xs font-medium text-google-red mt-1">{event.date} &bull; {event.location}</p>
-                                                <p className="text-xs text-gray-600 mt-1.5">{event.description}</p>
+                                {eventsLoading ? (
+                                    <>
+                                        <SkeletonEventCard />
+                                        <SkeletonEventCard />
+                                    </>
+                                ) : combinedEvents.length > 0 ? (
+                                    combinedEvents.map((event) => (
+                                        event.isManual ? (
+                                            // --- RENDER MANUAL EVENT ---
+                                            <div key={event.id} className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                                                <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3">
+                                                    <div className="flex-1">
+                                                        <h3 className="text-sm font-semibold text-gray-800">{event.title}</h3>
+                                                        <p className="text-xs font-medium text-google-red mt-1">{event.date} &bull; {event.location}</p>
+                                                        <p className="text-xs text-gray-600 mt-1.5">{event.description}</p>
+                                                    </div>
+                                                    <button className="bg-google-red text-white font-medium px-4 py-1 rounded-md text-xs hover:bg-opacity-90 transition-colors whitespace-nowrap self-start sm:self-center mt-2 sm:mt-0">
+                                                        Register
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <button className="bg-google-red text-white font-medium px-4 py-1 rounded-md text-xs hover:bg-opacity-90 transition-colors whitespace-nowrap self-start sm:self-center mt-2 sm:mt-0">
-                                                Register
-                                            </button>
-                                        </div>
-                                    </div>
-                                )) : (
-                                    <p className="text-center text-gray-500 py-10 text-sm">No upcoming events scheduled.</p>
+                                        ) : (
+                                            // --- RENDER API EVENT (Google Search) ---
+                                            <a
+                                                href={event.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                key={event.id}
+                                                className="block bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+                                            >
+                                                <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3">
+                                                    <div className="flex-1">
+                                                        <h3 className="text-sm font-semibold text-gray-800 hover:text-google-blue">{event.title}</h3>
+                                                        <p className="text-xs font-medium text-google-green mt-1">{event.date}</p>
+                                                        <p className="text-xs text-gray-600 mt-1.5 line-clamp-2">{event.snippet}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 self-start sm:self-center mt-2 sm:mt-0">
+                                                        <p className="text-xs text-gray-500">{event.source}</p>
+                                                        <ExternalLinkIcon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        )
+                                    ))
+                                ) : (
+                                    <p className="text-center text-gray-500 py-10 text-sm">No upcoming events found in your area.</p>
                                 )}
                             </div>
                         )}
 
                         {/* Nearby Artisans Tab - MODIFIED TO USE MODAL */}
-                        {activeTab === 'artisans' && ( //
+                        {activeTab === 'artisans' && (
                              <div className="space-y-4">
                                 <div className="flex items-center gap-3 mb-4 px-1">
                                     <UsersIcon className="h-6 w-6 text-google-green opacity-80" />
                                     <h2 className="text-lg font-medium text-gray-700">Artisans Near You</h2>
                                 </div>
                                 {communityData.localArtisans.length > 0 ? communityData.localArtisans.map((artisan) => (
-                                    // Removed Link, Added onClick to set the selected artisan ID
                                     <div
                                         key={artisan.id}
                                         onClick={() => setSelectedArtisanId(artisan.id)}
@@ -245,7 +289,6 @@ const CommunityPage = () => { //
                                                 <p className="text-xs text-google-blue font-medium mt-0.5">{artisan.distance}</p>
                                             </div>
                                         </div>
-                                        {/* Changed button text for clarity */}
                                         <button className="border border-google-blue text-google-blue font-medium px-3 py-1 rounded-md text-xs hover:bg-google-blue/10 transition-colors whitespace-nowrap">
                                             View Details
                                         </button>
@@ -257,7 +300,7 @@ const CommunityPage = () => { //
                         )}
 
                         {/* Mentorship Requests Tab */}
-                        {activeTab === 'mentorship' && ( //
+                        {activeTab === 'mentorship' && (
                             <div className="space-y-4">
                                 <div className="flex items-center gap-3 mb-4 px-1">
                                     <UsersIcon className="h-6 w-6 text-google-blue opacity-80" />
@@ -290,9 +333,9 @@ const CommunityPage = () => { //
                 </div>
 
                 {/* Right Sidebar */}
-                <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4"> {/* */}
+                <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4">
                     {/* Ambassador Card */}
-                    <AnimatedSection> {/* */}
+                    <AnimatedSection>
                         <div className="bg-blue-50/60 p-6 rounded-xl border border-blue-200/80">
                             <div className="flex items-center gap-3 mb-3">
                                 <UsersIcon className="h-6 w-6 text-google-blue" />
@@ -311,56 +354,11 @@ const CommunityPage = () => { //
                             </div>
                         </div>
                     </AnimatedSection>
-                        {/* --- ADD NEW LOCAL EXHIBITIONS CARD --- */}
-          <AnimatedSection>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center gap-3 p-4 border-b border-gray-100">
-                <TicketIcon className="h-6 w-6 text-google-green" />
-                <h3 className="text-base font-medium text-gray-800">
-                  Local Exhibitions & Fairs
-                </h3>
-              </div>
-              <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
-                {eventsLoading ? (
-                  // Show skeletons while loading
-                  <div className="p-4 space-y-2">
-                    <SkeletonEventItem />
-                    <SkeletonEventItem />
-                    <SkeletonEventItem />
-                  </div>
-                ) : localEvents.length > 0 ? (
-                  // Map over loaded events
-                  localEvents.map((event, index) => (
-                    <a
-                      href={event.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      key={index}
-                      className="block p-4 hover:bg-gray-50/70 transition-colors"
-                    >
-                      <p className="font-medium text-sm text-gray-800 hover:text-google-blue leading-snug">
-                        {event.title}
-                      </p>
-                      <p className="text-xs text-google-green font-medium mt-1">
-                        {event.date}
-                      </p>
-                      <div className="flex items-center justify-between mt-1.5">
-                        <p className="text-xs text-gray-500">{event.source}</p>
-                        <ExternalLinkIcon className="w-3 h-3 text-gray-400" />
-                      </div>
-                    </a>
-                  ))
-                ) : (
-                  // Show if no events are found
-                  <p className="text-center text-gray-500 py-6 text-xs px-4">
-                    No local events found in your area.
-                  </p>
-                )}
-              </div>
-            </div>
-          </AnimatedSection>
+
+                    {/* REMOVED: Sidebar card for local exhibitions */}
+                    
                     {/* Discussions Card */}
-                    <AnimatedSection> {/* */}
+                    <AnimatedSection>
                          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                              <div className="flex items-center gap-3 p-4 border-b border-gray-100">
                                 <ChatAlt2Icon className="h-6 w-6 text-gray-500" />
@@ -389,7 +387,7 @@ const CommunityPage = () => { //
             </div>
 
             {/* Render Ambassador Modal */}
-            {isAmbassadorDetailOpen && ( //
+            {isAmbassadorDetailOpen && (
                 <AmbassadorDetailModal
                   ambassador={communityData.areaAmbassador}
                   onClose={() => setIsAmbassadorDetailOpen(false)}
@@ -407,4 +405,4 @@ const CommunityPage = () => { //
     );
 };
 
-export default CommunityPage; //
+export default CommunityPage;
