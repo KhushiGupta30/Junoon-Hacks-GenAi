@@ -119,25 +119,24 @@ const ProductFormFields = ({ initialData, onSubmit }) => {
     };
     
     const handleGenerateDescription = async () => {
-        if (!formData.name || !formData.category) {
-            alert('Please enter a Product Name and select a Category first.');
-            return;
-        }
-        setIsGenerating(true);
-        setError('');
-        try {
-            console.log(`Form name is ${formData.name}`)
-            const response = await api.post('/ai/generate-description', {
-                name: formData.name,
-                category: formData.category,
-            });
-            setFormData(prev => ({ ...prev, description: response.data.description }));
-        } catch (err) {
-            setError('Failed to generate description. Please try again.');
-            console.error(err);
-        } finally {
-            setIsGenerating(false);
-        }
+      if (!product.name || !product.category || !product.material) {
+        alert("Please enter a product name, category, and material to generate a description.");
+        return;
+      }
+      setGenerating(true);
+      try {
+        // Send productName, category, and material to the backend
+        const response = await api.post('/ai/generate-description', {
+          name: product.name,
+          category: product.category,
+          material: product.material,
+        });
+        setProduct({ ...product, description: response.data.description });
+      } catch (error) {
+        console.error("AI Description Error:", error);
+      } finally {
+        setGenerating(false);
+      }
     };
 
 

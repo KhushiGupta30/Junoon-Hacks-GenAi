@@ -193,7 +193,7 @@ const ProductFormFields = ({
     setError("");
     try {
       const response = await api.post("/ai/generate-description", {
-        productName: formData.name,
+        name: formData.name,
         category: formData.category,
         existingDescription: formData.description,
       });
@@ -214,7 +214,7 @@ const ProductFormFields = ({
     setError("");
     try {
       const response = await api.post("/ai/suggest-price", {
-        productName: formData.name,
+        name: formData.name,
         category: formData.category,
         description: formData.description,
       });
@@ -608,21 +608,21 @@ const ProductEditPage = () => {
         Object.keys(payload).forEach((key) => {
           if (key === "inventory") {
             data.append(key, JSON.stringify(payload[key])); 
-          } else {
-            data.append(key, payload[key]);
+          } else if (key !== "productImage") { 
+            data.append(key, payload[key]); 
           }
         });
 
-        data.append("productImage", imageFile); 
+        data.append("productImage", imageFile);
 
-        const config = {
-          headers: { "Content-Type": "multipart/form-data" },
-        };
+        // const config = {
+        //   headers: { "Content-Type": "multipart/form-data" },
+        // };
 
         if (isEditMode) {
-          await api.put(`/products/${productId}`, data, config);
+          await api.put(`/products/${productId}`, data);
         } else {
-          await api.post("/products", data, config);
+          await api.post("/products", data);
         }
       } else {
 

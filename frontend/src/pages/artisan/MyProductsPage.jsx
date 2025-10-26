@@ -134,7 +134,7 @@ const MyProductsPage = () => {
       setLoading(true);
       setError('');
       try {
-        const response = await api.get(`/artisan/${user.id}/products`);
+        const response = await api.get('/users/my-products');
         setProducts(response.data.products);
       } catch (err) {
         console.error('Failed to fetch products:', err);

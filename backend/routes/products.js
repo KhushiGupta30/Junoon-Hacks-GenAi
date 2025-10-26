@@ -156,6 +156,11 @@ router.post(
     body('description').isLength({ min: 10, max: 2000 }).withMessage('Description must be between 10 and 2000 characters'),
     body('category').isIn(['Pottery', 'Textiles', 'Painting', 'Woodwork', 'Metalwork', 'Sculpture', 'Jewelry', 'Other']).withMessage('Invalid category'),
     body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
+  //   body('productImage').custom((value, { req }) => {
+  //     if (!req.file) {
+  //       throw new Error('Product image is required.');
+  //     }
+  //     return true;}),
   ], 
   async (req, res) => {
     try {
@@ -164,9 +169,16 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      // Check for file
       if (!req.file) {
-        return res.status(400).json({ message: 'Product image is required.' });
+        // This check runs after validation and confirms the file was uploaded
+        return res.status(400).json({ 
+          errors: [{
+            type: 'field',
+            msg: 'Product image is required.',
+            path: 'productImage', // This matches your input name
+            location: 'body'
+          }]
+        });
       }
 
       const productData = {
