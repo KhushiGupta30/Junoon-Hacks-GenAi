@@ -233,7 +233,7 @@ const ProductFormFields = ({
     setError("");
     try {
 
-      await onSubmit(formData);
+      await onSubmit();
     } catch (err) {
       setError(
         err.message || "An unexpected error occurred. Please try again."
@@ -565,19 +565,19 @@ const ProductEditPage = () => {
     }
   }, [productId, isEditMode]);
 
-  const handleFormSubmit = async (formData) => {
+const handleFormSubmit = async () => {
 
     const payload = {
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      category: formData.category,
-      status: formData.status,
+      name: checklistData.name,
+      description: checklistData.description,
+      price: parseFloat(checklistData.price),
+      category: checklistData.category,
+      status: checklistData.status,
       inventory: {
-        ...formData.inventory,
-        quantity: formData.inventory.isUnlimited
+        ...checklistData.inventory,
+        quantity: checklistData.inventory.isUnlimited
           ? 0
-          : parseInt(formData.inventory.quantity, 10) || 0,
+          : parseInt(checklistData.inventory.quantity, 10) || 0,
       },
 
     };
@@ -585,58 +585,49 @@ const ProductEditPage = () => {
     if (isNaN(payload.price) || payload.price < 0)
       throw new Error("Invalid price.");
     if (
-      !formData.inventory.isUnlimited &&
+      !checklistData.inventory.isUnlimited &&
       (isNaN(payload.inventory.quantity) || payload.inventory.quantity < 0)
     )
       throw new Error("Invalid quantity.");
 
-    if (!imageFile && !isEditMode) {
+  if (!imageFile && !isEditMode) {
+    throw new Error("Please select an image to upload.");
+  }
 
-      throw new Error("Please select an image to upload.");
-    }
+  if (!imageFile && isEditMode && !initialData?.images?.[0]?.url) {
+    throw new Error("Please select an image to upload.");
+  }
 
-    if (!imageFile && isEditMode && !initialData?.images?.[0]?.url) {
-      throw new Error("Please select an image to upload.");
-    }
+  try {
+    if (imageFile) {
+      const data = new FormData();
 
-    try {
-
-      if (imageFile) {
-
-        const data = new FormData();
-
-        Object.keys(payload).forEach((key) => {
-          if (key === "inventory") {
-            data.append(key, JSON.stringify(payload[key])); 
-          } else if (key !== "productImage") { 
-            data.append(key, payload[key]); 
-          }
-        });
-
-        data.append("productImage", imageFile);
-
-        // const config = {
-        //   headers: { "Content-Type": "multipart/form-data" },
-        // };
-
-        if (isEditMode) {
-          await api.put(`/products/${productId}`, data);
-        } else {
-          await api.post("/products", data);
+      Object.keys(payload).forEach((key) => {
+        if (key === "inventory") {
+          data.append(key, JSON.stringify(payload[key])); 
+        } else if (key !== "productImage") { 
+          data.append(key, payload[key]); 
         }
+      });
+
+      data.append("productImage", imageFile);
+
+      if (isEditMode) {
+        await api.put(`/products/${productId}`, data);
       } else {
-
-        if (isEditMode) {
-          payload.images = initialData.images; 
-          await api.put(`/products/${productId}`, payload); 
-        } else {
-
-          throw new Error("Image file is required for new products.");
-        }
+        await api.post("/products", data);
       }
+    } else {
+      if (isEditMode) {
+        payload.images = initialData.images; 
+        await api.put(`/products/${productId}`, payload); 
+      } else {
+        throw new Error("Image file is required for new products.");
+      }
+    }
 
-      navigate("/artisan/products"); 
-    } catch (error) {
+    navigate("/artisan/products"); 
+  } catch (error) {
       console.error("Failed to submit form:", error);
       throw new Error(
         error.response?.data?.errors?.[0]?.msg ||
