@@ -10,6 +10,8 @@ import {
     XIcon,
     LocationMarkerIcon,
     ExclamationCircleIcon,
+    TicketIcon, 
+  ExternalLinkIcon,
 } from '../../components/common/Icons'; //
 import ArtisanProfileModal from '../../components/modal/ArtisanProfileModal'; //
 
@@ -30,6 +32,12 @@ const SkeletonDiscussionItem = () => ( //
     </div>
 );
 
+const SkeletonEventItem = () => (
+  <div className="py-3 animate-pulse">
+    <SkeletonBase className="h-4 w-4/5 mb-1.5" />
+    <SkeletonBase className="h-3 w-1/2" />
+  </div>
+);
 // Tab button component with active state styling
 const TabButton = ({ title, isActive, onClick }) => ( //
     <button
@@ -74,6 +82,8 @@ const CommunityPage = () => { //
     const [isAmbassadorDetailOpen, setIsAmbassadorDetailOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('events');
     const [selectedArtisanId, setSelectedArtisanId] = useState(null); // State for the profile modal
+    const [localEvents, setLocalEvents] = useState([]);
+    const [eventsLoading, setEventsLoading] = useState(true);
 
     // Fetch initial data for the community hub
     useEffect(() => { //
@@ -97,10 +107,21 @@ const CommunityPage = () => { //
                 setLoading(false);
             }
         };
+        const fetchLocalEvents = async () => {
+      setEventsLoading(true);
+      try {
+        const res = await api.get('/events/nearby');
+        setLocalEvents(res.data);
+      } catch (err) {
+        console.error('Error fetching local events:', err);
+      } finally {
+        setEventsLoading(false);
+      }
+    };
 
-        fetchData();
-    }, []);
-
+    fetchData();
+    fetchLocalEvents(); // <-- CALL THE NEW FUNCTION
+  }, []);
     // Handle accepting a mentorship request
     const handleAcceptRequest = async (requestId) => { //
         try {
@@ -290,7 +311,54 @@ const CommunityPage = () => { //
                             </div>
                         </div>
                     </AnimatedSection>
-
+                        {/* --- ADD NEW LOCAL EXHIBITIONS CARD --- */}
+          <AnimatedSection>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="flex items-center gap-3 p-4 border-b border-gray-100">
+                <TicketIcon className="h-6 w-6 text-google-green" />
+                <h3 className="text-base font-medium text-gray-800">
+                  Local Exhibitions & Fairs
+                </h3>
+              </div>
+              <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+                {eventsLoading ? (
+                  // Show skeletons while loading
+                  <div className="p-4 space-y-2">
+                    <SkeletonEventItem />
+                    <SkeletonEventItem />
+                    <SkeletonEventItem />
+                  </div>
+                ) : localEvents.length > 0 ? (
+                  // Map over loaded events
+                  localEvents.map((event, index) => (
+                    <a
+                      href={event.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      key={index}
+                      className="block p-4 hover:bg-gray-50/70 transition-colors"
+                    >
+                      <p className="font-medium text-sm text-gray-800 hover:text-google-blue leading-snug">
+                        {event.title}
+                      </p>
+                      <p className="text-xs text-google-green font-medium mt-1">
+                        {event.date}
+                      </p>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <p className="text-xs text-gray-500">{event.source}</p>
+                        <ExternalLinkIcon className="w-3 h-3 text-gray-400" />
+                      </div>
+                    </a>
+                  ))
+                ) : (
+                  // Show if no events are found
+                  <p className="text-center text-gray-500 py-6 text-xs px-4">
+                    No local events found in your area.
+                  </p>
+                )}
+              </div>
+            </div>
+          </AnimatedSection>
                     {/* Discussions Card */}
                     <AnimatedSection> {/* */}
                          <div className="bg-white rounded-xl shadow-sm border border-gray-200">

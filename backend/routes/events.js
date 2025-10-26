@@ -2,6 +2,7 @@ const express = require('express');
 const { auth, authorize } = require('../middleware/auth');
 const EventService = require('../services/EventService');
 const NotificationService = require('../services/NotificationService'); 
+const GoogleEventsService = require('../services/GoogleEventsService');
 
 const router = express.Router();
 
@@ -13,7 +14,15 @@ router.get('/', auth, async (req, res) => {
         res.status(500).json({ message: 'Error fetching events' });
     }
 });
-
+router.get('/nearby', auth, async (req, res) => {
+  try {
+    const events = await GoogleEventsService.getNearbyEvents(req.user.id);
+    res.json(events);
+  } catch (error) {
+    console.error('Error fetching nearby events:', error.message);
+    res.status(500).json({ message: 'Server error retrieving nearby events' });
+  }
+});
 router.post('/', [auth, authorize('ambassador')], async (req, res) => {
     try {
         const eventData = {
