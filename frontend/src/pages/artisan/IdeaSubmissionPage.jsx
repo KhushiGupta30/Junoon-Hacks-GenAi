@@ -23,7 +23,42 @@ import IdeaDetailModal from '../../components/modal/IdeaDetailModal'; // Adjust 
 const SkeletonBase = ({ className = "" }) => <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>;
 const SkeletonSidebarCard = () => <SkeletonBase className="h-64" />; // Taller for list
 const SkeletonForm = () => <SkeletonBase className="h-[40rem]" />; // Tall form skeleton
+
+// --- ADDED HELPER FUNCTION ---
+const timeAgo = (date) => {
+    if (!date) return "someday ago";
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + "y ago";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + "m ago";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + "d ago";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + "h ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + "min ago";
+    return "Just now";
+};
 // --- End Skeletons ---
+
+// --- MOVED FORM HELPER COMPONENTS (THE FIX) ---
+// These are defined at the top level so they are not re-created on every render.
+const FormInput = ({ label, id, ...props }) => (
+    <div>
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        <input id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm" />
+    </div>
+);
+
+const FormSelect = ({ label, id, children, ...props }) => (
+    <div>
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        <select id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm">{children}</select>
+    </div>
+);
+// --- END MOVED FORM HELPER COMPONENTS ---
+
 
 // --- INTERNAL FORM FIELDS COMPONENT ---
 const IdeaSubmissionFormFields = ({ onSubmit }) => {
@@ -52,19 +87,7 @@ const IdeaSubmissionFormFields = ({ onSubmit }) => {
         }
     };
 
-    const FormInput = ({ label, id, ...props }) => (
-        <div>
-            <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-            <input id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm" />
-        </div>
-    );
-
-    const FormSelect = ({ label, id, children, ...props }) => (
-        <div>
-            <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-            <select id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm">{children}</select>
-        </div>
-    );
+    // FormInput and FormSelect components were moved outside
 
     return (
         <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200 space-y-6">
@@ -109,24 +132,44 @@ const IdeaSubmissionPage = () => {
     const [filterCategory, setFilterCategory] = useState('All'); // 'All', 'Pottery', etc.
     const [selectedIdea, setSelectedIdea] = useState(null); // <-- State for modal
 
-    // Mock data for the sidebar - ADDED VOTES & DESCRIPTION
-    const mockRecentIdeas = [
-        { id: 'idea1', title: 'Modular Wooden Shelving Unit', category: 'Woodwork', time: '2h ago', submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), votes: 15, description: "A versatile shelving system made from sustainable bamboo.", link: '#' },
-        { id: 'idea2', title: 'Hand-Dyed Shibori Throw Pillows', category: 'Textiles', time: 'Yesterday', submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000), votes: 8, description: "Organic cotton pillows dyed using traditional Japanese Shibori techniques.", link: '#' },
-        { id: 'idea3', title: 'Minimalist Ceramic Dinnerware Set', category: 'Pottery', time: '3d ago', submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), votes: 22, description: "Simple, elegant stoneware plates and bowls with a matte glaze.", link: '#' },
-        { id: 'idea4', title: 'Upcycled Metal Sculpture', category: 'Metalwork', time: '5d ago', submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), votes: 5, description: "Abstract sculpture created from reclaimed industrial metal parts.", link: '#' },
-    ];
+    // --- DELETED MOCK DATA ---
+    // const mockRecentIdeas = [ ... ];
 
     const categoriesForFilter = ['All', 'Pottery', 'Textiles', 'Painting', 'Woodwork', 'Metalwork', 'Sculpture', 'Jewelry', 'Other']; // For filter dropdown
 
+    // --- REPLACED useEffect ---
     // ... (useEffect for data fetching) ...
     useEffect(() => {
         const fetchRecentIdeas = async () => {
             setLoading(true);
             setError('');
             try {
-                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
-                setRecentIdeas(mockRecentIdeas);
+                // 1. Call the backend API
+                const response = await api.get('/ideas'); //
+                
+                // 2. Get the array of ideas
+                const ideasFromApi = response.data.ideas; //
+
+                // 3. Format the data to match what the UI needs
+                const formattedIdeas = ideasFromApi.map(idea => {
+                    // The backend sends a date string, but the useMemo hook needs a Date object
+                    const submittedAtDate = new Date(idea.submittedAt || idea.createdAt);
+
+                    // The backend stores votes as { upvotes: X, downvotes: Y }
+                    // The UI expects 'votes' to be a single number for sorting
+                    const votes = idea.votes ? (idea.votes.upvotes || 0) : 0; 
+
+                    return {
+                        ...idea, // Pass through title, description, category, id
+                        submittedAt: submittedAtDate,
+                        time: timeAgo(submittedAtDate), // Use the helper function
+                        votes: votes, // Use the formatted votes number
+                        link: '#' // For the modal
+                    };
+                });
+
+                setRecentIdeas(formattedIdeas);
+
             } catch (err) {
                 console.error("Failed to fetch recent ideas:", err);
                 setError("Could not load recent ideas.");
@@ -135,7 +178,7 @@ const IdeaSubmissionPage = () => {
             }
         };
         fetchRecentIdeas();
-    }, []);
+    }, []); // This hook still runs once when the page loads
 
     // ... (useMemo for sorting/filtering) ...
     const displayedIdeas = useMemo(() => {
@@ -152,27 +195,37 @@ const IdeaSubmissionPage = () => {
     }, [recentIdeas, filterCategory, sortBy, sortOrder]);
 
 
+    // --- REPLACED handleFormSubmit ---
     const handleFormSubmit = async (formData) => {
-        // ... (handleFormSubmit logic) ...
          try {
-            // const response = await api.post('/ideas', formData);
-            // Mock response
-            const response = { data: { _id: Date.now(), ...formData } }; 
+            // 1. UNCOMMENT the real API call
+            const response = await api.post('/ideas', formData); //
+            
+            // 2. REMOVE the mock response
+            // const response = { data: { _id: Date.now(), ...formData } }; 
+
+            // 3. Use the actual idea returned from the backend
+            // The backend sends back { message: '...', idea: { ... } }
+            const createdIdea = response.data.idea; //
+
             const newIdea = {
-                id: response.data._id,
-                title: response.data.title,
-                category: response.data.category,
-                description: response.data.description,
-                time: 'Just now',
+                id: createdIdea.id, // Use the ID from the database
+                title: createdIdea.title,
+                category: createdIdea.category,
+                description: createdIdea.description,
+                time: 'Just now', // These are fine as defaults for the UI
                 submittedAt: new Date(),
-                votes: 0,
+                votes: 0, // A new idea starts with 0 votes
                 link: '#'
             };
             setRecentIdeas(prev => [newIdea, ...(prev || [])].slice(0, 5));
-            navigate('/artisan/dashboard'); 
+            navigate('/artisan/dashboard'); //
         } catch (err) {
             console.error("Failed to submit idea:", err);
-            const errorMessage = err.response?.data?.message || err.message || "Failed to submit. Please try again.";
+            // This error handling is perfect. It will get the error message
+            // from the backend (like "Description must be at least 10 characters")
+            // and show it on the form.
+            const errorMessage = err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || err.message || "Failed to submit. Please try again.";
             throw new Error(errorMessage);
         }
     };
