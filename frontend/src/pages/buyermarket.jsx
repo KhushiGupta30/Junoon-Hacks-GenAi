@@ -24,7 +24,6 @@ const CartIcon = () => {
     );
 };
 
-
 // --- PAGE COMPONENTS ---
 
 export const BuyerHeader = () => (
@@ -48,176 +47,350 @@ export const BuyerHeader = () => (
   </header>
 );
 
+
+
 const ProductCard = ({ product }) => {
+
     const { addToCart } = useCart();
-    
+
+   
+
     const handleAddToCart = (e) => {
+
         e.preventDefault(); // Prevent navigation when clicking the button
+
         e.stopPropagation();
+
         addToCart(product);
+
         // Maybe add a little notification/toast here in a real app
+
     };
+
+
 
     return (
+
         <div className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-transparent hover:border-google-blue h-full flex flex-col">
+
             <Link to={`/product/${product._id}`} className="block">
+
                 <div className="relative">
+
                     <img src={product.images[0]?.url || "/placeholder.png"} alt={product.name} className="w-full h-64 object-cover" />
+
                     <div className="absolute top-3 right-3 bg-white/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"> <HeartIcon /> </div>
+
                 </div>
+
             </Link>
+
             <div className="p-5 flex flex-col flex-grow">
+
                 <p className="text-sm text-gray-500 mb-1">
+
                     <Link to={`/seller/${product.artisan._id}`} className="hover:underline hover:text-google-blue">
+
                         {product.artisan.name}
+
                     </Link>
+
                 </p>
+
                 <h3 className="text-lg font-bold text-gray-800 truncate">
+
                     <Link to={`/product/${product._id}`} className="hover:text-google-blue transition-colors">
+
                         {product.name}
+
                     </Link>
+
                 </h3>
+
                 <div className="flex justify-between items-center mt-4 flex-grow">
+
                     {/* --- THIS IS THE EDITED LINE --- */}
+
                     <p className="text-xl font-semibold text-google-green"> ${(Number(product.price) || 0).toFixed(2)} </p>
+
                     <button onClick={handleAddToCart} className="bg-google-blue text-white font-semibold px-5 py-2 rounded-lg hover:bg-google-red transition-colors duration-300 transform group-hover:scale-105">
+
                         Add to Cart
+
                     </button>
+
                 </div>
+
             </div>
+
         </div>
+
     );
+
 };
-  
+
+ 
+
+
 
 const IdeaCard = ({ idea }) => {
+
   const [vote, setVote] = useState(null);
+
   const [currentVotes, setCurrentVotes] = useState(idea.votes.upvotes);
 
+
+
   const handleVote = useCallback(async () => {
+
     try {
+
       const response = await api.post(`/ideas/${idea._id}/vote`, { vote: 'up' });
+
       setCurrentVotes(response.data.votes.upvotes);
+
       setVote('up');
+
     } catch (error) {
+
       console.error("Voting failed:", error);
+
       alert("You need to be logged in to vote.");
+
     }
+
   }, [idea._id]);
 
+
+
   return (
+
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col min-w-[320px] snap-start border-2 border-transparent hover:border-google-yellow transition-all duration-300">
+
       <img src={idea.images[0]?.url || '/placeholder.png'} alt={idea.title} className="w-full h-48 object-cover" />
+
       <div className="p-6 flex flex-col flex-grow">
+
         <h4 className="text-xl font-bold text-gray-800">{idea.title}</h4>
+
         <p className="text-sm text-gray-500 mb-3">
+
           by{" "}
+
           <Link to={`/seller/${idea.artisan._id}`} className="hover:underline hover:text-google-blue">
+
             {idea.artisan.name}
+
           </Link>
+
         </p>
+
         <p className="text-gray-600 text-sm flex-grow">{idea.description}</p>
+
         <div className="flex justify-between items-center mt-6">
+
           <button onClick={handleVote} className={`flex items-center space-x-2 font-semibold py-2 px-4 rounded-lg transition-colors ${ vote === "up" ? "bg-google-green/20 text-google-green" : "bg-gray-200 text-gray-700 hover:bg-gray-300" }`} >
+
             <ThumbsUpIcon filled={vote === "up"} />
+
             <span>{vote === "up" ? "Voted!" : "Vote"}</span>
+
           </button>
+
           <p className="text-lg font-bold text-gray-800 text-right">
+
             {currentVotes.toLocaleString()}{" "}
+
             <span className="text-sm font-normal text-gray-500">votes</span>
+
           </p>
+
         </div>
+
       </div>
+
     </div>
+
   );
+
 };
 
+
+
 // --- MAIN MARKETPLACE COMPONENT ---
+
 export default function BuyerMarketplace() {
+
   const categories = [ "All", "Textiles", "Pottery", "Painting", "Woodwork", "Metalwork", "Sculpture", ];
+
   const [activeCategory, setActiveCategory] = useState("All");
+
   const [products, setProducts] = useState([]);
+
   const [ideas, setIdeas] = useState([]);
+
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState(null);
 
+
+
   useEffect(() => {
+
     const fetchMarketplaceData = async () => {
+
       setLoading(true);
+
       setError(null);
+
       try {
+
         const productParams = { category: activeCategory === "All" ? undefined : activeCategory, };
+
         const [productsResponse, ideasResponse] = await Promise.all([
+
           api.get('/products', { params: productParams }),
+
           api.get('/ideas')
+
         ]);
+
         setProducts(productsResponse.data.products);
+
         setIdeas(ideasResponse.data.ideas);
+
       } catch (err) {
+
         console.error("Failed to fetch marketplace data:", err);
+
         setError("Could not load data. Please try again later.");
+
       } finally {
+
         setLoading(false);
+
       }
+
     };
+
     fetchMarketplaceData();
+
   }, [activeCategory]);
 
+
+
   return (
+
     <div className="font-sans bg-gray-50">
+
       <BuyerHeader />
+
       <main className="pt-24">
+
         <section id="marketplace">
+
           <div className="py-16 bg-cover bg-[center_bottom_30%] relative" style={{ backgroundImage: "url('/2.png')" }} >
+
             <div className="absolute inset-0 bg-black/40"></div>
+
             <div className="container mx-auto px-6 relative z-10">
+
               <div className="text-center mb-12">
+
                 <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-3"> Discover <span className="text-google-yellow">Handcrafted</span> Treasures </h2>
+
                 <p className="text-lg text-white/90 max-w-2xl mx-auto"> Explore unique, authentic items with rich stories, direct from the artisans. </p>
+
               </div>
+
               <div className="flex justify-center flex-wrap gap-3">
+
                 {categories.map((cat) => (
+
                   <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-5 py-2 rounded-full font-semibold transition-all duration-300 ${ activeCategory === cat ? "bg-google-blue text-white shadow-md" : "bg-white text-gray-700 hover:bg-gray-200" }`} > {cat} </button>
+
                 ))}
+
               </div>
+
             </div>
+
           </div>
+
           <div className="py-16">
+
             <div className="container mx-auto px-6">
+
               {loading && <p className="text-center text-gray-600">Loading products...</p>}
+
               {error && <p className="text-center text-red-500">{error}</p>}
+
               {!loading && !error && (
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+
                   {products.map((product) => (
+
                     <ProductCard product={product} key={product._id} />
+
                   ))}
+
                 </div>
+
               )}
+
             </div>
+
           </div>
+
         </section>
+
         <section id="new-ideas" className="py-20 bg-gray-100" style={{ backgroundImage: "url('/2.png')" }} >
+
           <div className="container mx-auto px-6">
+
             <div className="text-center mb-12 max-w-3xl mx-auto">
+
               <h2 className="text-4xl md:text-5xl font-extrabold text-gray-800 leading-tight mb-3"> Shape the <span className="text-google-yellow">Future</span> of Craft </h2>
+
               <p className="text-lg text-gray-600"> Artisans are sharing their next big ideas. Vote for the designs you'd love to own! </p>
+
             </div>
+
             <div className="flex space-x-8 pb-4 overflow-x-auto snap-x snap-mandatory">
+
               {loading && <p className="text-center text-gray-600">Loading ideas...</p>}
+
               {!loading && !error && ideas.map((idea) => (
+
                 <IdeaCard key={idea._id} idea={idea} />
+
               ))}
+
             </div>
+
           </div>
+
         </section>
+
       </main>
+
       <footer className="bg-google-blue text-white">
+
         <div className="container mx-auto px-6 py-12">
+
           <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
+
             &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.
+
           </div>
+
         </div>
+
       </footer>
+
     </div>
+
   );
+
 }
