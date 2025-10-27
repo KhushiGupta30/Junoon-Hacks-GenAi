@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 // The data structure you provided, now available in the component
 const indianStatesAndCities = {
@@ -43,6 +44,31 @@ const indianStatesAndCities = {
 
 const states = Object.keys(indianStatesAndCities);
 
+// --- 2. Animation Variants ---
+const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+    exit: { opacity: 0 }
+};
+
+const modalVariants = {
+    hidden: { opacity: 0, scale: 0.9, y: 50 },
+    visible: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } },
+    exit: { opacity: 0, scale: 0.9, y: 50, transition: { duration: 0.2 } }
+};
+
+const formSectionVariants = {
+    hidden: { opacity: 0, height: 0, y: -20 },
+    visible: { opacity: 1, height: "auto", y: 0, transition: { duration: 0.4, ease: "easeInOut" } },
+    exit: { opacity: 0, height: 0, y: -20, transition: { duration: 0.3, ease: "easeInOut" } }
+};
+
+const errorVariants = {
+    hidden: { opacity: 0, height: 0, y: -10 },
+    visible: { opacity: 1, height: "auto", y: 0 },
+    exit: { opacity: 0, height: 0, y: -10 }
+};
+
 const LoginModal = ({ isOpen, onClose, selectedRole }) => {
     const { login, register } = useAuth();
     const [isLoginView, setIsLoginView] = useState(true);
@@ -56,13 +82,11 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
     const [city, setCity] = useState('');
     const [language, setLanguage] = useState('en');
     
-    // State to hold the list of cities for the selected state
     const [availableCities, setAvailableCities] = useState([]);
-
-    // UI State
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    // ... (Your useEffect, handleStateChange, handleSubmit logic remains exactly the same) ...
     useEffect(() => {
         if (isOpen) {
             setRole(selectedRole || 'buyer');
@@ -85,7 +109,6 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
         }
     }, [selectedRole]);
 
-    // This new handler updates the city list when the state changes
     const handleStateChange = (e) => {
         const selectedState = e.target.value;
         setState(selectedState);
@@ -139,150 +162,186 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
         setLanguage('en');
         setAvailableCities([]);
     };
-
-    if (!isOpen) return null;
   
+    // --- 3. Wrap entire return in AnimatePresence ---
     return (
-      <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 w-full max-w-md relative">
-          <button 
-            onClick={onClose} 
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition-colors"
-            type="button"
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4"
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={onClose} // Close on backdrop click
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-          
-          <h3 className="text-3xl font-bold text-center text-gray-800 mb-2">
-            {isLoginView ? 'Welcome Back!' : 'Create Your Account'}
-          </h3>
-          <p className="text-center text-gray-600 mb-8">
-            {isLoginView ? 'Please log in.' : `Joining as a ${role}`}
-          </p>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLoginView && (
-              <>
+            <motion.div 
+              className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 w-full max-w-md relative"
+              variants={modalVariants}
+              onClick={(e) => e.stopPropagation()} // Prevent close on panel click
+            >
+              <button 
+                onClick={onClose} 
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition-colors"
+                type="button"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+              
+              <h3 className="text-3xl font-bold text-center text-gray-800 mb-2">
+                {isLoginView ? 'Welcome Back!' : 'Create Your Account'}
+              </h3>
+              <p className="text-center text-gray-600 mb-8">
+                {isLoginView ? 'Please log in.' : `Joining as a ${role}`}
+              </p>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* --- 4. Animate the registration fields --- */}
+                <AnimatePresence mode="wait">
+                  {!isLoginView && (
+                    <motion.div 
+                      className="space-y-4"
+                      variants={formSectionVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                    >
+                      <input 
+                        type="text" 
+                        placeholder="Your Name" 
+                        value={name} 
+                        onChange={e => setName(e.target.value)} 
+                        required 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      />
+                      
+                      <select 
+                        value={state} 
+                        onChange={handleStateChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-500 focus:text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="" disabled>Select your State</option>
+                        {states.sort().map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+
+                      <select 
+                        value={city} 
+                        onChange={(e) => setCity(e.target.value)}
+                        required
+                        disabled={!state}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-500 focus:text-black focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        <option value="" disabled>{state ? "Select your City" : "Please select a state first"}</option>
+                        {availableCities.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+
+                      <select 
+                        value={language} 
+                        onChange={(e) => setLanguage(e.target.value)}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-500 focus:text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="en">English</option>
+                        <option value="hi">Hindi (हिन्दी)</option>
+                      </select>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
                 <input 
-                  type="text" 
-                  placeholder="Your Name" 
-                  value={name} 
-                  onChange={e => setName(e.target.value)} 
+                  type="email" 
+                  placeholder="Enter your email" 
+                  value={email} 
+                  onChange={e => setEmail(e.target.value)} 
                   required 
+                  autoComplete="email"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
                 />
                 
-                {/* --- STATE DROPDOWN --- */}
-                <select 
-                  value={state} 
-                  onChange={handleStateChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-500 focus:text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="" disabled>Select your State</option>
-                  {states.sort().map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-
-                {/* --- DYNAMIC CITY DROPDOWN --- */}
-                <select 
-                  value={city} 
-                  onChange={(e) => setCity(e.target.value)}
-                  required
-                  disabled={!state} // Disabled until a state is chosen
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-500 focus:text-black focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                >
-                  <option value="" disabled>{state ? "Select your City" : "Please select a state first"}</option>
-                  {availableCities.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-
-                {/* --- LANGUAGE DROPDOWN --- */}
-                <select 
-                  value={language} 
-                  onChange={(e) => setLanguage(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-500 focus:text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="en">English</option>
-                  <option value="hi">Hindi (हिन्दी)</option>
-                </select>
-              </>
-            )}
-            
-            <input 
-              type="email" 
-              placeholder="Enter your email" 
-              value={email} 
-              onChange={e => setEmail(e.target.value)} 
-              required 
-              autoComplete="email"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
-            />
-            
-            <input 
-              type="password" 
-              placeholder="Password" 
-              value={password} 
-              onChange={e => setPassword(e.target.value)} 
-              required 
-              minLength="6" 
-              autoComplete={isLoginView ? "current-password" : "new-password"}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
-            />
-            
-            {!isLoginView && (
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">I am an:</label>
-                    <select 
-                      value={role} 
-                      onChange={(e) => setRole(e.target.value)} 
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      disabled={!!selectedRole}
+                <input 
+                  type="password" 
+                  placeholder="Password" 
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                  required 
+                  minLength="6" 
+                  autoComplete={isLoginView ? "current-password" : "new-password"}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                />
+                
+                <AnimatePresence>
+                  {!isLoginView && (
+                    <motion.div
+                      variants={formSectionVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
                     >
-                        <option value="buyer">Buyer</option>
-                        <option value="artisan">Artisan</option>
-                        <option value="investor">Investor</option>
-                        <option value="ambassador">Ambassador</option>
-                    </select>
-                </div>
-            )}
-            
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">I am an:</label>
+                        <select 
+                          value={role} 
+                          onChange={(e) => setRole(e.target.value)} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          disabled={!!selectedRole}
+                        >
+                            <option value="buyer">Buyer</option>
+                            <option value="artisan">Artisan</option>
+                            <option value="investor">Investor</option>
+                            <option value="ambassador">Ambassador</option>
+                        </select>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
+                {/* --- 5. Animate the error message --- */}
+                <AnimatePresence>
+                  {error && (
+                    <motion.div 
+                      className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm"
+                      variants={errorVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                    >
+                      {error}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-            <button 
-              type="submit" 
-              disabled={loading} 
-              className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg mt-4 hover:bg-blue-700 transition-all duration-300 shadow-md disabled:bg-blue-300 disabled:cursor-not-allowed"
-            >
-                {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </span>
-                ) : (isLoginView ? 'Login' : 'Create Account')}
-            </button>
-          </form>
+                <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg mt-4 hover:bg-blue-700 transition-all duration-300 shadow-md disabled:bg-blue-300 disabled:cursor-not-allowed"
+                >
+                    {loading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                      </span>
+                    ) : (isLoginView ? 'Login' : 'Create Account')}
+                </button>
+              </form>
 
-          <p className="text-center text-sm text-gray-600 mt-6">
-            {isLoginView ? "Don't have an account?" : "Already have an account?"}
-            <button 
-              onClick={toggleView} 
-              className="font-semibold text-blue-600 hover:underline ml-1"
-              type="button"
-            >
-                {isLoginView ? 'Sign Up' : 'Log In'}
-            </button>
-          </p>
-        </div>
-      </div>
+              <p className="text-center text-sm text-gray-600 mt-6">
+                {isLoginView ? "Don't have an account?" : "Already have an account?"}
+                <button 
+                  onClick={toggleView} 
+                  className="font-semibold text-blue-600 hover:underline ml-1"
+                  type="button"
+                >
+                    {isLoginView ? 'Sign Up' : 'Log In'}
+                </button>
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     );
 };
 

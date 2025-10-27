@@ -63,7 +63,7 @@ const AppLayout = () => {
           <Routes location={location} key={location.pathname}> {/* 4. ADD LOCATION & KEY */}
             
             {/* --- 5. WRAP ALL PAGE ELEMENTS --- */}
-            <Route path="/" element={<AnimatedPage><LandingPage /></AnimatedPage>} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/ambassador-page" element={<AnimatedPage><AmbassadorPage /></AnimatedPage>} />
             <Route path="/artisan-page" element={<AnimatedPage><ArtisanPage /></AnimatedPage>} />
             <Route path="/buyer" element={<AnimatedPage><BuyerMarket /></AnimatedPage>} />
