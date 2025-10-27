@@ -23,6 +23,7 @@ const discussionRoutes = require('./routes/discussions');
 const artisanRoutes = require('./routes/artisan');
 const investorRoutes = require('./routes/investor');
 const reviewRoutes = require('./routes/reviews');
+const schemesRoutes = require('./routes/schemes');
 
 const app = express();
 
@@ -51,7 +52,7 @@ app.get('/api/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development'
   });
 });
-
+app.use('/api/schemes', schemesRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
