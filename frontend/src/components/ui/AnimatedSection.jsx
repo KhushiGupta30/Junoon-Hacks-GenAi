@@ -1,21 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 
+/**
+ * This component is intentionally left simple to match the Google app
+ * aesthetic. It no longer performs on-scroll animations and
+ * just renders its children immediately.
+ * * The main page transition animation is handled by `AnimatedPage.jsx`.
+ */
 const AnimatedSection = ({ children, className = "" }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); } },
-      { threshold: 0.1 }
-    );
-    const currentRef = ref.current;
-    if (currentRef) observer.observe(currentRef);
-    return () => { if (currentRef) observer.unobserve(currentRef); };
-  }, []);
-
+  // All animation logic has been removed.
+  // We just return a simple div that passes along the className.
   return (
-    <div ref={ref} className={`transition-all duration-1000 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"} ${className}`}>
+    <div className={className}>
       {children}
     </div>
   );
