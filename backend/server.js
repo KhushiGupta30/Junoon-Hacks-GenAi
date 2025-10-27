@@ -24,6 +24,7 @@ const artisanRoutes = require('./routes/artisan');
 const investorRoutes = require('./routes/investor');
 const reviewRoutes = require('./routes/reviews');
 const schemesRoutes = require('./routes/schemes');
+const rawMaterialRoutes = require('./routes/rawMaterials');
 
 const app = express();
 
@@ -71,6 +72,7 @@ app.use('/api/mentorship', mentorshipRoutes);
 app.use('/api/discussions', discussionRoutes);
 app.use('/api/investor', investorRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/materials', rawMaterialRoutes);
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
