@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../../api/axiosConfig';
+import { useAuth } from '../../context/AuthContext';
+
 import AnimatedSection from '../../components/ui/AnimatedSection';
 import {
+    ArrowRightIcon,
     TruckIcon,
     CubeTransparentIcon,
     ShieldCheckIcon,
     TagIcon,
+    BuildingStorefrontIcon,
     ArchiveIcon,
     SendIcon, // Use SendIcon from your common icons file
 } from '../../components/common/Icons';
@@ -42,6 +47,7 @@ const LogisticsPage = () => {
     const [ordersAwaitingShipment, setOrdersAwaitingShipment] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const { user } = useAuth();
 
     const packagingTips = [
         { title: "Use Double Boxing", description: "For fragile items, use nested boxes with cushioning.", icon: <CubeTransparentIcon className="w-5 h-5 text-gray-400" /> },
@@ -49,6 +55,12 @@ const LogisticsPage = () => {
         { title: "Waterproof Your Items", description: "Wrap items in plastic before boxing for moisture protection.", icon: <ShieldCheckIcon className="w-5 h-5 text-gray-400" /> },
         { title: "Label Clearly & Securely", description: "Ensure the label is legible, secure, and has a return address.", icon: <TagIcon className="w-5 h-5 text-gray-400" /> },
     ];
+
+    const hasUsedCatalog = !!user?.hasUsedMaterialsCatalog; // This converts (null, undefined, false) to false
+
+    const catalogLink = hasUsedCatalog 
+        ? "/artisan/materials-catalog" // The "app" page
+        : "/artisan/raw-materials";
 
     useEffect(() => {
         const fetchLogisticsData = async () => {
@@ -77,8 +89,10 @@ const LogisticsPage = () => {
                         <SkeletonOrderCard />
                     </div>
                 </div>
-                <div className="lg:w-80 flex-shrink-0 space-y-8">
-                    <SkeletonSidebarCard />
+                <div className="lg:w-80 flex-shrink-0 space-y-6">
+                    <SkeletonBase className="h-40" /> {/* Skeleton for Ethical card */}
+                    <SkeletonBase className="h-40" /> {/* Skeleton for NEW Catalog card */}
+                    <SkeletonBase className="h-56" /> {/* Skeleton for tips card */}
                 </div>
             </div>
         );
@@ -169,6 +183,50 @@ const LogisticsPage = () => {
             </div>
 
             <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4">
+
+                <AnimatedSection>
+                    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <div className="flex items-center gap-3 mb-3">
+                            <ShieldCheckIcon className="h-6 w-6 text-google-green" />
+                            <h3 className="text-base font-medium text-gray-800">Ethical Supply Chain</h3>
+                        </div>
+                        <p className="text-xs text-gray-600 leading-relaxed mb-4">
+                            We manage everything from certified raw material sourcing to our proprietary logistics network, ensuring end-to-end quality control.
+                        </p>
+                        <Link 
+                            to="/artisan/raw-materials" // <-- Links to your new page
+                            className="text-xs font-medium text-google-blue hover:underline flex items-center gap-1"
+                        >
+                            Explore Our Process <ArrowRightIcon className="w-3 h-3" />
+                        </Link>
+                    </div>
+                </AnimatedSection>
+
+                <AnimatedSection>
+                    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <div className="flex items-center gap-3 mb-3">
+                            <BuildingStorefrontIcon className="h-6 w-6 text-google-blue" />
+                            <h3 className="text-base font-medium text-gray-800">Raw Materials</h3>
+                        </div>
+                        <p className="text-xs text-gray-600 leading-relaxed mb-4">
+                            {/* Dynamic text based on user status */}
+                            {hasUsedCatalog
+                                ? "Browse our catalog or view your past material orders."
+                                : "Learn about our ethical sourcing and browse the catalog."
+                            }
+                        </p>
+                        <Link 
+                            to={catalogLink} // <-- Use the dynamic link
+                            className="text-xs font-medium text-google-blue hover:underline flex items-center gap-1"
+                        >
+                            {/* Dynamic link text */}
+                            {hasUsedCatalog ? "Go to Marketplace" : "Learn More"} <span>&rarr;</span>
+                        </Link>
+                    </div>
+                </AnimatedSection>
+
+
+
                 <AnimatedSection>
                     <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                         <div className="flex items-center gap-3 mb-4">
