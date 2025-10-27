@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children, roles }) => {
     }
 
     if (roles && roles.length > 0 && !roles.includes(user.role)) {
-        return <Navigate to="/buyer" replace />;
+        return <Navigate to="/buyer/market" replace />;
     }
 
     return children;

@@ -2,6 +2,8 @@ import React, { useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from '../api/axiosConfig';
 import { useCart } from "../context/CartContext.jsx"; // Import the cart hook
+import BuyerHeader from '../components/layout/BuyerHeader.jsx'; // <-- 1. IMPORTED HEADER
+import Footer from '../components/layout/Footer.jsx'; // <-- 2. IMPORTED FOOTER
 
 // --- ICONS (No changes) ---
 const SearchIcon = () => ( <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" ></path> </svg> );
@@ -24,28 +26,6 @@ const CartIcon = () => {
     );
 };
 
-// --- PAGE COMPONENTS ---
-
-export const BuyerHeader = () => (
-  <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
-    <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-      <Link to="/" className="flex items-center space-x-3">
-        <img src="/logo.png" alt="Kalaghar Logo" className="h-10 w-10 object-contain" />
-        <h1 className="text-3xl font-bold text-gray-800 tracking-tighter"> Kala<span className="text-google-blue">Ghar</span> </h1>
-      </Link>
-      <nav className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">
-        <Link to="/buyer#marketplace" className="text-google-blue border-b-2 border-google-blue pb-1"> Shop </Link>
-        <Link to="/buyer#new-ideas" className="hover:text-google-blue transition"> New Ideas </Link>
-        <Link to="/buyer#artisans" className="hover:text-google-blue transition"> Our Artisans </Link>
-      </nav>
-      <div className="flex items-center space-x-5 text-gray-600">
-        <button className="hover:text-google-blue transition"> <SearchIcon /> </button>
-        <Link to="/cart" className="hover:text-google-blue transition"> <CartIcon /> </Link>
-        <button className="hover:text-google-blue transition"> <UserIcon /> </button>
-      </div>
-    </div>
-  </header>
-);
 
 
 
@@ -375,19 +355,7 @@ export default function BuyerMarketplace() {
 
       </main>
 
-      <footer className="bg-google-blue text-white">
-
-        <div className="container mx-auto px-6 py-12">
-
-          <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
-
-            &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.
-
-          </div>
-
-        </div>
-
-      </footer>
+      <Footer />
 
     </div>
 

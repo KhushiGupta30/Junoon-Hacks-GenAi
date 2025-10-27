@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BuyerHeader } from "../pages/buyermarket";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import BuyerHeader from '../components/layout/BuyerHeader.jsx';
+import Footer from '../components/layout/Footer.jsx'; // <-- This was imported
 
 const TrashIcon = () => (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -52,12 +53,13 @@ export default function CartPage() {
                         <div className="bg-white p-8 rounded-lg shadow-md">
                             <h1 className="text-3xl font-bold text-google-green mb-4">Order Placed Successfully!</h1>
                             <p className="text-gray-600 mb-8">Thank you for your purchase. You will receive a confirmation email shortly.</p>
-                            <Link to="/buyer" className="inline-block bg-google-blue text-white font-semibold px-8 py-3 rounded-lg hover:bg-google-red transition-colors duration-300">
+                            <Link to="/market" className="inline-block bg-google-blue text-white font-semibold px-8 py-3 rounded-lg hover:bg-google-red transition-colors duration-300">
                                 Continue Shopping
                             </Link>
                         </div>
                     </div>
                 </main>
+                <Footer /> {/* <-- 1. ADDED FOOTER HERE */}
             </div>
         );
     }
@@ -72,7 +74,7 @@ export default function CartPage() {
                         <div className="bg-white p-8 rounded-lg shadow-md text-center">
                             <h2 className="text-2xl font-semibold text-gray-700 mb-4"> Your Cart is Empty </h2>
                             <p className="text-gray-500 mb-8"> Looks like you haven't added any handcrafted items yet. </p>
-                            <Link to="/buyer" className="inline-block bg-google-blue text-white font-semibold px-8 py-3 rounded-lg hover:bg-google-red transition-colors duration-300">
+                            <Link to="/buyer/market" className="inline-block bg-google-blue text-white font-semibold px-8 py-3 rounded-lg hover:bg-google-red transition-colors duration-300">
                                 Start Exploring
                             </Link>
                         </div>
@@ -132,6 +134,7 @@ export default function CartPage() {
                     )}
                 </div>
             </main>
+            <Footer /> {/* <-- 2. ADDED FOOTER HERE */}
         </div>
     );
 }

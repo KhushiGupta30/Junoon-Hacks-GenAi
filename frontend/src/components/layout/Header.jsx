@@ -28,7 +28,7 @@ const Header = ({ onLoginClick }) => {
                 <span className="font-semibold text-gray-700">
                     Welcome, {user.name}!
                 </span>
-                <Link to={user.role === 'artisan' ? '/artisan/dashboard' : '/buyer'} className="bg-google-blue text-white font-semibold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors">
+                <Link to={user.role === 'artisan' ? '/artisan/dashboard' : '/buyer/market'} className="bg-google-blue text-white font-semibold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors">
                     Dashboard
                 </Link>
                 <button

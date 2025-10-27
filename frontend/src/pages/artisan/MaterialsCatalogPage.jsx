@@ -270,6 +270,14 @@ const MaterialsCatalogPage = () => {
     return (
         <div className="px-6 md:px-8 py-8 md:py-15 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
             <AnimatedSection className="mb-8">
+
+                <Link
+                                        to="/artisan/logistics"
+                                        className="inline-flex items-center gap-1.5 text-sm font-medium text-google-blue hover:underline mb-4"
+                                    >
+                                        <ArrowLeftIcon className="w-4 h-4" />
+                                        Back to Logistics
+                                    </Link>
                  {/* REMOVED Back Link as per RawMaterialsPage.jsx structure */}
                 <h1 className="text-3xl font-semibold text-gray-800 tracking-tight">
                     Materials Marketplace

@@ -47,16 +47,17 @@ import InvestorProfile from "./pages/investor/InvestorProfile.jsx";
 import ReviewsPage from "./pages/artisan/ReviewsPage.jsx";
 import RawMaterialsPage from "./pages/artisan/RawMaterialsPage.jsx";
 import MaterialsCatalogPage from "./pages/artisan/MaterialsCatalogPage.jsx";
+import BuyerLayout from "./components/layout/BuyerLayout.jsx";
 
 const AppLayout = () => {
   const location = useLocation();
-  const hideFor = ["/artisan", "/ambassador","/investor"];
+  const hideFor = ["/artisan", "/ambassador","/investor","/buyer"];
   const shouldHide = hideFor.some((path) => location.pathname.startsWith(path));
 
   
   return (
     <>
-      {!shouldHide && <Header />}
+      {!shouldHide && <Header />}   
       <main>
         {/* --- 3. WRAP YOUR ROUTES --- */}
         <AnimatePresence mode="wait">
@@ -66,9 +67,8 @@ const AppLayout = () => {
             <Route path="/" element={<LandingPage />} />
             <Route path="/ambassador-page" element={<AnimatedPage><AmbassadorPage /></AnimatedPage>} />
             <Route path="/artisan-page" element={<AnimatedPage><ArtisanPage /></AnimatedPage>} />
-            <Route path="/buyer" element={<AnimatedPage><BuyerMarket /></AnimatedPage>} />
-            <Route path="/market" element={<AnimatedPage><BuyerMarket/></AnimatedPage>} />
-            <Route path="/cart" element={<AnimatedPage><CartPage /></AnimatedPage>} />
+            
+           
             <Route path="/seller/:artisanId" element={<AnimatedPage><SellerPage /></AnimatedPage>} />
             <Route path="/product/:id" element={<AnimatedPage><ProductPage /></AnimatedPage>} />
 
@@ -95,6 +95,22 @@ const AppLayout = () => {
               <Route path="reviews" element={<AnimatedPage><ReviewsPage /></AnimatedPage>} />
               <Route path="raw-materials" element={<AnimatedPage><RawMaterialsPage /></AnimatedPage>} />
               <Route path="materials-catalog" element={<AnimatedPage><MaterialsCatalogPage /></AnimatedPage>} />
+            </Route>
+
+             <Route
+              path="/buyer/*"
+              element={
+                <ProtectedRoute role="buyer">
+                  <BuyerLayout />
+                </ProtectedRoute>
+              }
+            >
+              
+              <Route path="market" element={<AnimatedPage><BuyerMarket/></AnimatedPage>} />
+               <Route path="cart" element={<AnimatedPage><CartPage /></AnimatedPage>} />
+              <Route path="products" element={<AnimatedPage><MyProductsPage /></AnimatedPage>} />
+             
+              
             </Route>
 
             <Route
