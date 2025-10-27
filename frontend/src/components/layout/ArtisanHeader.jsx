@@ -61,6 +61,7 @@ const ArtisanHeader = () => {
     { name: 'Funding', href: '/artisan/grant' },
     { name: 'Community', href: '/artisan/community' },
     { name: 'Logistics', href: '/artisan/logistics' },
+    { name: 'My Reviews', href: '/artisan/reviews' },
   ];
 
   return (

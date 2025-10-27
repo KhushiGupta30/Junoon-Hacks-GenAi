@@ -42,6 +42,7 @@ import InvestorDashboard from "./pages/investor/InverstorDashboard.jsx";
 import BrowseArtisans from "./pages/investor/BrowseArtisans.jsx";
 import InvestmentPortfolio from "./pages/investor/InvestmentPortfolio.jsx";
 import InvestorProfile from "./pages/investor/InvestorProfile.jsx";
+import ReviewsPage from "./pages/artisan/ReviewsPage.jsx";
 
 const AppLayout = () => {
   const location = useLocation();
@@ -83,7 +84,7 @@ const AppLayout = () => {
             <Route path="discussions/:id" element={<DiscussionThreadPage />} />
             <Route path="logistics" element={<LogiPage />} />
             <Route path="profile" element={<ArtisanProfilePage />} />
-            {/* <Route path="reviews" element={<ReviewsPage />} /> */}
+            <Route path="reviews" element={<ReviewsPage />} />
           </Route>
 
           <Route
