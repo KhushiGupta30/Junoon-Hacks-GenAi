@@ -1,218 +1,193 @@
 // backend/services/GoogleEventsService.js
 const { db } = require('../firebase');
 const axios = require('axios');
-// Import the INSTANCE of UserService, not the class
+// Import the INSTANCE of UserService
 const userServiceInstance = require('./UserService');
+
+// Regex to find dates
+const dateRegex =
+  /(\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}(st|nd|rd|th)?(-\d{1,2}(?:st|nd|rd|th)?)?\b)|(\d{4}-\d{2}-\d{2})|(\d{1,2}\/\d{1,2}\/\d{2,4})/;
 
 class GoogleEventsService {
   constructor() {
     this.cacheCollection = db.collection('nearby_events_cache');
-    // Assign the imported instance directly
     this.userService = userServiceInstance;
     this.GOOGLE_API_KEY = process.env.GOOGLE_CSE_API_KEY;
     this.GOOGLE_CSE_ID = process.env.GOOGLE_CSE_ID;
   }
 
-  /**
-   * Parse date from snippet with better handling
-   */
   parseEventDate(snippet) {
-    // Try multiple date formats
-    const patterns = [
-      // Month Day formats: "Oct 26", "October 26th"
-      /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2})(?:st|nd|rd|th)?\b/i,
-      // ISO dates: "2025-10-26"
-      /\b(\d{4})-(\d{2})-(\d{2})\b/,
-      // US dates: "10/26/2025" or "10/26/25"
-      /\b(\d{1,2})\/(\d{1,2})\/(\d{2,4})\b/,
-      // Date ranges: "Oct 26-28", "Nov 1-3"
-      /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2})(?:st|nd|rd|th)?[-–](\d{1,2})(?:st|nd|rd|th)?\b/i
-    ];
-
-    for (const pattern of patterns) {
-      const match = snippet.match(pattern);
-      if (match) {
-        return match[0];
-      }
-    }
-
-    return 'Date not specified';
+    const match = snippet.match(dateRegex);
+    return match ? match[0].replace(/[,.]+$/, '').trim() : 'Date not specified';
   }
 
   /**
-   * Get current date in YYYYMMDD format for CSE date filtering
+   * Fetches events from Google CSE using coordinate-based search.
+   * @param {string} locationQuery - Fallback text query (e.g., "New Delhi, Delhi")
+   * @param {object} coordinates - User's coordinates { latitude, longitude }
+   * @param {number} radiusKm - Search radius in kilometers
+   * @returns {Array} - Array of event objects
    */
-  getDateString(daysOffset = 0) {
-    const date = new Date();
-    date.setDate(date.getDate() + daysOffset);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}${month}${day}`;
-  }
-
-  /**
-   * Fetches events from Google CSE API with proper filtering
-   */
-  async fetchEventsFromGoogle(locationQuery) {
+  async fetchEventsFromGoogle(locationQuery, coordinates = null, radiusKm = 50) {
     if (!this.GOOGLE_API_KEY || !this.GOOGLE_CSE_ID) {
-      console.warn('Google CSE API Key or ID is not set. Skipping event search.');
+      console.warn('Google CSE API Key or ID missing. Skipping event search.');
       return [];
     }
 
-    // Build a more targeted query
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.toLocaleString('en-US', { month: 'long' });
-    
-    // Create a search query that's more likely to find upcoming events
-    const query = `"art exhibition" OR "craft fair" OR "artisan market" OR "maker fair" ${currentMonth} ${currentYear} ${locationQuery}`;
-    
-    const url = 'https://www.googleapis.com/customsearch/v1';
+    // 1. --- Build Base Query ---
+    const queryBase = `"craft fair" OR "art exhibition" OR "handicraft mela" OR "makers market" OR "handloom exhibition" OR "artisan market"`;
+    let query = ""; // This will be set below
+
+    // 2. --- Build API Params ---
+    const params = {
+      key: this.GOOGLE_API_KEY,
+      cx: this.GOOGLE_CSE_ID,
+      num: 10, // Request 10 results
+      gl: 'in', // Geolocation bias for India
+      cr: 'countryIN', // Restrict results to India
+      sort: 'date', // Sort by date to find RECENT events
+    };
+
+    // 3. --- Add Location to Query ---
+    if (coordinates && coordinates.latitude && coordinates.longitude) {
+      // **PRIORITY:** Use coordinates with a radius. This is the BEST method.
+      // Format: more:p:location:LAT:LONG:RADIUSkm
+      const locationFilter = `more:p:location:${coordinates.latitude}:${coordinates.longitude}:${radiusKm}km`;
+      query = `${queryBase} ${locationFilter}`;
+      console.log(`Using coordinates in query: ${locationFilter}`);
+    } else if (locationQuery) {
+      // **FALLBACK:** Add city/state as simple keywords.
+      query = `${queryBase} ${locationQuery}`;
+      console.log(`Using location query: ${locationQuery}`);
+    } else {
+      console.warn('No location or coordinates provided for event search.');
+      return [];
+    }
+
+    // **CRITICAL FIX:** Assign the built query string to the params object
+    params.q = query;
+
+    const url = `https://www.googleapis.com/customsearch/v1`;
 
     try {
-      const response = await axios.get(url, {
-        params: {
-          key: this.GOOGLE_API_KEY,
-          cx: this.GOOGLE_CSE_ID,
-          q: query,
-          num: 10, // Get more results to filter from
-          // Sort by date (most recent first)
-          sort: 'date',
-          // Use date restrict to get recent content (last 90 days)
-          dateRestrict: 'm3', // m3 = last 3 months
-          // Alternative: use exact date range
-          // sort: `date:r:${this.getDateString()}:${this.getDateString(90)}`,
-        },
-      });
+      console.log(`Sending Google Search Query: ${params.q}`);
+      const response = await axios.get(url, { params });
 
       if (!response.data.items) {
-        console.log('No search results found');
+        console.log(`No Google Search results found.`);
         return [];
       }
 
-      // Parse and format results
+      // 4. --- REMOVE RESTRICTIVE FILTER ---
+      // We now trust Google's location parameters (gl, cr, more:p:location),
+      // which are more accurate than snippet-matching.
       const events = response.data.items
         .map((item) => {
           const snippet = item.snippet.replace(/[\n\t]+/g, ' ').trim();
-          const date = this.parseEventDate(snippet);
-          
           return {
             title: item.title,
             link: item.link,
             snippet: snippet,
             source: item.displayLink,
-            date: date,
-            // Include page map data if available (some sites provide structured data)
-            ...(item.pagemap?.event?.[0] && {
-              structuredDate: item.pagemap.event[0].startdate,
-              location: item.pagemap.event[0].location,
-            }),
+            date: this.parseEventDate(snippet),
           };
         })
-        // Filter out events that are clearly in the past
-        .filter(event => {
-          // If we found "Date not specified", keep it (might be upcoming)
-          if (event.date === 'Date not specified') return true;
-          
-          // Basic filtering: if date string contains current or future month names
-          const futureMonths = this.getUpcomingMonthNames(3);
-          return futureMonths.some(month => 
-            event.date.toLowerCase().includes(month.toLowerCase())
-          );
-        })
-        // Limit to 5 best results
-        .slice(0, 5);
+        .filter(event => event !== null); // Keep filter for nulls
 
-      console.log(`Found ${events.length} events for ${locationQuery}`);
+      console.log(`Found ${events.length} potentially relevant events.`);
       return events;
-      
+
     } catch (error) {
-      console.error(
-        'Error fetching Google CSE:',
-        error.response?.data?.error || error.message
-      );
-      
-      // Log more details for debugging
+      console.error('Error fetching Google CSE:', error.response?.data?.error || error.message);
       if (error.response?.data) {
         console.error('API Error Details:', JSON.stringify(error.response.data, null, 2));
       }
-      
       return [];
     }
   }
 
   /**
-   * Helper to get upcoming month names for filtering
+   * Gets nearby events, from cache or by fetching new ones.
    */
-  getUpcomingMonthNames(count = 3) {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const upcomingMonths = [];
-    
-    for (let i = 0; i < count; i++) {
-      const monthIndex = (currentMonth + i) % 12;
-      upcomingMonths.push(months[monthIndex]);
-    }
-    
-    return upcomingMonths;
-  }
-
-  /**
-   * Gets nearby events, from cache or by fetching new ones
-   */
-  async getNearbyEvents(userId) {
-    const user = await this.userService.findById(userId);
+  async getNearbyEvents(userId, forceRefresh = false) {
+    // Correctly use the userService instance
+    const user = await this.userService.findById(userId); // Use instance method
     const location = user?.profile?.location;
+    // Get coordinates
+    const coordinates = user?.coordinates; // Assumes structure { latitude: number, longitude: number }
 
+    // Need at least a city for fallback and cache key
     if (!location || !location.city) {
-      throw new Error('User location is not set.');
+      console.error(`User ${userId} location (city) is not set.`);
+      return []; // Return empty instead of throwing error
     }
 
-    const locationKey = location.city.toLowerCase().replace(/\s+/g, '_');
+    // Build location string for fallback query and cache key
+    const locationQuery = `${location.city}${location.state ? ', ' + location.state : ''}`;
+    const locationKey = `${location.city}${location.state ? '_' + location.state : ''}`
+      .toLowerCase()
+      .replace(/\s+/g, '_');
+
     const cacheDocRef = this.cacheCollection.doc(locationKey);
     const now = new Date();
 
     try {
-      // 1. Check cache
-      const cacheDoc = await cacheDocRef.get();
-      if (cacheDoc.exists) {
-        const data = cacheDoc.data();
-        if (data.expiresAt.toDate() > now) {
-          console.log(`Returning cached events for ${location.city}`);
-          return data.events;
+      // 1. Check cache (cache still based on city/state key)
+      if (!forceRefresh) {
+        const cacheDoc = await cacheDocRef.get();
+        if (cacheDoc.exists) {
+          const data = cacheDoc.data();
+          const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+          if (data.updatedAt.toDate() > sixHoursAgo) {
+            console.log(`Returning cached events for ${locationKey}`);
+            return data.events;
+          } else {
+            console.log(`Cache expired for ${locationKey}`);
+          }
         }
+      } else {
+        console.log(`Forcing cache refresh for ${locationKey}`);
       }
 
-      // 2. Cache is stale or non-existent, fetch new events
-      const locationQuery = `${location.city}${location.state ? ', ' + location.state : ''}`;
-      console.log(`Fetching new events for: ${locationQuery}`);
-      
-      const newEvents = await this.fetchEventsFromGoogle(locationQuery);
+      // 2. Fetch new events, passing coordinates and default radius
+      console.log(`Fetching new events for user ${userId} near ${locationQuery}`);
+      // Use default radius (e.g., 50km) for the primary, coordinate-based search
+      let newEvents = await this.fetchEventsFromGoogle(locationQuery, coordinates, 50);
 
-      // 3. Cache the new results (24 hour cache)
-      const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      // --- Extended Search Logic (FIXED) ---
+      // If no city-level results, broaden search to state
+      if ((!newEvents || newEvents.length === 0) && location?.state) {
+        console.log(`No events found for ${locationQuery}, trying state-level search: ${location.state}`);
+        // Pass state as query, NULL for coordinates (to force keyword search), and a larger radius
+        newEvents = await this.fetchEventsFromGoogle(location.state, null, 200);
+      }
+
+      // *** USE ELSE IF ***
+      // If still no results, try pan-India
+      else if ((!newEvents || newEvents.length === 0)) {
+        console.log(`No events found for city or state. Trying pan-India search.`);
+        // Pass "India" as query, NULL for coordinates, and a very large radius
+        newEvents = await this.fetchEventsFromGoogle("India", null, 1000);
+      }
+
+      // 3. Cache the new results
+      const sixHoursLater = new Date(now.getTime() + 6 * 60 * 60 * 1000);
       const newCacheData = {
         location: location.city,
-        locationQuery: locationQuery,
+        locationQuery: locationQuery, // Store the query used for context
         events: newEvents,
-        expiresAt: tomorrow,
+        expiresAt: sixHoursLater,
         updatedAt: now,
       };
 
       await cacheDocRef.set(newCacheData);
-      console.log(`Cached ${newEvents.length} events for ${location.city}`);
-      
+      console.log(`Cached ${newEvents.length} events for ${locationKey}`);
+
       return newEvents;
-      
+
     } catch (error) {
       console.error('Error in getNearbyEvents:', error);
-      throw new Error('Could not retrieve nearby events.');
+      return []; // Return empty on error
     }
   }
 }

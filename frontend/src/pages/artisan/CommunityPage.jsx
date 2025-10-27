@@ -1,5 +1,5 @@
 // File: frontend/src/pages/artisan/CommunityPage.jsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo,useCallback} from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import AnimatedSection from '../../components/ui/AnimatedSection';
@@ -12,8 +12,15 @@ import {
     ExclamationCircleIcon,
     TicketIcon, // Icon for events
     ExternalLinkIcon, // Icon for external links
+    RefreshCwIcon
 } from '../../components/common/Icons';
 import ArtisanProfileModal from '../../components/modal/ArtisanProfileModal';
+
+// const RefreshCwIcon = ({ className = "w-4 h-4" }) => (
+//   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+//     <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.75 2.75L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.75-2.75L3 16"/><path d="M3 21v-5h5"/>
+//   </svg>
+// );
 
 // Simple skeleton components for loading state
 const SkeletonBase = ({ className = "" }) => <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>;
@@ -76,6 +83,7 @@ const CommunityPage = () => {
     const [isAmbassadorDetailOpen, setIsAmbassadorDetailOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('events');
     const [selectedArtisanId, setSelectedArtisanId] = useState(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     // NEW: State for API-fetched events
     const [localEvents, setLocalEvents] = useState([]);
@@ -136,6 +144,22 @@ const CommunityPage = () => {
         return [...manualEvents, ...apiEvents];
     }, [communityData, localEvents]);
 
+    const handleRefreshEvents = useCallback(async () => {
+        setIsRefreshing(true);
+        setEventsLoading(true); // Show loading indicator for events section
+        try {
+            // Use the POST endpoint to bypass cache
+            const response = await api.post('/events/nearby/refresh');
+            setLocalEvents(response.data || []); // Update state with fresh data
+        } catch (err) {
+            console.error("Error refreshing events:", err);
+            // Optionally set an error state specific to refresh
+            setError('Could not refresh events.');
+        } finally {
+            setIsRefreshing(false);
+            setEventsLoading(false);
+        }
+    }, []);
 
     // Handle accepting a mentorship request
     const handleAcceptRequest = async (requestId) => {
@@ -214,9 +238,19 @@ const CommunityPage = () => {
                         {/* MODIFIED: "Events" tab now renders the combined list */}
                         {activeTab === 'events' && (
                              <div className="space-y-5">
-                                <div className="flex items-center gap-3 mb-4 px-1">
-                                    <CalendarIcon className="h-6 w-6 text-google-red opacity-80" />
-                                    <h2 className="text-lg font-medium text-gray-700">Upcoming Events & Exhibitions</h2>
+                                <div className="flex justify-between items-center gap-3 mb-4 px-1">
+                                    <div className="flex items-center gap-3">
+                                        <CalendarIcon className="h-6 w-6 text-google-red opacity-80" />
+                                        <h2 className="text-lg font-medium text-gray-700">Upcoming Events & Exhibitions</h2>
+                                    </div>
+                                    <button
+                                        onClick={handleRefreshEvents}
+                                        disabled={isRefreshing || eventsLoading}
+                                        className="flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <RefreshCwIcon className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                                        Refresh
+                                    </button>
                                 </div>
                                 {eventsLoading ? (
                                     <>
@@ -355,7 +389,6 @@ const CommunityPage = () => {
                         </div>
                     </AnimatedSection>
 
-                    {/* REMOVED: Sidebar card for local exhibitions */}
                     
                     {/* Discussions Card */}
                     <AnimatedSection>
