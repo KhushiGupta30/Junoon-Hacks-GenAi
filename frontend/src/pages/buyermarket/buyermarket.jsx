@@ -30,26 +30,17 @@ const CartIcon = () => {
 
 
 const ProductCard = ({ product }) => {
-
     const { addToCart } = useCart();
 
-   
-
     const handleAddToCart = (e) => {
-
-        e.preventDefault(); // Prevent navigation when clicking the button
-
+        e.preventDefault();
         e.stopPropagation();
-
         addToCart(product);
-
-        // Maybe add a little notification/toast here in a real app
-
+        console.log(`Added ${product.name} to cart`);
     };
 
-
-
     return (
+<<<<<<< Updated upstream
 
         <div className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-transparent hover:border-google-blue h-full flex flex-col">
 
@@ -71,43 +62,68 @@ const ProductCard = ({ product }) => {
 
                     <Link to={`/seller/${product.artisan.id}`} className="hover:underline hover:text-google-blue">
 
+=======
+        <div className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex flex-col h-full">
+            {/* Image section */}
+            <Link
+                to={`/product/${product._id}`}
+                className="relative block aspect-square w-full overflow-hidden"
+            >
+                <img
+                    src={product.images[0]?.url || "/placeholder.png"}
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+            </Link>
+
+            {/* Content section */}
+            <div className="p-4 flex flex-col flex-grow">
+                {/* Artisan Name */}
+                <p className="text-xs text-gray-500 mb-1">
+                    <Link
+                        to={`/buyer/seller/${product.artisan._id}`}
+                        className="hover:text-google-blue hover:underline transition-colors"
+                    >
+>>>>>>> Stashed changes
                         {product.artisan.name}
-
                     </Link>
-
                 </p>
 
+<<<<<<< Updated upstream
                 <h3 className="text-lg font-bold text-gray-800 truncate">
 
                     <Link to={`/product/${product.id}`} className="hover:text-google-blue transition-colors">
 
+=======
+                {/* Product Name */}
+                <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2">
+                    <Link
+                        to={`/buyer/product/${product._id}`}
+                        className="hover:text-google-blue transition-colors"
+                    >
+>>>>>>> Stashed changes
                         {product.name}
-
                     </Link>
-
                 </h3>
 
-                <div className="flex justify-between items-center mt-4 flex-grow">
-
-                    {/* --- THIS IS THE EDITED LINE --- */}
-
-                    <p className="text-xl font-semibold text-google-green"> ${(Number(product.price) || 0).toFixed(2)} </p>
-
-                    <button onClick={handleAddToCart} className="bg-google-blue text-white font-semibold px-5 py-2 rounded-lg hover:bg-google-red transition-colors duration-300 transform group-hover:scale-105">
-
+                {/* Price and Add to Cart */}
+                <div className="mt-auto flex items-center justify-between">
+                    <p className="text-base font-semibold text-gray-800">
+                        ₹{(Number(product.price) || 0).toFixed(2)}
+                    </p>
+                    <button
+                        onClick={handleAddToCart}
+                        className="bg-google-blue text-white text-sm font-medium px-4 py-1.5 rounded-full hover:bg-google-blue/90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-google-blue shadow-sm"
+                        aria-label={`Add ${product.name} to cart`}
+                    >
                         Add to Cart
-
                     </button>
-
                 </div>
-
             </div>
-
         </div>
-
     );
-
 };
+
 
  
 
@@ -157,7 +173,11 @@ const IdeaCard = ({ idea }) => {
 
           by{" "}
 
+<<<<<<< Updated upstream
           <Link to={`/seller/${idea.artisan.id}`} className="hover:underline hover:text-google-blue">
+=======
+          <Link to={`/buyer/seller/${idea.artisan._id}`} className="hover:underline hover:text-google-blue">
+>>>>>>> Stashed changes
 
             {idea.artisan.name}
 
@@ -269,13 +289,13 @@ export default function BuyerMarketplace() {
 
         <section id="marketplace">
 
-          <div className="py-16 bg-cover bg-[center_bottom_30%] relative" style={{ backgroundImage: "url('/2.png')" }} >
+          <div className="py-8 bg-cover bg-[center_bottom_30%] relative" style={{ backgroundImage: "url('/2.png')" }} >
 
             <div className="absolute inset-0 bg-black/40"></div>
 
             <div className="container mx-auto px-6 relative z-10">
 
-              <div className="text-center mb-12">
+              <div className="text-center mb-10">
 
                 <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-3"> Discover <span className="text-google-yellow">Handcrafted</span> Treasures </h2>
 

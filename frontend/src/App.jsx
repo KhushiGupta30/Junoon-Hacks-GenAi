@@ -19,9 +19,9 @@ import LandingPage from "./pages/LandingPage.jsx";
 import AmbassadorPage from "./pages/ambassador.jsx";
 import ArtisanPage from "./pages/artisan.jsx";
 import BuyerMarket from "./pages/buyermarket/buyermarket.jsx";
-import SellerPage from "./components/SellerPage.jsx";
-import CartPage from "./components/cartpage.jsx";
-import ProductPage from "./components/ProductPage.jsx";
+import SellerPage from "./pages/common/SellerPage.jsx";
+import CartPage from "./pages/buyermarket/cartpage.jsx";
+import ProductPage from "./pages/common/ProductPage.jsx";
 import ArtisanDashboard from "./pages/artisan/ArtisanDashboard.jsx";
 import MyProductsPage from "./pages/artisan/MyProductsPage.jsx";
 import ProductEditPage from "./pages/artisan/ProductEditPage.jsx";
@@ -109,6 +109,8 @@ const AppLayout = () => {
               <Route path="market" element={<AnimatedPage><BuyerMarket/></AnimatedPage>} />
                <Route path="cart" element={<AnimatedPage><CartPage /></AnimatedPage>} />
               <Route path="products" element={<AnimatedPage><MyProductsPage /></AnimatedPage>} />
+              <Route path="product/:id" element={<AnimatedPage><ProductPage /></AnimatedPage>} />
+              <Route path="seller/:artisanId" element={<AnimatedPage><SellerPage /></AnimatedPage>} />
              
               
             </Route>
