@@ -47,6 +47,13 @@ const TabButton = ({ title, isActive, onClick }) => (
     )}
   </button>
 );
+const getOrderStatus = (order) => {
+  if (Array.isArray(order.timeline) && order.timeline.length > 0) {
+    // Assuming last entry is latest
+    return order.timeline[order.timeline.length - 1].status || "unknown";
+  }
+  return "unknown";
+};
 
 const MyOrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -92,9 +99,9 @@ const MyOrdersPage = () => {
 
     sortedOrders.forEach((order) => {
       // Example bulk order check - MODIFY THIS LOGIC AS NEEDED
-      if (isBulkOrder(order) && pendingStatuses.includes(order.status)) {
+      if (isBulkOrder(order) && pendingStatuses.includes(getOrderStatus(order))) {
         bulk.push(order); // Add to bulk if it meets criteria AND is pending
-      } else if (pendingStatuses.includes(order.status)) {
+      } else if (pendingStatuses.includes(getOrderStatus(order))) {
         pending.push(order); // Add to regular pending otherwise
       } else {
         completed.push(order); // Add to completed if not pending
@@ -298,12 +305,12 @@ const MyOrdersPage = () => {
                           </td>
                           <td className="px-4 py-3 text-center align-top w-40">
                             <select
-                              value={order.status}
+                              value={getOrderStatus(order)}
                               onChange={(e) =>
                                 handleStatusChange(order.id, e.target.value)
                               }
                               className={`block w-full text-xs font-medium px-2 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-google-blue focus:border-google-blue transition ${
-                                statusColors[order.status] ||
+                                statusColors[getOrderStatus(order)] ||
                                 "bg-gray-100 text-gray-800 border-gray-200"
                               }`}
                             >
@@ -384,12 +391,12 @@ const MyOrdersPage = () => {
                           </td>
                           <td className="px-4 py-3 text-center align-top w-40">
                             <select
-                              value={order.status}
+                              value={getOrderStatus(order)}
                               onChange={(e) =>
                                 handleStatusChange(order.id, e.target.value)
                               }
                               className={`block w-full text-xs font-medium px-2 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-google-blue focus:border-google-blue transition ${
-                                statusColors[order.status] ||
+                                statusColors[getOrderStatus(order)] ||
                                 "bg-gray-100 text-gray-800 border-gray-200"
                               }`}
                             >
@@ -441,11 +448,11 @@ const MyOrdersPage = () => {
                       </div>
                       <span
                         className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                          statusColors[order.status] ||
+                          statusColors[getOrderStatus(order)] ||
                           "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {order.status.charAt(0).toUpperCase() + order.slice(1)}
+                        {getOrderStatus(order).charAt(0).toUpperCase() + getOrderStatus(order).slice(1)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center mt-2">

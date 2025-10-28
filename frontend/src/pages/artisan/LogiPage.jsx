@@ -55,7 +55,19 @@ const LogisticsPage = () => {
         { title: "Waterproof Your Items", description: "Wrap items in plastic before boxing for moisture protection.", icon: <ShieldCheckIcon className="w-5 h-5 text-gray-400" /> },
         { title: "Label Clearly & Securely", description: "Ensure the label is legible, secure, and has a return address.", icon: <TagIcon className="w-5 h-5 text-gray-400" /> },
     ];
-
+    const handleSelectAndShip = async (orderId, partner) => {
+        try {
+            await api.put(`/orders/${orderId}/ship`, { 
+                partnerName: partner.partnerName,
+                estimatedPrice: partner.estimatedPrice 
+            });
+            // Refresh the list to remove the shipped order
+            fetchLogisticsData(); 
+        } catch (err) {
+            setError('Failed to update order. Please try again.');
+            console.error("Ship order error:", err);
+        }
+    };
     const hasUsedCatalog = !!user?.hasUsedMaterialsCatalog; // This converts (null, undefined, false) to false
 
     const catalogLink = hasUsedCatalog 
@@ -160,7 +172,10 @@ const LogisticsPage = () => {
                                                     </div>
                                                     <div className="text-right flex-shrink-0 ml-4">
                                                         <p className="font-bold text-google-green">₹{rec.estimatedPrice}</p>
-                                                        <button className="text-xs flex items-center gap-1 bg-google-blue text-white px-2 py-1 rounded-md mt-1 hover:bg-opacity-90 transition-colors">
+                                                        <button 
+                                                            onClick={() => handleSelectAndShip(order.id, rec)}
+                                                            className="text-xs flex items-center gap-1 bg-google-blue text-white px-2 py-1 rounded-md mt-1 hover:bg-opacity-90 transition-colors"
+                                                        >
                                                             <SendIcon size={12} />
                                                             Select & Ship
                                                         </button>

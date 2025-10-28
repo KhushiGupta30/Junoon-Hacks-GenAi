@@ -1,7 +1,7 @@
 // backend/services/LogisticsAdvisorService.js
 
 // 1. Simplified Rate Cards (Store this in a config or DB in a real app)
-partner_rate_cards = {
+const partnerRateCards  = {
     "A F Xpress": {
         "baseRate": 150,
         "perKmRate": 2.0,
@@ -926,14 +926,25 @@ class LogisticsAdvisorService {
         }
         
         // Sort by cheapest price first
-        return recommendations.sort((a, b) => a.estimatedPrice - b.estimatedPrice);
+        return recommendations
+            .sort((a, b) => a.estimatedPrice - b.estimatedPrice)
+            .slice(0, 3);
     }
 
-    static getReason(partner, isRemote, isLongDistance) {
-        if (isRemote && partner.mode === 'air') return "Best for remote locations (Air Cargo)";
-        if (partner.type === 'premium') return "Fastest premium delivery";
-        if (partner.type === 'budget') return "Most budget-friendly option";
-        return "Reliable standard delivery";
+    static getReason(partner, isRemote) {
+        if (isRemote && partner.mode === 'air') {
+            return "Recommended for remote delivery (Air Cargo).";
+        }
+        if (partner.type === 'premium') {
+            return "Fastest premium delivery via Air.";
+        }
+        if (partner.type === 'budget' && partner.mode === 'land') {
+            return "Most budget-friendly option via Ground.";
+        }
+        if (partner.mode === 'air') {
+            return "Reliable standard delivery via Air.";
+        }
+        return "Reliable standard ground delivery.";
     }
 }
 

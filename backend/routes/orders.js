@@ -99,6 +99,7 @@ router.post(
         buyer: req.user.id,
         items: orderItems,
         artisanIds: artisanIds,
+        status: 'pending',
         pricing: {
           subtotal,
           tax,
@@ -111,10 +112,9 @@ router.post(
       };
       const artisan = await UserService.findById(orderItems[0].artisan); 
       const originCity = artisan.profile.location.city;
-      const destinationCity = shippingAddress.city;
-
-      const originCoords = cityCoordinates[originCity];
-      const destinationCoords = cityCoordinates[destinationCity];
+      const destinationCity = buyer.profile.location.city;
+      const originCoords = { lat: artisan.profile.location.latitude, lon: artisan.profile.location.longitude };
+      const destinationCoords = { lat: buyer.profile.location.latitude, lon: buyer.profile.location.longitude };
 
       let distanceKm = 0;
       let durationHours = 0;
@@ -400,7 +400,9 @@ router.put(
       }
 
       const { status, notes } = req.body;
-
+      await db.collection('orders').doc(req.params.id).update({
+        status: status
+      });
       const updatedOrder = await OrderService.updateStatus(
         req.params.id,
         status,
@@ -418,5 +420,61 @@ router.put(
     }
   }
 );
+router.put(
+  "/:id/ship",
+  [
+    auth,
+    authorize("artisan"),
+    body("partnerName").notEmpty().withMessage("Shipping partner name is required"),
+    body("estimatedPrice").isNumeric().withMessage("Estimated price is required"),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
 
+      const order = await OrderService.findById(req.params.id);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      const isArtisanForOrder = order.artisanIds.includes(req.user.id);
+      if (!isArtisanForOrder) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { partnerName, estimatedPrice } = req.body;
+      const notes = `Shipped via ${partnerName}.`;
+
+      // Add shipping details to the logistics object
+      const updatedLogistics = {
+        ...order.logistics,
+        selectedPartner: partnerName,
+        shippingCost: estimatedPrice,
+        shippedAt: new Date()
+      };
+      
+      await db.collection('orders').doc(req.params.id).update({ logistics: updatedLogistics });
+
+      // Update the status and timeline
+      const updatedOrder = await OrderService.updateStatus(
+        req.params.id,
+        "shipped",
+        notes,
+        req.user.id
+      );
+
+      res.json({
+        message: "Order marked as shipped successfully",
+        order: updatedOrder,
+      });
+
+    } catch (error) {
+      console.error("Ship order error:", error);
+      res.status(500).json({ message: "Server error while shipping order" });
+    }
+  }
+);
 module.exports = router;

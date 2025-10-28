@@ -1,24 +1,44 @@
 // backend/routes/logistics.js
 const express = require('express');
 const { auth, authorize } = require('../middleware/auth');
-const OrderService = require('../services/OrderService');
-const LogisticsAdvisorService = require('../services/LogisticsAdvisorService'); // Import our new service
+const LogisticsAdvisorService = require('../services/LogisticsAdvisorService');
+const { db } = require('../firebase');
 
 const router = express.Router();
 
-// This endpoint now returns pending orders with shipping recommendations
+// Helper function to get the latest status from the timeline
+const getOrderStatus = (order) => {
+  if (Array.isArray(order.timeline) && order.timeline.length > 0) {
+    return order.timeline[order.timeline.length - 1].status || "unknown";
+  }
+  return "unknown";
+};
+
 router.get('/', [auth, authorize('artisan')], async (req, res) => {
   try {
-    // 1. Fetch pending orders for the logged-in artisan
-    const pendingOrders = await OrderService.findMany({
-        'items.artisan': req.user.id,
-        'status': { $in: ['pending', 'confirmed', 'processing'] } // Get all shippable orders
+    const allArtisanOrders = [];
+    const shippableStatuses = ['pending', 'confirmed', 'processing'];
+
+    // 1. Fetch ALL orders for the artisan, regardless of status
+    const ordersSnapshot = await db.collection('orders')
+      .where('artisanIds', 'array-contains', req.user.id)
+      .orderBy('createdAt', 'desc')
+      .get();
+      
+    ordersSnapshot.forEach(doc => {
+        allArtisanOrders.push({ ...doc.data(), id: doc.id });
     });
 
-    // 2. Generate recommendations for each order
+    // 2. Filter the results in JavaScript, just like the frontend does
+    const pendingOrders = allArtisanOrders.filter(order => 
+        shippableStatuses.includes(getOrderStatus(order))
+    );
+
+    // 3. Generate recommendations for the filtered orders
     const ordersWithRecommendations = pendingOrders.map(order => {
         const recommendations = LogisticsAdvisorService.getRecommendations(order);
-        return { ...order, logistics: { ...order.logistics, recommendations } };
+        const existingLogistics = order.logistics || {};
+        return { ...order, logistics: { ...existingLogistics, recommendations } };
     });
 
     res.json({ ordersAwaitingShipment: ordersWithRecommendations });

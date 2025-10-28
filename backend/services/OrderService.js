@@ -12,6 +12,7 @@ class OrderService extends BaseService {
     return await super.create({
       ...orderData,
       orderNumber,
+      status: 'pending',
       timeline: [{
         status: 'pending',
         timestamp: new Date(),
@@ -33,12 +34,7 @@ class OrderService extends BaseService {
   }
 
   async findByArtisan(artisanId, options = {}) {
-    // This would require a more complex query since orders contain multiple items
-    // For now, we'll get all orders and filter client-side
-    const allOrders = await this.findMany({}, options);
-    return allOrders.filter(order => 
-      order.items.some(item => item.artisan === artisanId)
-    );
+    return await this.findMany({ artisanIds: { 'array-contains': artisanId } }, options);
   }
 
   async findByStatus(status, options = {}) {
