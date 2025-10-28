@@ -142,6 +142,7 @@ const AppLayout = () => {
               <Route path="portfolio" element={<AnimatedPage><InvestmentPortfolio /></AnimatedPage>} />
               <Route path="seller/:artisanId" element={<AnimatedPage><SellerPage /></AnimatedPage>} />
               <Route path ="profile" element={<AnimatedPage><InvestorProfile/></AnimatedPage>}/>
+              <Route path="product/:id" element={<AnimatedPage><ProductPage /></AnimatedPage>} />
             </Route>
           </Routes>
         </AnimatePresence>
