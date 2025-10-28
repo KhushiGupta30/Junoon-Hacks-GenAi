@@ -68,7 +68,7 @@ const ProductRow = ({ product, onEdit, onDelete }) => {
           * Now: Parse price to a float before calling toFixed()
           *
           */}
-        ${(parseFloat(product.price) || 0).toFixed(2)}
+        ₹{(parseFloat(product.price) || 0).toFixed(0)}
       </td>
       <td className="px-3 py-4 text-sm text-gray-500">
         {product.inventory?.isUnlimited ? (
