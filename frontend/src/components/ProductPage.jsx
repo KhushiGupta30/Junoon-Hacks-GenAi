@@ -86,7 +86,7 @@ const ProductPage = () => {
         <div className="bg-white p-8 rounded-lg shadow-md max-w-lg mx-auto">
           <h2 className="text-3xl font-bold text-gray-800">Product Not Found!</h2>
           <p className="text-red-500 mt-2">{error || "The product you are looking for does not exist."}</p>
-          <Link to="/market" className="mt-6 inline-block bg-google-blue text-white font-semibold px-6 py-2 rounded-lg hover:bg-google-red transition-colors">
+          <Link to="/buyer/market" className="mt-6 inline-block bg-google-blue text-white font-semibold px-6 py-2 rounded-lg hover:bg-google-red transition-colors">
             Back to Marketplace
           </Link>
         </div>

@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
         navigate("/investor/dashboard");
         break;
       default:
-        navigate("/market");
+        navigate("/buyer/market");
         break;
     }
   };

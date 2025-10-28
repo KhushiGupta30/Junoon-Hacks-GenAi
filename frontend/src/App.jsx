@@ -18,7 +18,7 @@ import AmbassadorLayout from "./components/layout/AmbassadorLayout.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 import AmbassadorPage from "./pages/ambassador.jsx";
 import ArtisanPage from "./pages/artisan.jsx";
-import BuyerMarket from "./pages/buyermarket.jsx";
+import BuyerMarket from "./pages/buyermarket/buyermarket.jsx";
 import SellerPage from "./components/SellerPage.jsx";
 import CartPage from "./components/cartpage.jsx";
 import ProductPage from "./components/ProductPage.jsx";

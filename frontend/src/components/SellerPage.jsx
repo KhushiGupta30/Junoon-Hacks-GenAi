@@ -67,7 +67,7 @@ const SellerPage = () => {
             <div className="py-12 text-center container mx-auto">
                 <h2 className="text-3xl font-bold text-red-500">Error</h2>
                 <p className="text-gray-600 mt-2">{error}</p>
-                <Link to="/market" className="mt-6 inline-block bg-google-blue text-white font-semibold px-6 py-2 rounded-lg hover:bg-google-red transition-colors">
+                <Link to="/buyer/market" className="mt-6 inline-block bg-google-blue text-white font-semibold px-6 py-2 rounded-lg hover:bg-google-red transition-colors">
                     Back to Marketplace
                 </Link>
             </div>

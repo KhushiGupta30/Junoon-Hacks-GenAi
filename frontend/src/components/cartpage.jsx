@@ -53,7 +53,7 @@ export default function CartPage() {
                         <div className="bg-white p-8 rounded-lg shadow-md">
                             <h1 className="text-3xl font-bold text-google-green mb-4">Order Placed Successfully!</h1>
                             <p className="text-gray-600 mb-8">Thank you for your purchase. You will receive a confirmation email shortly.</p>
-                            <Link to="/market" className="inline-block bg-google-blue text-white font-semibold px-8 py-3 rounded-lg hover:bg-google-red transition-colors duration-300">
+                            <Link to="/buyer/market" className="inline-block bg-google-blue text-white font-semibold px-8 py-3 rounded-lg hover:bg-google-red transition-colors duration-300">
                                 Continue Shopping
                             </Link>
                         </div>

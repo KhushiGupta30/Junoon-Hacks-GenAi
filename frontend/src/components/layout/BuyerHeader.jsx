@@ -66,7 +66,7 @@ const BuyerHeader = () => {
   const handleHashLink = (e, hash) => {
     e.preventDefault();
     // If we're already on the /market page, just scroll
-    if (location.pathname === 'buyer/market') {
+    if (location.pathname === '/buyer/market') {
       const el = document.getElementById(hash.substring(1));
       if (el) {
         el.scrollIntoView({ behavior: 'smooth' });
@@ -82,7 +82,7 @@ const BuyerHeader = () => {
     if (!user) {
       return (
         <Link 
-          to="buyer/market" // Or your specific login trigger
+          to="/buyer/market" // Or your specific login trigger
           onClick={() => { /* In your setup, Header onLoginClick triggers this, so this might be redundant or handled by App.jsx */ }}
           className="flex items-center text-sm font-medium text-gray-700 hover:text-google-blue"
         >
@@ -174,7 +174,7 @@ const BuyerHeader = () => {
         <div className="h-full flex items-center justify-between">
 
           <div className="flex items-center justify-start flex-1 h-full">
-            <Link to="/market" className="flex items-center space-x-3 mr-8 flex-shrink-0">
+            <Link to="/buyer/market" className="flex items-center space-x-3 mr-8 flex-shrink-0">
               <img src="/logo.png" alt="KalaGhar Logo" className="h-10 w-10 object-contain" />
               <h1 className="text-3xl font-bold text-gray-800 tracking-tighter hidden sm:block">
                 कला<span className="text-google-blue">Ghar</span>
@@ -189,7 +189,7 @@ const BuyerHeader = () => {
                 <Link 
                     to="/buyer/market" 
                     className={`flex items-center h-16 text-sm font-medium transition-all duration-150 ease-in-out border-b-2 ${
-                        location.pathname === '/market' && location.hash === '' 
+                        location.pathname === '/buyer/market' && location.hash === '' 
                         ? 'text-google-blue border-google-blue' 
                         : 'text-gray-600 border-transparent hover:text-google-blue'
                     }`}
