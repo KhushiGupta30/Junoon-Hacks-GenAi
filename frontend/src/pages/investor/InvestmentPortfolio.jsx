@@ -248,7 +248,7 @@ const InvestmentPortfolio = () => {
             {/* --- Main Content Area --- */}
             <div className="flex-grow lg:w-2/3"> {/* CORRECTED: This div now wraps all main content */}
             
-                <AnimatedSection className="mb-8 text-center">
+                <AnimatedSection className="pt-20 mb-8 text-center">
                     <h1
                         className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
                         style={{
@@ -265,7 +265,7 @@ const InvestmentPortfolio = () => {
 
 
                 {/* --- Tab Navigation --- */}
-                <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8">
+                <div className="border-b border-gray-200 mb-8 sticky top-2 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8">
                     <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
                         <TabButton title="Active Portfolio" isActive={activeTab === 'portfolio'} onClick={() => setActiveTab('portfolio')} count={activeInvestments.length} />
                         <TabButton title="Analytics" isActive={activeTab === 'analytics'} onClick={() => setActiveTab('analytics')} />
