@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion'; // <-- 1. Import motion
+import { useParams, Link, useLocation } from 'react-router-dom'; // <-- 1. Import useLocation
+import { motion } from 'framer-motion';
 import api from '../../api/axiosConfig.js';
 import { useCart } from '../../context/CartContext.jsx';
 
@@ -9,7 +9,7 @@ const HeartIcon = () => ( <svg className="w-6 h-6 text-gray-600 group-hover:text
 const PlayIcon = () => <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>;
 const PauseIcon = () => <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"></path></svg>;
 
-// --- 2. Define Animation Variants ---
+// --- Animation Variants (Unchanged) ---
 const gridContainerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -43,12 +43,16 @@ const detailsContainerVariants = {
 const ProductPage = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
+  const location = useLocation(); // <-- 2. Get the current location
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true); // Autoplay initially
+  const [isPlaying, setIsPlaying] = useState(true);
+
+  // --- 3. Create the condition
+  const isBuyerRoute = location.pathname.startsWith('/buyer');
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -90,7 +94,7 @@ const ProductPage = () => {
   }, [isPlaying, allMedia.length]);
 
 
-  // --- Loading State ---
+  // --- Loading State (Unchanged) ---
   if (loading) {
     return (
       <div className="pt-24 pb-12 text-center container mx-auto">
@@ -105,7 +109,7 @@ const ProductPage = () => {
     );
   }
 
-  // --- Error State ---
+  // --- Error State (Unchanged) ---
   if (error || !product) {
     return (
       <div className="pt-24 pb-20 text-center container mx-auto">
@@ -124,9 +128,8 @@ const ProductPage = () => {
   const isVideo = currentMedia?.type === 'video';
 
   return (
-    <div className="pt-24 pb-20 overflow-hidden"> {/* Added overflow-hidden for safety */}
+    <div className="pt-24 pb-20 overflow-hidden">
       <div className="container mx-auto px-6">
-        {/* --- 3. Apply Variants to Main Grid --- */}
         <motion.div 
           className="grid md:grid-cols-2 gap-12 lg:gap-16 items-start"
           variants={gridContainerVariants}
@@ -212,7 +215,6 @@ const ProductPage = () => {
           </motion.div>
           
           {/* --- Product Details (Right Column) --- */}
-          {/* 4. Apply container variants to the column, and item variants to its children */}
           <motion.div 
             className="flex flex-col" 
             variants={detailsContainerVariants} // Staggers its children
@@ -237,20 +239,22 @@ const ProductPage = () => {
                 <p className="text-4xl font-bold text-google-green mt-4">${product.price.toFixed(2)}</p>
               </div>
 
-              {/* Right Side: Buttons (Smaller) */}
-              <div className="flex flex-col space-y-3 pt-2 flex-shrink-0 w-48">
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="flex-grow bg-google-blue text-white font-bold py-3 px-4 rounded-xl hover:bg-google-red transition-colors duration-300 text-sm shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-blue"
-                  >
-                    Add to Cart
-                  </button>
-                  <button className="p-3 bg-white border-2 border-gray-200 rounded-xl hover:border-google-red transition-colors group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-red">
-                    <HeartIcon />
-                  </button>
+              {/* --- 4. Apply conditional rendering to the button block --- */}
+              {isBuyerRoute && (
+                <div className="flex flex-col space-y-3 pt-2 flex-shrink-0 w-48">
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => addToCart(product)}
+                      className="flex-grow bg-google-blue text-white font-bold py-3 px-4 rounded-xl hover:bg-google-red transition-colors duration-300 text-sm shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-blue"
+                    >
+                      Add to Cart
+                    </button>
+                    <button className="p-3 bg-white border-2 border-gray-200 rounded-xl hover:border-google-red transition-colors group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-red">
+                      <HeartIcon />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </motion.div>
 
             <motion.div 
