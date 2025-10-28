@@ -288,17 +288,18 @@ const BuyerHeader = () => {
                   >
                     Shop
                   </NavLink>
-                  <Link
-                    to="/buyer/market#new-ideas"
-                    onClick={(e) => handleHashLink(e, '#new-ideas')}
-                    className={`flex items-center h-full text-sm font-medium transition-colors duration-150 ease-in-out border-b-2 ${
-                      location.pathname === '/buyer/market' && location.hash === '#new-ideas'
-                        ? 'text-google-blue border-google-blue'
+                  <NavLink
+                    to="/buyer/new-ideas"
+                    className={({ isActive }) =>
+                    `flex items-center h-full text-sm font-medium transition-colors duration-150 ease-in-out border-b-2 ${
+                         isActive
+                         ? 'text-google-blue border-google-blue'
                         : 'text-gray-600 border-transparent hover:text-google-blue'
-                    }`}
+                    }`
+                    }
                   >
                     New Ideas
-                  </Link>
+                  </NavLink>
                   <Link
                     to="/buyer/market#artisans"
                     onClick={(e) => handleHashLink(e, '#artisans')}
