@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-// --- REMOVED BuyerHeader and Footer imports ---
+import { motion } from 'framer-motion'; // <-- 1. Import motion
 import api from '../../api/axiosConfig.js';
 import { useCart } from '../../context/CartContext.jsx';
 
@@ -8,6 +8,37 @@ import { useCart } from '../../context/CartContext.jsx';
 const HeartIcon = () => ( <svg className="w-6 h-6 text-gray-600 group-hover:text-google-red transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 116.364 6.364L12 21l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg> );
 const PlayIcon = () => <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>;
 const PauseIcon = () => <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"></path></svg>;
+
+// --- 2. Define Animation Variants ---
+const gridContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15, // Stagger the left and right columns
+    },
+  },
+};
+
+const columnItemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: 'easeOut' },
+  },
+};
+
+const detailsContainerVariants = {
+  hidden: { opacity: 1 }, // Keep container visible
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1, // Stagger the content inside the right column
+      delayChildren: 0.2, // Start after the column itself animates in
+    },
+  },
+};
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -93,19 +124,24 @@ const ProductPage = () => {
   const isVideo = currentMedia?.type === 'video';
 
   return (
-    <div className="pt-24 pb-20">
+    <div className="pt-24 pb-20 overflow-hidden"> {/* Added overflow-hidden for safety */}
       <div className="container mx-auto px-6">
-        <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-start">
+        {/* --- 3. Apply Variants to Main Grid --- */}
+        <motion.div 
+          className="grid md:grid-cols-2 gap-12 lg:gap-16 items-start"
+          variants={gridContainerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           
           {/* --- Left Column: Media + Reviews --- */}
-          <div className="flex flex-col">
+          <motion.div className="flex flex-col" variants={columnItemVariants}>
             {/* --- Media Carousel (Smaller) --- */}
             <div
               className="relative group"
               onMouseEnter={() => setIsPlaying(false)}
               onMouseLeave={() => setIsPlaying(true)}
             >
-              {/* Changed aspect-square to aspect-[4/3] */}
               <div className="w-full rounded-2xl shadow-xl object-cover aspect-[4/3] flex items-center justify-center bg-gray-200 overflow-hidden">
                 {currentMedia ? (
                   isVideo ? (
@@ -169,29 +205,29 @@ const ProductPage = () => {
             {/* --- NEW Reviews Section --- */}
             <div className="mt-12">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Reviews</h2>
-              {/* This is where you would map over reviews */}
               <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
                 <p className="text-gray-500 text-center">No reviews yet for this product.</p>
-                {/* Example of a review:
-                <div className="border-b py-4">
-                  <div className="flex items-center mb-1">
-                    <span className="font-semibold">Jane D.</span>
-                    <span className="text-gray-400 mx-2">|</span>
-                    <span className="text-yellow-500">★★★★☆</span>
-                  </div>
-                  <p className="text-gray-600">Great product, very well made!</p>
-                </div> 
-                */}
               </div>
             </div>
-          </div>
+          </motion.div>
           
           {/* --- Product Details (Right Column) --- */}
-          <div className="flex flex-col">
-            <p className="font-semibold text-google-blue tracking-wide">{product.category.toUpperCase()}</p>
+          {/* 4. Apply container variants to the column, and item variants to its children */}
+          <motion.div 
+            className="flex flex-col" 
+            variants={detailsContainerVariants} // Staggers its children
+          >
+            <motion.p 
+              className="font-semibold text-google-blue tracking-wide"
+              variants={columnItemVariants} // Use the same item variant
+            >
+              {product.category.toUpperCase()}
+            </motion.p>
             
-            {/* --- Top section with Info + Buttons --- */}
-            <div className="flex justify-between items-start gap-6 mt-3">
+            <motion.div 
+              className="flex justify-between items-start gap-6 mt-3"
+              variants={columnItemVariants}
+            >
               {/* Left Side: Info */}
               <div className="flex-grow">
                 <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">{product.name}</h1>
@@ -214,23 +250,19 @@ const ProductPage = () => {
                     <HeartIcon />
                   </button>
                 </div>
-                <Link
-                  to={`../seller/${product.artisan.id}`}
-                  className="w-full text-center bg-google-green text-white font-bold py-3 px-4 rounded-xl hover:bg-green-700 transition-colors duration-300 text-sm shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-green"
-                >
-                  Learn about Artisan
-                </Link>
               </div>
-            </div>
+            </motion.div>
 
-            {/* --- DESCRIPTION (remains below) --- */}
-            <div className="border-t pt-6 mt-6">
+            <motion.div 
+              className="border-t pt-6 mt-6"
+              variants={columnItemVariants}
+            >
               <h3 className="text-xl font-bold mb-2 text-gray-800">About this item</h3>
               <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{product.description}</p>
-            </div>
+            </motion.div>
 
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
