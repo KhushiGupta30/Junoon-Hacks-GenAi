@@ -6,13 +6,16 @@ import InvestmentModal from '../components/modal/InvestmentModal'; // Corrected 
 import { toast } from 'react-hot-toast';
 
 const ProductCard = ({ product }) => {
+    
+    console.log("ProductCard - Product ID:", product.id);
     return (
-        <Link to={`/product/${product._id}`} className="group">
+        
+        <Link to={`/product/${product.id}`} className="group">
             <div className="bg-white rounded-xl shadow-md overflow-hidden transform group-hover:-translate-y-2 transition-transform duration-300">
                 <img className="h-56 w-full object-cover" src={product.images[0]?.url || '/placeholder.png'} alt={product.name} />
                 <div className="p-5">
                     <h3 className="text-lg font-semibold text-gray-800 group-hover:text-google-blue transition-colors">{product.name}</h3>
-                    <p className="mt-4 text-xl font-bold text-google-green">${product.price.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-google-green">${(Number(product.price) || 0).toFixed(2)}</p>
                 </div>
             </div>
         </Link>
@@ -108,7 +111,7 @@ const SellerPage = () => {
                     {products && products.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {products.map(product => (
-                                <ProductCard key={product._id} product={product} />
+                                <ProductCard key={product.id} product={product} />
                             ))}
                         </div>
                     ) : (
@@ -121,7 +124,7 @@ const SellerPage = () => {
             <InvestmentModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                artisanId={artisan.id}
+                artisanId={artisan._id}
                 artisanName={artisan.name}
                 onSuccess={handleInvestmentSuccess}
             />

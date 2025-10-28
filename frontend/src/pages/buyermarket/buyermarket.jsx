@@ -53,7 +53,7 @@ const ProductCard = ({ product }) => {
 
         <div className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-transparent hover:border-google-blue h-full flex flex-col">
 
-            <Link to={`/product/${product._id}`} className="block">
+            <Link to={`/product/${product.id}`} className="block">
 
                 <div className="relative">
 
@@ -69,7 +69,7 @@ const ProductCard = ({ product }) => {
 
                 <p className="text-sm text-gray-500 mb-1">
 
-                    <Link to={`/seller/${product.artisan._id}`} className="hover:underline hover:text-google-blue">
+                    <Link to={`/seller/${product.artisan.id}`} className="hover:underline hover:text-google-blue">
 
                         {product.artisan.name}
 
@@ -79,7 +79,7 @@ const ProductCard = ({ product }) => {
 
                 <h3 className="text-lg font-bold text-gray-800 truncate">
 
-                    <Link to={`/product/${product._id}`} className="hover:text-google-blue transition-colors">
+                    <Link to={`/product/${product.id}`} className="hover:text-google-blue transition-colors">
 
                         {product.name}
 
@@ -157,7 +157,7 @@ const IdeaCard = ({ idea }) => {
 
           by{" "}
 
-          <Link to={`/seller/${idea.artisan._id}`} className="hover:underline hover:text-google-blue">
+          <Link to={`/seller/${idea.artisan.id}`} className="hover:underline hover:text-google-blue">
 
             {idea.artisan.name}
 
@@ -311,7 +311,7 @@ export default function BuyerMarketplace() {
 
                   {products.map((product) => (
 
-                    <ProductCard product={product} key={product._id} />
+                    <ProductCard product={product} key={product.id} />
 
                   ))}
 
