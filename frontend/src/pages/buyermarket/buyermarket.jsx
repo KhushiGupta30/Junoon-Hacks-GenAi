@@ -265,7 +265,7 @@ export default function BuyerMarketplace() {
 
       <BuyerHeader />
 
-      <main className="pt-24">
+      <main className="pt-16">
 
         <section id="marketplace">
 
