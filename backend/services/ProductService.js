@@ -2,6 +2,7 @@ const BaseService = require('./BaseService');
 const { bucket } = require('../gcsClient');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
+const { db } = require('../firebase');
 
 /**
  * Helper function to upload a file to Google Cloud Storage.
@@ -124,20 +125,47 @@ class ProductService extends BaseService {
       throw new Error('Product not found');
     }
 
+    // 1. Add the review to the product's internal array (maintains existing logic)
     const reviews = product.reviews || [];
-    reviews.push({
+    const newReview = {
       ...reviewData,
       date: new Date()
-    });
+    };
+    reviews.push(newReview);
 
     const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
     const averageRating = totalRating / reviews.length;
 
-    return await this.update(productId, {
+    const updatedProduct = await this.update(productId, {
       reviews,
       averageRating,
       totalReviews: reviews.length
     });
+
+    // 2. --- NEW --- Denormalize the review into the top-level 'reviews' collection for easy querying.
+    try {
+      const userDoc = await db.collection('users').doc(reviewData.user).get();
+      const customerName = userDoc.exists ? userDoc.data().name : 'Anonymous';
+
+      const reviewDoc = {
+        artisanId: product.artisan, // The ID of the artisan who owns the product
+        productId: productId,
+        productName: product.name,
+        productImage: product.images?.[0]?.url || '',
+        customerId: reviewData.user,
+        customerName: customerName,
+        rating: reviewData.rating,
+        comment: reviewData.comment || '',
+        reply: null, // Placeholder for artisan's future reply
+        createdAt: newReview.date,
+      };
+      await db.collection('reviews').add(reviewDoc);
+      console.log(`Successfully denormalized review for artisan ${product.artisan}`);
+    } catch (denormalizationError) {
+      // Log the error but don't fail the entire operation, as the primary review was saved.
+      console.error('Failed to denormalize review:', denormalizationError);
+    }
+    return updatedProduct;
   }
 
   async updateReview(productId, reviewIndex, reviewData) {

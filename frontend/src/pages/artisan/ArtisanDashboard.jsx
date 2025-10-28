@@ -11,7 +11,7 @@ import {
   EyeIcon,
   CurrencyDollarIcon,
   UserCheck,
-  ExclamationCircleIcon // Ensure this icon is imported
+  ExclamationCircleIcon
 } from "../../components/common/Icons";
 import SkeletonCard from "../../components/ui/SkeletonCard";
 import SkeletonStat from "../../components/ui/SkeletonStat";
@@ -191,9 +191,8 @@ const ArtisanDashboard = () => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        const response = await api.get("/dashboard/artisan-stats"); // Corrected API endpoint
+        const response = await api.get("/dashboard/artisan-stats"); 
         
-        // Correctly set the state with the data from the backend
         setStats(response.data.stats);
         setSalesData(response.data.salesData);
         setViewsData(response.data.viewsData);
@@ -209,6 +208,7 @@ const ArtisanDashboard = () => {
 
     fetchDashboardData();
   }, []);
+
 
   const statsData = [
     {
@@ -338,7 +338,7 @@ const ArtisanDashboard = () => {
           )}
           {viewsData && (
             <MiniLineChart
-              title="Product Views (Last 7 Days)"
+              title="Views by Top Product"
               labels={viewsData.labels}
               data={viewsData.data}
               icon={<EyeIcon />}
