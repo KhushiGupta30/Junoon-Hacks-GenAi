@@ -249,7 +249,7 @@ const ProductPage = () => {
                   <p className="text-lg text-gray-500 mt-2">
                     by <Link to={`../seller/${product.artisan.id}`} className="font-medium text-gray-700 hover:text-google-blue hover:underline">{product.artisan.name}</Link>
                   </p>
-                  <p className="text-4xl font-bold text-google-green mt-4">${product.price.toFixed(2)}</p>
+                  <p className="text-4xl font-bold text-google-green mt-4">{(Number(product.price) || 0).toFixed(2)}</p>
                 </div>
 
                 {/* Right Side: Buttons (Smaller) */}

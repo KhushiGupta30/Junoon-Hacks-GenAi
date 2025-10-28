@@ -4,6 +4,9 @@ const OrderService = require("../services/OrderService");
 const ProductService = require("../services/ProductService");
 const UserService = require("../services/UserService");
 const { auth, authorize } = require("../middleware/auth");
+const axios = require("axios");
+const { cityCoordinates } = require("../utils/geocoding");
+const { db } = require("../firebase");
 
 const router = express.Router();
 
@@ -72,7 +75,7 @@ router.post(
           });
         }
 
-        const itemTotal = product.price * item.quantity;
+        const itemTotal = Number(product.price) * item.quantity;
         subtotal += itemTotal;
 
         orderItems.push({
@@ -87,7 +90,7 @@ router.post(
           await ProductService.reserveInventory(product.id, item.quantity);
         }
       }
-
+      const artisanIds = [...new Set(orderItems.map(item => item.artisan))];
       const tax = subtotal * 0.08;
       const shipping = subtotal > 100 ? 0 : 15;
       const total = subtotal + tax + shipping;
@@ -95,6 +98,7 @@ router.post(
       const orderData = {
         buyer: req.user.id,
         items: orderItems,
+        artisanIds: artisanIds,
         pricing: {
           subtotal,
           tax,
@@ -120,8 +124,8 @@ router.post(
           const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originCoords.lat},${originCoords.lon}&destinations=${destinationCoords.lat},${destinationCoords.lon}&key=${apiKey}`;
           
           try {
-              const response = await fetch(url);
-              const data = await response.json();
+              const response = await axios.get(url);
+              const data = response.data;
               if (data.rows[0].elements[0].status === "OK") {
                   distanceKm = data.rows[0].elements[0].distance.value / 1000; 
                   durationHours = data.rows[0].elements[0].duration.value / 3600; 
@@ -187,25 +191,60 @@ router.post(
 router.get("/", auth, async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
+    const parsedLimit = parseInt(limit);
+    const parsedPage = parseInt(page);
+    const offset = (parsedPage - 1) * parsedLimit;
 
-    let filter = {};
+    let orders = [];
+    let total = 0;
+
     if (req.user.role === "buyer") {
-      filter.buyer = req.user.id;
+      // --- BUYER LOGIC (This is your original, working logic) ---
+      let filter = { buyer: req.user.id };
+      if (status) filter.status = status;
+
+      const options = {
+        limit: parsedLimit,
+        offset: offset,
+        sortBy: "createdAt",
+        sortOrder: "desc",
+      };
+      orders = await OrderService.findMany(filter, options);
+      total = await OrderService.count(filter);
+
     } else if (req.user.role === "artisan") {
-      filter["items.artisan"] = req.user.id;
+      // --- NEW ARTISAN LOGIC (Bypasses BaseService) ---
+      
+      // 1. Create the base query
+      let baseQuery = db.collection('orders')
+                        .where('artisanIds', 'array-contains', req.user.id);
+
+      // 2. Add status filter if it exists
+      if (status) {
+        baseQuery = baseQuery.where('status', '==', status);
+      }
+
+      // 3. Get TOTAL count for pagination (must be done *before* pagination)
+      const totalSnapshot = await baseQuery.get();
+      total = totalSnapshot.size;
+
+      // 4. Get PAGINATED data
+      const dataQuery = baseQuery.orderBy('createdAt', 'desc')
+                                 .limit(parsedLimit)
+                                 .offset(offset);
+
+      const ordersSnapshot = await dataQuery.get();
+      ordersSnapshot.forEach(doc => {
+        // Manually add the ID just like BaseService does
+        orders.push({ ...doc.data(), id: doc.id });
+      });
+
+    } else {
+      // For any other role (like admin, if you add it later)
+      // This will just return empty for now
     }
 
-    if (status) filter.status = status;
-
-    const options = {
-      limit: parseInt(limit),
-      offset: (page - 1) * limit,
-      sortBy: "createdAt",
-      sortOrder: "desc",
-    };
-
-    const orders = await OrderService.findMany(filter, options);
-
+    // --- POPULATION LOGIC (This part is unchanged) ---
     // Populate buyer and item data
     const populatedOrders = await Promise.all(
       orders.map(async (order) => {
@@ -248,16 +287,16 @@ router.get("/", auth, async (req, res) => {
       })
     );
 
-    const total = await OrderService.count(filter);
-
+    // --- RESPONSE LOGIC (This part is unchanged) ---
     res.json({
       orders: populatedOrders,
       pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
+        currentPage: parsedPage,
+        totalPages: Math.ceil(total / parsedLimit),
         totalOrders: total,
       },
     });
+
   } catch (error) {
     console.error("Get orders error:", error);
     res.status(500).json({ message: "Server error while fetching orders" });

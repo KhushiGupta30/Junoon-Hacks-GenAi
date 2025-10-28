@@ -70,7 +70,7 @@ export const CartProvider = ({ children }) => {
 
         const orderData = {
             items: cartItems.map(item => ({
-                product: item._id,
+                product: item.id,
                 quantity: item.quantity,
             })),
             shippingAddress,

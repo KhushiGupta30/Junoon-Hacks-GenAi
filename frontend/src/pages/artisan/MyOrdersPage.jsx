@@ -113,7 +113,7 @@ const MyOrdersPage = () => {
     const originalOrders = [...orders];
     setOrders((currentOrders) =>
       currentOrders.map((o) =>
-        o._id === orderId ? { ...o, status: newStatus } : o
+        o.id === orderId ? { ...o, status: newStatus } : o
       )
     );
 
@@ -271,12 +271,12 @@ const MyOrdersPage = () => {
                     <tbody className="divide-y divide-gray-100">
                       {pendingOrders.map((order) => (
                         <tr
-                          key={order._id}
+                          key={order.id}
                           className="hover:bg-gray-50/70 transition-colors"
                         >
                           <td className="px-4 py-3 align-top">
                             <p className="font-mono text-xs text-gray-500 mb-0.5">
-                              {order.orderNumber || order._id.slice(-6)}
+                              {order.orderNumber || order.id.slice(-6)}
                             </p>
                             <p className="font-medium text-gray-800">
                               {order.buyer?.name || "N/A"}
@@ -300,7 +300,7 @@ const MyOrdersPage = () => {
                             <select
                               value={order.status}
                               onChange={(e) =>
-                                handleStatusChange(order._id, e.target.value)
+                                handleStatusChange(order.id, e.target.value)
                               }
                               className={`block w-full text-xs font-medium px-2 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-google-blue focus:border-google-blue transition ${
                                 statusColors[order.status] ||
@@ -359,12 +359,12 @@ const MyOrdersPage = () => {
                     <tbody className="divide-y divide-gray-100">
                       {bulkOrders.map((order) => (
                         <tr
-                          key={order._id}
+                          key={order.id}
                           className="hover:bg-gray-50/70 transition-colors"
                         >
                           <td className="px-4 py-3 align-top">
                             <p className="font-mono text-xs text-gray-500 mb-0.5">
-                              {order.orderNumber || order._id.slice(-6)}
+                              {order.orderNumber || order.id.slice(-6)}
                             </p>
                             <p className="font-medium text-gray-800">
                               {order.buyer?.name || "N/A"}
@@ -386,7 +386,7 @@ const MyOrdersPage = () => {
                             <select
                               value={order.status}
                               onChange={(e) =>
-                                handleStatusChange(order._id, e.target.value)
+                                handleStatusChange(order.id, e.target.value)
                               }
                               className={`block w-full text-xs font-medium px-2 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-google-blue focus:border-google-blue transition ${
                                 statusColors[order.status] ||
@@ -427,7 +427,7 @@ const MyOrdersPage = () => {
               {completedOrders.length > 0 ? (
                 completedOrders.map((order) => (
                   <div
-                    key={order._id}
+                    key={order.id}
                     className="p-4 hover:bg-gray-50/70 transition-colors"
                   >
                     <div className="flex justify-between items-start">
@@ -436,7 +436,7 @@ const MyOrdersPage = () => {
                           {order.buyer?.name || "N/A"}
                         </p>
                         <p className="text-xs text-gray-500 font-mono mt-0.5">
-                          {order.orderNumber || order._id.slice(-6)}
+                          {order.orderNumber || order.id.slice(-6)}
                         </p>
                       </div>
                       <span

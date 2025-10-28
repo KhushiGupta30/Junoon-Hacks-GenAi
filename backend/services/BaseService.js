@@ -36,7 +36,7 @@ class BaseService {
       
       Object.keys(filters).forEach(key => {
         query = query.where(key, '==', filters[key]);
-      });
+    });
       
       const snapshot = await query.limit(1).get();
       if (snapshot.empty) {
@@ -142,7 +142,7 @@ class BaseService {
       
       Object.keys(filters).forEach(key => {
         query = query.where(key, '==', filters[key]);
-      });
+    });
       
       const snapshot = await query.get();
       return snapshot.size;
