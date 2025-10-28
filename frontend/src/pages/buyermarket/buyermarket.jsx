@@ -43,7 +43,7 @@ const ProductCard = ({ product }) => {
         <div className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex flex-col h-full">
             {/* Image section */}
             <Link
-                to={`/product/${product.id}`}
+                to={`/buyer/product/${product.id}`}
                 className="relative block aspect-square w-full overflow-hidden"
             >
                 <img
@@ -67,7 +67,7 @@ const ProductCard = ({ product }) => {
 
                 <h3 className="text-lg font-bold text-gray-800 truncate">
 
-                    <Link to={`/product/${product.id}`} className="hover:text-google-blue transition-colors">
+                    <Link to={`/buyer/product/${product.id}`} className="hover:text-google-blue transition-colors">
 
                         {product.name}
                     </Link>

@@ -13,7 +13,7 @@ const ProductCard = ({ product }) => {
           variants={itemVariants} // This will be used inside the staggered grid
           className="group bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 h-full flex flex-col"
         >
-            <Link to={`/product/${product.id}`} className="block focus:outline-none focus:ring-2 focus:ring-google-blue focus:ring-offset-2 rounded-t-lg">
+            <Link to={`../product/${product.id}`} className="block focus:outline-none focus:ring-2 focus:ring-google-blue focus:ring-offset-2 rounded-t-lg">
                 <div className="aspect-square w-full overflow-hidden">
                     <img
                         src={product.images[0]?.url || "/placeholder.png"}
