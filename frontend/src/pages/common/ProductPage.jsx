@@ -175,7 +175,7 @@ const ProductPage = () => {
             <p className="font-semibold text-google-blue tracking-wide">{product.category.toUpperCase()}</p>
             <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">{product.name}</h1>
             <p className="text-lg text-gray-500">
-              by <Link to={`/seller/${product.artisan._id}`} className="font-medium text-gray-700 hover:text-google-blue hover:underline">{product.artisan.name}</Link>
+              by <Link to={`/seller/${product.artisan.id}`} className="font-medium text-gray-700 hover:text-google-blue hover:underline">{product.artisan.name}</Link>
             </p>
             <p className="text-4xl font-bold text-google-green">${product.price.toFixed(2)}</p>
             <div className="border-t pt-5">
@@ -195,7 +195,7 @@ const ProductPage = () => {
                 </button>
               </div>
                <Link
-                 to={`/seller/${product.artisan._id}`}
+                 to={`/seller/${product.artisan.id}`}
                  className="w-full text-center bg-google-green text-white font-bold py-4 px-6 rounded-xl hover:bg-green-700 transition-colors duration-300 text-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-green"
                >
                  Learn about the Artisan

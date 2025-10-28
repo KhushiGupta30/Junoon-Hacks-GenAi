@@ -40,33 +40,10 @@ const ProductCard = ({ product }) => {
     };
 
     return (
-<<<<<<< Updated upstream
-
-        <div className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-transparent hover:border-google-blue h-full flex flex-col">
-
-            <Link to={`/product/${product.id}`} className="block">
-
-                <div className="relative">
-
-                    <img src={product.images[0]?.url || "/placeholder.png"} alt={product.name} className="w-full h-64 object-cover" />
-
-                    <div className="absolute top-3 right-3 bg-white/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"> <HeartIcon /> </div>
-
-                </div>
-
-            </Link>
-
-            <div className="p-5 flex flex-col flex-grow">
-
-                <p className="text-sm text-gray-500 mb-1">
-
-                    <Link to={`/seller/${product.artisan.id}`} className="hover:underline hover:text-google-blue">
-
-=======
         <div className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex flex-col h-full">
             {/* Image section */}
             <Link
-                to={`/product/${product._id}`}
+                to={`/product/${product.id}`}
                 className="relative block aspect-square w-full overflow-hidden"
             >
                 <img
@@ -81,27 +58,17 @@ const ProductCard = ({ product }) => {
                 {/* Artisan Name */}
                 <p className="text-xs text-gray-500 mb-1">
                     <Link
-                        to={`/buyer/seller/${product.artisan._id}`}
+                        to={`/buyer/seller/${product.artisan.id}`}
                         className="hover:text-google-blue hover:underline transition-colors"
                     >
->>>>>>> Stashed changes
                         {product.artisan.name}
                     </Link>
                 </p>
 
-<<<<<<< Updated upstream
                 <h3 className="text-lg font-bold text-gray-800 truncate">
 
                     <Link to={`/product/${product.id}`} className="hover:text-google-blue transition-colors">
 
-=======
-                {/* Product Name */}
-                <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2">
-                    <Link
-                        to={`/buyer/product/${product._id}`}
-                        className="hover:text-google-blue transition-colors"
-                    >
->>>>>>> Stashed changes
                         {product.name}
                     </Link>
                 </h3>
@@ -173,11 +140,7 @@ const IdeaCard = ({ idea }) => {
 
           by{" "}
 
-<<<<<<< Updated upstream
-          <Link to={`/seller/${idea.artisan.id}`} className="hover:underline hover:text-google-blue">
-=======
-          <Link to={`/buyer/seller/${idea.artisan._id}`} className="hover:underline hover:text-google-blue">
->>>>>>> Stashed changes
+          <Link to={`/buyer/seller/${idea.artisan.id}`} className="hover:underline hover:text-google-blue">
 
             {idea.artisan.name}
 
