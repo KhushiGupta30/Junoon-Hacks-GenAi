@@ -62,8 +62,6 @@ const ProductPage = () => {
   // --- Loading State ---
   if (loading) {
     return (
-      // --- REMOVED BuyerHeader ---
-      // Adjusted padding, assuming header is h-16 (adjust if needed)
       <div className="pt-24 pb-12 text-center container mx-auto">
         <p className="text-gray-600 text-lg">Loading Product...</p>
         <div className="flex justify-center items-center mt-4">
@@ -73,15 +71,12 @@ const ProductPage = () => {
           </svg>
         </div>
       </div>
-      // --- REMOVED Footer ---
     );
   }
 
   // --- Error State ---
   if (error || !product) {
     return (
-      // --- REMOVED BuyerHeader ---
-      // Adjusted padding
       <div className="pt-24 pb-20 text-center container mx-auto">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-lg mx-auto">
           <h2 className="text-3xl font-bold text-gray-800">Product Not Found!</h2>
@@ -91,7 +86,6 @@ const ProductPage = () => {
           </Link>
         </div>
       </div>
-      // --- REMOVED Footer ---
     );
   }
 
@@ -99,113 +93,146 @@ const ProductPage = () => {
   const isVideo = currentMedia?.type === 'video';
 
   return (
-    // --- REMOVED Outer div and BuyerHeader ---
-    // Changed <main> to <div> as layout usually provides <main>
-    // Adjusted padding-top (pt-24 assumes h-16 header + some space)
     <div className="pt-24 pb-20">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-start">
-          {/* --- Media Carousel --- */}
-          <div
-            className="relative group"
-            onMouseEnter={() => setIsPlaying(false)}
-            onMouseLeave={() => setIsPlaying(true)}
-          >
-            <div className="w-full rounded-2xl shadow-xl object-cover aspect-square flex items-center justify-center bg-gray-200 overflow-hidden">
-              {currentMedia ? (
-                 isVideo ? (
-                  <iframe
-                    src={currentMedia.url}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full"
-                    title="Product Video">
-                  </iframe>
+          
+          {/* --- Left Column: Media + Reviews --- */}
+          <div className="flex flex-col">
+            {/* --- Media Carousel (Smaller) --- */}
+            <div
+              className="relative group"
+              onMouseEnter={() => setIsPlaying(false)}
+              onMouseLeave={() => setIsPlaying(true)}
+            >
+              {/* Changed aspect-square to aspect-[4/3] */}
+              <div className="w-full rounded-2xl shadow-xl object-cover aspect-[4/3] flex items-center justify-center bg-gray-200 overflow-hidden">
+                {currentMedia ? (
+                  isVideo ? (
+                    <iframe
+                      src={currentMedia.url}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                      title="Product Video">
+                    </iframe>
+                  ) : (
+                    <img
+                      src={currentMedia.url}
+                      alt={`${product.name} - View ${currentMediaIndex + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  )
                 ) : (
-                  <img
-                    src={currentMedia.url}
-                    alt={`${product.name} - View ${currentMediaIndex + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                )
-              ) : (
-                <img src='/placeholder.png' alt="Placeholder" className="w-full h-full object-cover opacity-50"/>
+                  <img src='/placeholder.png' alt="Placeholder" className="w-full h-full object-cover opacity-50"/>
+                )}
+              </div>
+              {/* Carousel Controls */}
+              {allMedia.length > 1 && (
+                <>
+                  <button
+                    onClick={() => navigateMedia(-1)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full shadow-md hover:bg-opacity-90 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                    aria-label="Previous image"
+                  >
+                    <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+                  </button>
+                  <button
+                    onClick={() => navigateMedia(1)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full shadow-md hover:bg-opacity-90 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                    aria-label="Next image"
+                  >
+                    <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                  </button>
+                  <button
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    className="absolute top-3 right-3 bg-black bg-opacity-40 p-2 rounded-full hover:bg-opacity-60 transition-colors z-10 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    aria-label={isPlaying ? "Pause slideshow" : "Play slideshow"}
+                  >
+                      {isPlaying ? <PauseIcon /> : <PlayIcon />}
+                  </button>
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+                    {allMedia.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => { setCurrentMediaIndex(index); setIsPlaying(false); }}
+                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${index === currentMediaIndex ? 'bg-google-blue scale-125' : 'bg-gray-400/70 hover:bg-gray-500/90'}`}
+                        aria-label={`View media ${index + 1}`}
+                      ></button>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
-            {/* Carousel Controls */}
-            {allMedia.length > 1 && (
-              <>
-                <button
-                  onClick={() => navigateMedia(-1)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full shadow-md hover:bg-opacity-90 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
-                  aria-label="Previous image"
-                >
-                  <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-                <button
-                  onClick={() => navigateMedia(1)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full shadow-md hover:bg-opacity-90 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
-                  aria-label="Next image"
-                >
-                   <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                </button>
-                <button
-                   onClick={() => setIsPlaying(!isPlaying)}
-                   className="absolute top-3 right-3 bg-black bg-opacity-40 p-2 rounded-full hover:bg-opacity-60 transition-colors z-10 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                   aria-label={isPlaying ? "Pause slideshow" : "Play slideshow"}
-                >
-                    {isPlaying ? <PauseIcon /> : <PlayIcon />}
-                </button>
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
-                  {allMedia.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => { setCurrentMediaIndex(index); setIsPlaying(false); }}
-                      className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${index === currentMediaIndex ? 'bg-google-blue scale-125' : 'bg-gray-400/70 hover:bg-gray-500/90'}`}
-                      aria-label={`View media ${index + 1}`}
-                    ></button>
-                  ))}
-                </div>
-              </>
-            )}
+
+            {/* --- NEW Reviews Section --- */}
+            <div className="mt-12">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Reviews</h2>
+              {/* This is where you would map over reviews */}
+              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <p className="text-gray-500 text-center">No reviews yet for this product.</p>
+                {/* Example of a review:
+                <div className="border-b py-4">
+                  <div className="flex items-center mb-1">
+                    <span className="font-semibold">Jane D.</span>
+                    <span className="text-gray-400 mx-2">|</span>
+                    <span className="text-yellow-500">★★★★☆</span>
+                  </div>
+                  <p className="text-gray-600">Great product, very well made!</p>
+                </div> 
+                */}
+              </div>
+            </div>
           </div>
-          {/* --- Product Details --- */}
-          <div className="flex flex-col space-y-5">
+          
+          {/* --- Product Details (Right Column) --- */}
+          <div className="flex flex-col">
             <p className="font-semibold text-google-blue tracking-wide">{product.category.toUpperCase()}</p>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">{product.name}</h1>
-            <p className="text-lg text-gray-500">
-              by <Link to={`/seller/${product.artisan.id}`} className="font-medium text-gray-700 hover:text-google-blue hover:underline">{product.artisan.name}</Link>
-            </p>
-            <p className="text-4xl font-bold text-google-green">${product.price.toFixed(2)}</p>
-            <div className="border-t pt-5">
+            
+            {/* --- Top section with Info + Buttons --- */}
+            <div className="flex justify-between items-start gap-6 mt-3">
+              {/* Left Side: Info */}
+              <div className="flex-grow">
+                <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">{product.name}</h1>
+                <p className="text-lg text-gray-500 mt-2">
+                  by <Link to={`../seller/${product.artisan.id}`} className="font-medium text-gray-700 hover:text-google-blue hover:underline">{product.artisan.name}</Link>
+                </p>
+                <p className="text-4xl font-bold text-google-green mt-4">${product.price.toFixed(2)}</p>
+              </div>
+
+              {/* Right Side: Buttons (Smaller) */}
+              <div className="flex flex-col space-y-3 pt-2 flex-shrink-0 w-48">
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => addToCart(product)}
+                    className="flex-grow bg-google-blue text-white font-bold py-3 px-4 rounded-xl hover:bg-google-red transition-colors duration-300 text-sm shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-blue"
+                  >
+                    Add to Cart
+                  </button>
+                  <button className="p-3 bg-white border-2 border-gray-200 rounded-xl hover:border-google-red transition-colors group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-red">
+                    <HeartIcon />
+                  </button>
+                </div>
+                <Link
+                  to={`../seller/${product.artisan.id}`}
+                  className="w-full text-center bg-google-green text-white font-bold py-3 px-4 rounded-xl hover:bg-green-700 transition-colors duration-300 text-sm shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-green"
+                >
+                  Learn about Artisan
+                </Link>
+              </div>
+            </div>
+
+            {/* --- DESCRIPTION (remains below) --- */}
+            <div className="border-t pt-6 mt-6">
               <h3 className="text-xl font-bold mb-2 text-gray-800">About this item</h3>
               <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{product.description}</p>
             </div>
-            <div className="flex flex-col space-y-4 pt-4">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => addToCart(product)}
-                  className="flex-grow bg-google-blue text-white font-bold py-4 px-6 rounded-xl hover:bg-google-red transition-colors duration-300 text-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-blue"
-                >
-                  Add to Cart
-                </button>
-                <button className="p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-google-red transition-colors group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-red">
-                  <HeartIcon />
-                </button>
-              </div>
-               <Link
-                 to={`/seller/${product.artisan.id}`}
-                 className="w-full text-center bg-google-green text-white font-bold py-4 px-6 rounded-xl hover:bg-green-700 transition-colors duration-300 text-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-green"
-               >
-                 Learn about the Artisan
-               </Link>
-            </div>
+
           </div>
         </div>
       </div>
     </div>
-    // --- REMOVED Footer ---
   );
 };
 
