@@ -309,7 +309,7 @@ const ProductFormFields = ({
                 htmlFor="price"
                 className="block text-sm font-medium text-gray-700"
               >
-                Price (USD)
+                Price (INR)
               </label>
               <button
                 type="button"
@@ -330,7 +330,7 @@ const ProductFormFields = ({
               required
               min="0"
               step="0.01"
-              placeholder="e.g., 50.00"
+              placeholder="e.g., 500 Rupees"
             />
             {priceSuggestion && (
               <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
