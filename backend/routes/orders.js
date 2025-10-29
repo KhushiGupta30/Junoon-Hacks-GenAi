@@ -48,7 +48,10 @@ router.post(
       }
 
       const { items, shippingAddress, billingAddress, payment } = req.body;
-
+      const buyer = await UserService.findById(req.user.id);
+      if (!buyer || !buyer.profile?.location?.latitude) {
+        return res.status(400).json({ message: "Your location is not set. Please update your profile before ordering." });
+      }
       let subtotal = 0;
       const orderItems = [];
 
