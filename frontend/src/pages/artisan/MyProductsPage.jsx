@@ -10,15 +10,14 @@ import {
   MagnifyingGlassIcon
 } from '../../components/common/Icons'; // Assuming you have these
 import AnimatedSection from '../../components/ui/AnimatedSection';
-import SkeletonListItem from '../../components/ui/SkeletonListItem'; // For loading
+import SkeletonListItem from '../../components/ui/SkeletonListItem'; 
 
-// --- ProductRow Component ---
-// This is where the TypeError fix goes (around line 90)
+
 const ProductRow = ({ product, onEdit, onDelete }) => {
   const navigate = useNavigate();
 
   const handleView = () => {
-    navigate(`/product/${product.id}`); // Or product._id
+    navigate(`/product/${product.id}`); 
   };
 
   const getStatusClass = (status) => {
@@ -61,13 +60,7 @@ const ProductRow = ({ product, onEdit, onDelete }) => {
         </span>
       </td>
       <td className="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">
-        {/*
-          *
-          * FIX 1 (TypeError):
-          * Was: ${product.price.toFixed(2)}
-          * Now: Parse price to a float before calling toFixed()
-          *
-          */}
+        
         ₹{(parseFloat(product.price) || 0).toFixed(0)}
       </td>
       <td className="px-3 py-4 text-sm text-gray-500">
@@ -147,7 +140,7 @@ const MyProductsPage = () => {
   }, [user]);
 
   const handleEdit = (product) => {
-    navigate(`/artisan/products/edit/${product.id}`); // Or product._id
+    navigate(`/artisan/products/edit/${product.id}`); 
   };
 
   const handleDelete = async (productId) => {

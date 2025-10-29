@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react'; // <-- Added useState
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom'; 
 import { motion } from 'framer-motion';
 import api from '../../api/axiosConfig.js';
 import { useCart } from '../../context/CartContext.jsx';
 import BulkOrderModal from '../../components/modal/BulkOrder.jsx';
-
+import ReviewModal from '../../components/modal/ReviewModal.jsx';
 // --- Icons remain the same ---
 const HeartIcon = () => ( <svg className="w-6 h-6 text-gray-600 group-hover:text-google-red transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 116.364 6.364L12 21l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg> );
 const PlayIcon = () => <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>;
 const PauseIcon = () => <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"></path></svg>;
 
-// --- Animation Variants (Unchanged) ---
+// --- Animation Variants ---
 const gridContainerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -52,10 +52,10 @@ const ProductPage = () => {
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   
-  // --- State for Bulk Order Modal ---
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  // You would also add state for a review modal if you have one
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
-  // --- Conditions for Buyer and Investor ---
   const isBuyerRoute = location.pathname.startsWith('/buyer');
   const isInvestorRoute = location.pathname.startsWith('/investor');
 
@@ -99,7 +99,7 @@ const ProductPage = () => {
   }, [isPlaying, allMedia.length]);
 
 
-  // --- Loading State (Unchanged) ---
+  // --- Loading State ---
   if (loading) {
     return (
       <div className="pt-24 pb-12 text-center container mx-auto">
@@ -115,7 +115,7 @@ const ProductPage = () => {
     );
   }
 
-  // --- Error State (Unchanged) ---
+  // --- Error State ---
   if (error || !product) {
     return (
       <div className="pt-24 pb-20 text-center container mx-auto">
@@ -134,7 +134,6 @@ const ProductPage = () => {
   const isVideo = currentMedia?.type === 'video';
 
   return (
-    // --- Use React Fragment to hold page and modal ---
     <>
       <div className="pt-24 pb-20 overflow-hidden">
         <div className="container mx-auto px-6">
@@ -145,7 +144,6 @@ const ProductPage = () => {
             animate="visible"
           >
             
-            {/* --- Left Column: Media + Reviews (Unchanged) --- */}
             <motion.div className="flex flex-col" variants={columnItemVariants}>
               {/* --- Media Carousel (Smaller) --- */}
               <div
@@ -175,52 +173,59 @@ const ProductPage = () => {
                     <img src='/placeholder.png' alt="Placeholder" className="w-full h-full object-cover opacity-50"/>
                   )}
                 </div>
-                {/* Carousel Controls (Unchanged) */}
+                
+                {/* Carousel Controls */}
                 {allMedia.length > 1 && (
                   <>
-                    {/* Carousel Controls */}
-{allMedia.length > 1 && (
-  <>
-    <button
-      onClick={() => navigateMedia(-1)}
-      className="absolute left-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full shadow-md hover:bg-opacity-90 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
-      aria-label="Previous image"
-    >
-      <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
-    </button>
-    <button
-      onClick={() => navigateMedia(1)}
-      className="absolute right-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full shadow-md hover:bg-opacity-90 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
-      aria-label="Next image"
-    >
-      <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-    </button>
-    <button
-      onClick={() => setIsPlaying(!isPlaying)}
-      className="absolute top-3 right-3 bg-black bg-opacity-40 p-2 rounded-full hover:bg-opacity-60 transition-colors z-10 opacity-0 group-hover:opacity-100 focus:opacity-100"
-      aria-label={isPlaying ? "Pause slideshow" : "Play slideshow"}
-    >
-        {isPlaying ? <PauseIcon /> : <PlayIcon />}
-    </button>
-    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
-      {allMedia.map((_, index) => (
-        <button
-          key={index}
-          onClick={() => { setCurrentMediaIndex(index); setIsPlaying(false); }}
-          className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${index === currentMediaIndex ? 'bg-google-blue scale-125' : 'bg-gray-400/70 hover:bg-gray-500/90'}`}
-          aria-label={`View media ${index + 1}`}
-        ></button>
-      ))}
-    </div>
-  </>
-)}
+                    <button
+                      onClick={() => navigateMedia(-1)}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full shadow-md hover:bg-opacity-90 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                      aria-label="Previous image"
+                    >
+                      <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <button
+                      onClick={() => navigateMedia(1)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full shadow-md hover:bg-opacity-90 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                      aria-label="Next image"
+                    >
+                      <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <button
+                      onClick={() => setIsPlaying(!isPlaying)}
+                      className="absolute top-3 right-3 bg-black bg-opacity-40 p-2 rounded-full hover:bg-opacity-60 transition-colors z-10 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      aria-label={isPlaying ? "Pause slideshow" : "Play slideshow"}
+                    >
+                        {isPlaying ? <PauseIcon /> : <PlayIcon />}
+                    </button>
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+                      {allMedia.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => { setCurrentMediaIndex(index); setIsPlaying(false); }}
+                          className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${index === currentMediaIndex ? 'bg-google-blue scale-125' : 'bg-gray-400/70 hover:bg-gray-500/90'}`}
+                          aria-label={`View media ${index + 1}`}
+                        ></button>
+                      ))}
+                    </div>
                   </>
                 )}
               </div>
 
-              {/* --- NEW Reviews Section (Unchanged) --- */}
+              {/* --- Reviews Section --- */}
               <div className="mt-12">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Reviews</h2>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold text-gray-800">Reviews</h2>
+                  {/* --- NEW: Write a Review Button --- */}
+                  {isBuyerRoute && (
+                     <button 
+                      onClick={() => setIsReviewModalOpen(true)}
+                      className="text-sm font-medium text-google-blue hover:text-blue-700"
+                     >
+                       Write a Review
+                     </button>
+                  )}
+                </div>
                 <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
                   <p className="text-gray-500 text-center">No reviews yet for this product.</p>
                 </div>
@@ -230,11 +235,11 @@ const ProductPage = () => {
             {/* --- Product Details (Right Column) --- */}
             <motion.div 
               className="flex flex-col" 
-              variants={detailsContainerVariants} // Staggers its children
+              variants={detailsContainerVariants}
             >
               <motion.p 
                 className="font-semibold text-google-blue tracking-wide"
-                variants={columnItemVariants} // Use the same item variant
+                variants={columnItemVariants}
               >
                 {product.category.toUpperCase()}
               </motion.p>
@@ -243,18 +248,18 @@ const ProductPage = () => {
                 className="flex justify-between items-start gap-6 mt-3"
                 variants={columnItemVariants}
               >
-                {/* Left Side: Info (Unchanged) */}
+                {/* Left Side: Info */}
                 <div className="flex-grow">
                   <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">{product.name}</h1>
                   <p className="text-lg text-gray-500 mt-2">
                     by <Link to={`../seller/${product.artisan.id}`} className="font-medium text-gray-700 hover:text-google-blue hover:underline">{product.artisan.name}</Link>
                   </p>
-                  <p className="text-4xl font-bold text-google-green mt-4">{(Number(product.price) || 0).toFixed(2)}</p>
+                  {/* --- FIXED: Added Rupee Symbol --- */}
+                  <p className="text-4xl font-bold text-google-green mt-4">₹{(Number(product.price) || 0).toFixed(2)}</p>
                 </div>
 
                 {/* Right Side: Buttons (Smaller) */}
                 <div className="flex flex-col space-y-3 pt-2 flex-shrink-0 w-48">
-                  {/* --- ONLY for Buyers (Unchanged) --- */}
                   {isBuyerRoute && (
                     <div className="flex items-center space-x-3">
                       <button
@@ -269,10 +274,10 @@ const ProductPage = () => {
                     </div>
                   )}
                   
-                  {/* --- UPDATED: For Buyers OR Investors --- */}
                   {(isBuyerRoute || isInvestorRoute) && (
                     <button
                       onClick={() => setIsBulkModalOpen(true)}
+                      // --- FIXED: Changed bg-green-500 to bg-orange-500 ---
                       className="w-full text-center bg-green-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-orange-600 transition-colors duration-300 text-sm shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                     >
                       Place Bulk Order
@@ -281,7 +286,7 @@ const ProductPage = () => {
                 </div>
               </motion.div>
 
-              {/* --- DESCRIPTION (Unchanged) --- */}
+              {/* --- DESCRIPTION --- */}
               <motion.div 
                 className="border-t pt-6 mt-6"
                 variants={columnItemVariants}
@@ -295,13 +300,20 @@ const ProductPage = () => {
         </div>
       </div>
 
-      {/* --- Add the Modal component here --- */}
       <BulkOrderModal
         isOpen={isBulkModalOpen}
         onClose={() => setIsBulkModalOpen(false)}
         productId={id}
-        productName={product?.name} // Use optional chaining for safety
+        productName={product?.name}
       />
+      
+    
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        productId={id}
+      /> 
+      
     </>
   );
 };
