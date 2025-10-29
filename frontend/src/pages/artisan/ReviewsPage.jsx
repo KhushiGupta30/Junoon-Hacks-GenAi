@@ -435,7 +435,7 @@ const ReviewsPage = () => {
           <div className="flex-1">
             <label
               htmlFor="productFilter"
-              className="block text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5"
+              className="text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5"
             >
               <TagIcon className="w-4 h-4" /> Filter by Product
             </label>
@@ -456,7 +456,7 @@ const ReviewsPage = () => {
           <div className="flex-1">
             <label
               htmlFor="dateFilter"
-              className="block text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5"
+              className="text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5"
             >
               <CalendarIcon className="w-4 h-4" /> Filter by Date
             </label>
