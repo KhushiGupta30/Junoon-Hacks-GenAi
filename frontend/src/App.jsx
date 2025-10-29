@@ -22,6 +22,7 @@ import BuyerMarket from "./pages/buyermarket/buyermarket.jsx";
 import SellerPage from "./pages/common/SellerPage.jsx";
 import CartPage from "./pages/buyermarket/cartpage.jsx";
 import NewIdeasPage from "./pages/buyermarket/newIdeas.jsx";
+import OurArtisansPage from "./pages/buyermarket/ourArtisans.jsx";
 import ProductPage from "./pages/common/ProductPage.jsx";
 import ArtisanDashboard from "./pages/artisan/ArtisanDashboard.jsx";
 import MyProductsPage from "./pages/artisan/MyProductsPage.jsx";
@@ -113,7 +114,7 @@ const AppLayout = () => {
               <Route path="product/:id" element={<AnimatedPage><ProductPage /></AnimatedPage>} />
               <Route path="seller/:artisanId" element={<AnimatedPage><SellerPage /></AnimatedPage>} />
              <Route path="new-ideas" element={<AnimatedPage><NewIdeasPage /></AnimatedPage>} />
-              
+              <Route path="our-artisans" element={<AnimatedPage><OurArtisansPage /></AnimatedPage>} />
             </Route>
 
             <Route
