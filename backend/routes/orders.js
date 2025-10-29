@@ -49,7 +49,7 @@ router.post(
 
       const { items, shippingAddress, billingAddress, payment } = req.body;
       const buyer = await UserService.findById(req.user.id);
-      if (!buyer || !buyer.profile?.location?.latitude) {
+      if (!buyer?.profile?.location?.latitude || !buyer?.profile?.location?.longitude) {
         return res.status(400).json({ message: "Your location is not set. Please update your profile before ordering." });
       }
       let subtotal = 0;
@@ -114,6 +114,9 @@ router.post(
         payment,
       };
       const artisan = await UserService.findById(orderItems[0].artisan); 
+      if (!artisan?.profile?.location?.latitude || !artisan?.profile?.location?.longitude) {
+         console.error(`Artisan ${artisan.id} is missing location data. Skipping distance calculation.`);
+      }
       const originCity = artisan.profile.location.city;
       const destinationCity = buyer.profile.location.city;
       const originCoords = { lat: artisan.profile.location.latitude, lon: artisan.profile.location.longitude };
@@ -122,20 +125,27 @@ router.post(
       let distanceKm = 0;
       let durationHours = 0;
 
-      if (originCoords && destinationCoords) {
+      if (typeof originCoords.lat === 'number' && typeof originCoords.lon === 'number' &&
+          typeof destinationCoords.lat === 'number' && typeof destinationCoords.lon === 'number') {
+          
           const apiKey = process.env.GOOGLE_MAPS_API_KEY;
           const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originCoords.lat},${originCoords.lon}&destinations=${destinationCoords.lat},${destinationCoords.lon}&key=${apiKey}`;
           
           try {
               const response = await axios.get(url);
               const data = response.data;
-              if (data.rows[0].elements[0].status === "OK") {
+              // Check for valid response structure and status before accessing nested properties
+              if (data?.rows?.[0]?.elements?.[0]?.status === "OK") {
                   distanceKm = data.rows[0].elements[0].distance.value / 1000; 
                   durationHours = data.rows[0].elements[0].duration.value / 3600; 
+              } else {
+                  console.warn("Distance Matrix API returned a non-OK status:", data?.rows?.[0]?.elements?.[0]?.status);
               }
           } catch (apiError) {
-              console.error("Distance Matrix API call failed:", apiError);
+              console.error("Distance Matrix API call failed:", apiError.message);
           }
+      } else {
+          console.warn("Skipping distance calculation due to incomplete coordinates.");
       }
 
       let totalWeightKg = 0;
