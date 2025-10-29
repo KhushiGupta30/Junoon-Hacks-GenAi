@@ -1,5 +1,5 @@
-const { db } = require('../firebase.js');
-const { FieldValue } = require('firebase-admin/firestore');
+const { db } = require("../firebase.js");
+const { FieldValue } = require("firebase-admin/firestore");
 
 class BaseService {
   constructor(collectionName) {
@@ -18,7 +18,7 @@ class BaseService {
       const docRef = await this.collectionRef.add({
         ...data,
         createdAt: timestamp,
-        updatedAt: timestamp
+        updatedAt: timestamp,
       });
       // Fetch the created doc to return it
       const docSnap = await docRef.get();
@@ -39,9 +39,12 @@ class BaseService {
       const docSnap = await docRef.get();
 
       if (docSnap.exists) {
+        // .exists is a property, not a function
         return { id: docSnap.id, ...docSnap.data() };
       } else {
-        console.warn(`No document found with id ${id} in ${this.collectionName}`);
+        console.warn(
+          `No document found with id ${id} in ${this.collectionName}`
+        );
         return null;
       }
     } catch (error) {
@@ -57,17 +60,17 @@ class BaseService {
   async findOne(filters) {
     try {
       let query = this.collectionRef;
-      
-      Object.keys(filters).forEach(key => {
-        query = query.where(key, '==', filters[key]);
+
+      Object.keys(filters).forEach((key) => {
+        query = query.where(key, "==", filters[key]);
       });
-      
+
       const snapshot = await query.limit(1).get(); // .limit(1).get() is valid Admin SDK syntax
-      
+
       if (snapshot.empty) {
         return null;
       }
-      
+
       const doc = snapshot.docs[0];
       return { id: doc.id, ...doc.data() };
     } catch (error) {
@@ -83,28 +86,36 @@ class BaseService {
   async findMany(filters = {}, options = {}) {
     try {
       let query = this.collectionRef;
-      
+
       // Apply filters
       for (const key of Object.keys(filters)) {
-        if (key === 'price' && typeof filters[key] === 'object') {
+        if (key === "price" && typeof filters[key] === "object") {
           if (filters[key].$gte !== undefined) {
-            query = query.where('price', '>=', filters[key].$gte);
+            query = query.where("price", ">=", filters[key].$gte);
           }
           if (filters[key].$lte !== undefined) {
-            query = query.where('price', '<=', filters[key].$lte);
+            query = query.where("price", "<=", filters[key].$lte);
           }
           continue;
         }
-        if (key === '$text') {
-          // Skip unsupported text search filter in Firestore
+        if (key === "$text") {
           continue;
         }
-        query = query.where(key, '==', filters[key]);
+        // Handle 'in' query for arrays
+        if (
+          typeof filters[key] === "object" &&
+          filters[key].in &&
+          Array.isArray(filters[key].in)
+        ) {
+          query = query.where(key, "in", filters[key].in);
+          continue;
+        }
+        query = query.where(key, "==", filters[key]);
       }
 
       // Apply sorting
       if (options.sortBy) {
-        const direction = options.sortOrder === 'asc' ? 'asc' : 'desc';
+        const direction = options.sortOrder === "asc" ? "asc" : "desc";
         query = query.orderBy(options.sortBy, direction);
       }
 
@@ -113,41 +124,59 @@ class BaseService {
         query = query.limit(options.limit);
       }
       if (options.offset) {
-        // Note: Firestore Admin SDK uses startAfter(doc) for offsets, not simple number.
-        // For simplicity, we'll keep offset, but warn if it's used with sortBy.
-        // A simple offset without orderBy is not guaranteed to be consistent.
-        // For real pagination, 'startAfter' with the last doc ID is needed.
-        // This simple 'offset' will likely fail with 'orderBy'.
-        // We will use the 'offset' method as it exists, but it's not recommended.
         query = query.offset(options.offset);
       }
 
       try {
         const snapshot = await query.get();
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       } catch (err) {
-        // Firestore composite index missing: retry without orderBy
-        const needsIndex = typeof err?.message === 'string' && (err.message.toLowerCase().includes('index') || err.message.toLowerCase().includes('order by'));
-        
+        const needsIndex =
+          typeof err?.message === "string" &&
+          (err.message.toLowerCase().includes("index") ||
+            err.message.toLowerCase().includes("order by"));
+
         if (needsIndex && options.sortBy) {
-          console.warn(`Firestore query failed, likely missing index. Retrying without sorting for ${this.collectionName}. Error: ${err.message}`);
+          console.warn(
+            `Firestore query failed, likely missing index. Retrying without sorting for ${this.collectionName}. Error: ${err.message}`
+          );
           let fallbackQuery = this.collectionRef;
           for (const key of Object.keys(filters)) {
-            if (key === 'price' && typeof filters[key] === 'object') {
-              if (filters[key].$gte !== undefined) fallbackQuery = fallbackQuery.where('price', '>=', filters[key].$gte);
-              if (filters[key].$lte !== undefined) fallbackQuery = fallbackQuery.where('price', '<=', filters[key].$lte);
+            if (key === "price" && typeof filters[key] === "object") {
+              if (filters[key].$gte !== undefined)
+                fallbackQuery = fallbackQuery.where(
+                  "price",
+                  ">=",
+                  filters[key].$gte
+                );
+              if (filters[key].$lte !== undefined)
+                fallbackQuery = fallbackQuery.where(
+                  "price",
+                  "<=",
+                  filters[key].$lte
+                );
               continue;
             }
-            if (key === '$text') continue;
-            fallbackQuery = fallbackQuery.where(key, '==', filters[key]);
+            if (key === "$text") continue;
+            // Handle 'in' query for arrays
+            if (
+              typeof filters[key] === "object" &&
+              filters[key].in &&
+              Array.isArray(filters[key].in)
+            ) {
+              fallbackQuery = fallbackQuery.where(key, "in", filters[key].in);
+              continue;
+            }
+            fallbackQuery = fallbackQuery.where(key, "==", filters[key]);
           }
           if (options.limit) fallbackQuery = fallbackQuery.limit(options.limit);
-          if (options.offset) fallbackQuery = fallbackQuery.offset(options.offset);
-          
+          if (options.offset)
+            fallbackQuery = fallbackQuery.offset(options.offset);
+
           const snapshot = await fallbackQuery.get();
-          return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         }
-        throw err; // Re-throw if it's not an index error
+        throw err;
       }
     } catch (error) {
       console.error(`Error in findMany for ${this.collectionName}:`, error);
@@ -164,7 +193,7 @@ class BaseService {
       const docRef = this.collectionRef.doc(id);
       await docRef.update({
         ...data,
-        updatedAt: FieldValue.serverTimestamp() // Use Admin SDK server timestamp
+        updatedAt: FieldValue.serverTimestamp(), // Use Admin SDK server timestamp
       });
       // Return the updated document
       const updatedDocSnap = await docRef.get();
@@ -196,17 +225,27 @@ class BaseService {
   async count(filters = {}) {
     try {
       let query = this.collectionRef;
-      
-      Object.keys(filters).forEach(key => {
-        query = query.where(key, '==', filters[key]);
+
+      Object.keys(filters).forEach((key) => {
+        // Handle 'in' query for arrays
+        if (
+          typeof filters[key] === "object" &&
+          filters[key].in &&
+          Array.isArray(filters[key].in)
+        ) {
+          query = query.where(key, "in", filters[key].in);
+        } else {
+          query = query.where(key, "==", filters[key]);
+        }
       });
-      
+
       // Use Admin SDK's .count() aggregate
       const snapshot = await query.count().get();
       return snapshot.data().count;
     } catch (error) {
       console.error(`Error in count for ${this.collectionName}:`, error);
-      throw new Error(`Error counting documents: ${error.message}`);
+      // Don't throw, just return 0
+      return 0;
     }
   }
 
@@ -217,7 +256,7 @@ class BaseService {
   async exists(id) {
     try {
       const docSnap = await this.collectionRef.doc(id).get();
-      return docSnap.exists;
+      return docSnap.exists; // .exists is a property
     } catch (error) {
       console.error(`Error in exists for ${this.collectionName}:`, error);
       throw new Error(`Error checking document existence: ${error.message}`);
@@ -226,4 +265,3 @@ class BaseService {
 }
 
 module.exports = BaseService;
-
