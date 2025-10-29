@@ -1,9 +1,20 @@
+const { db } = require('../firebase');
 const BaseService = require('./BaseService');
 
+/**
+ * ConversationService handles storing and retrieving
+ * user–AI chat histories in Firestore.
+ */
 class ConversationService extends BaseService {
   constructor() {
-    // We will store each user's conversation in a document named after their user ID.
     super('conversations');
+
+    // 🔒 Explicitly bind the collection (fixes undefined .doc() errors)
+    if (!db) {
+      console.error("🔥 Firebase DB is undefined in ConversationService constructor");
+      throw new Error("Firebase DB not initialized properly.");
+    }
+    this.collection = db.collection('conversations');
   }
 
   /**
@@ -13,16 +24,23 @@ class ConversationService extends BaseService {
    */
   async getHistory(userId) {
     try {
+      if (!this.collection) {
+        console.error("🔥 Firestore collection is undefined in getHistory()");
+        throw new Error("Collection not initialized.");
+      }
+
       const doc = await this.collection.doc(userId).get();
       if (!doc.exists) {
-        // If no history exists, return null or an empty array
-        return null; 
+        console.log(`🆕 No conversation history found for user ${userId}`);
+        return []; // Start with empty history
       }
-      // The history is stored in a 'messages' field within the document
-      return doc.data().messages || [];
+
+      const data = doc.data();
+      return data.messages || [];
     } catch (error) {
-      console.error(`Error getting history for user ${userId}:`, error);
-      throw error;
+      console.error(`❌ Error getting history for user ${userId}:`, error);
+      // Fail gracefully with an empty array so AI assistant still works
+      return [];
     }
   }
 
@@ -33,15 +51,22 @@ class ConversationService extends BaseService {
    */
   async saveHistory(userId, history) {
     try {
-      // .set() with merge:true will create the document if it doesn't exist,
-      // or update it if it does.
-      await this.collection.doc(userId).set({
-        messages: history,
-        lastUpdatedAt: new Date(),
-      }, { merge: true });
+      if (!this.collection) {
+        console.error("🔥 Firestore collection is undefined in saveHistory()");
+        throw new Error("Collection not initialized.");
+      }
+
+      await this.collection.doc(userId).set(
+        {
+          messages: history,
+          lastUpdatedAt: new Date(),
+        },
+        { merge: true }
+      );
+
+      console.log(`✅ Conversation history saved for user ${userId}`);
     } catch (error) {
-      console.error(`Error saving history for user ${userId}:`, error);
-      throw error;
+      console.error(`❌ Error saving history for user ${userId}:`, error);
     }
   }
 }

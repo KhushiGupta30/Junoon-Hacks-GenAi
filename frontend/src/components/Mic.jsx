@@ -1,142 +1,92 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../api/axiosConfig'; // Adjust path if needed
-import { motion, AnimatePresence } from 'framer-motion'; // <-- NEW
+import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleMicIcon, XIcon } from './common/Icons'; // Adjust path if needed
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-// --- NEW: Animation Variants ---
+// --- Animation Variants (Unchanged) ---
+const fabHintVariants = { hidden: { opacity: 0, scale: 0.5, y: 10 }, visible: { opacity: 1, scale: 1, y: 0 }, exit: { opacity: 0, scale: 0, y: 10 } };
+const backdropVariants = { hidden: { opacity: 0 }, visible: { opacity: 1 }, exit: { opacity: 0 } };
+const panelVariants = { hidden: { y: "100vh", opacity: 0 }, visible: { y: 0, opacity: 1 }, exit: { y: "100vh", opacity: 0 } };
+const messageVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 }, exit: { opacity: 0, x: -20 } };
 
-// For the hint and FAB
-const fabHintVariants = {
-    hidden: { opacity: 0, scale: 0.5, y: 10 },
-    visible: { opacity: 1, scale: 1, y: 0 },
-    exit: { opacity: 0, scale: 0, y: 10 }
-};
-
-// For the panel backdrop
-const backdropVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-    exit: { opacity: 0 }
-};
-
-// For the panel itself (slides from bottom)
-const panelVariants = {
-    hidden: { y: "100vh", opacity: 0 },
-    visible: { y: 0, opacity: 1 },
-    exit: { y: "100vh", opacity: 0 },
-    transition: { type: "spring", damping: 30, stiffness: 300 } // NEW: Spring physics
-};
-
-// For each chat message
-const messageVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-    exit: { opacity: 0, x: -20 }
-};
-
-// --- Main Component ---
 const Mic = () => {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [messages, setMessages] = useState([]);
     const [statusText, setStatusText] = useState("Tap the mic to start");
     const [showSpeakHint, setShowSpeakHint] = useState(true);
-    const audioRef = useRef(null);
+    const audioRef = useRef(new Audio());
     const recognitionRef = useRef(null);
     const panelContentRef = useRef(null);
 
-    // ... (All your useEffect and helper functions remain exactly the same) ...
-    // ... (useEffect for hint, setup Speech Recognition, playAudio, handleMicClick) ...
-    
     // Setup Speech Recognition
     useEffect(() => {
         if (!SpeechRecognition) {
-            console.error("SpeechRecognition API not supported in this browser.");
+            console.error("SpeechRecognition API not supported.");
             setStatusText("Voice recognition not supported.");
             return;
         }
 
-        recognitionRef.current = new SpeechRecognition();
-        const recognition = recognitionRef.current;
+        const recognition = new SpeechRecognition();
         recognition.continuous = false;
         recognition.lang = 'en-US';
         recognition.interimResults = true;
 
-        recognition.onstart = () => {
-            setIsListening(true);
-            setStatusText("Listening...");
-        };
-
-        recognition.onend = () => {
-            setIsListening(false);
-            if (statusText === "Listening...") {
-                setStatusText("Tap the mic to start");
-            }
-        };
-
+        recognition.onstart = () => { setIsListening(true); setStatusText("Listening..."); };
+        recognition.onend = () => { setIsListening(false); if (statusText === "Listening...") setStatusText("Tap the mic to start"); };
         recognition.onerror = (event) => {
             console.error("Speech recognition error:", event.error);
             setIsListening(false);
-            let errorMessage = "Sorry, I didn't catch that.";
-            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                errorMessage = "Microphone access denied.";
-            } else if (event.error === 'no-speech') {
-                errorMessage = "Didn't hear anything.";
-            } else if (event.error === 'network') {
-                errorMessage = "Network error. Please try again.";
-            }
-            setStatusText(errorMessage);
+            let msg = "Sorry, I didn't catch that.";
+            if (event.error === 'not-allowed') msg = "Microphone access denied.";
+            if (event.error === 'no-speech') msg = "Didn't hear anything.";
+            setStatusText(msg);
         };
 
         recognition.onresult = async (event) => {
-            const currentTranscript = Array.from(event.results)
-                .map(result => result[0])
-                .map(result => result.transcript)
-                .join('');
-
+            const transcript = Array.from(event.results).map(r => r[0].transcript).join('');
             if (event.results[0].isFinal) {
-                setMessages(prev => [...prev, { role: 'user', text: currentTranscript }]);
+                setMessages(prev => [...prev, { role: 'user', text: transcript }]);
                 setStatusText("Thinking...");
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                    const response = await api.post('/ai/assistant', { prompt: currentTranscript });
-                    const { reply, language } = response.data;
+                    const response = await api.post('/ai/assistant', { prompt: transcript });
 
-                    setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
-                    setStatusText("Tap the mic to start");
-                    
-                    if (reply && language) {
+                    // --- THIS IS THE ROBUSTNESS FIX ---
+                    // Check if the response.data exists and has the properties we need.
+                    if (response.data && response.data.reply && response.data.language) {
+                        const { reply, language } = response.data;
+                        setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
                         playAudio(reply, language);
+                    } else {
+                        // Handle cases where the backend might send an unexpected response
+                        throw new Error("Invalid response structure from AI assistant.");
                     }
+
                 } catch (error) {
                     const errorMessage = "Sorry, I had trouble responding.";
                     setMessages(prev => [...prev, { role: 'assistant', text: errorMessage, isError: true }]);
-                    setStatusText("Tap the mic to start");
                     playAudio(errorMessage, 'en-US');
                     console.error("AI Assistant API error:", error);
+                } finally {
+                    setStatusText("Tap the mic to start");
                 }
             }
         };
+        recognitionRef.current = recognition;
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [statusText]);
 
     const playAudio = async (text, languageCode) => {
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-        }
+        const audio = audioRef.current;
+        if (audio) { audio.pause(); audio.currentTime = 0; }
         try {
-            const response = await api.post('/ai/synthesize-speech', {
-                text,
-                languageCode
-            });
-            const { audioContent } = response.data;
-            if (!audioContent) return;
-            const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
-            audioRef.current = audio;
-            audio.play();
+            const response = await api.post('/ai/synthesize-speech', { text, languageCode });
+            if (response.data && response.data.audioContent) {
+                audio.src = `data:audio/mp3;base64,${response.data.audioContent}`;
+                audio.play();
+            }
         } catch (error) {
             console.error("Error playing synthesized speech:", error);
         }
@@ -147,23 +97,15 @@ const Mic = () => {
         if (isListening) {
             recognitionRef.current.stop();
         } else {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-            }
+            if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
             recognitionRef.current.start();
         }
     };
 
     const closePanel = () => {
         setIsPanelOpen(false);
-        if (recognitionRef.current && isListening) {
-            recognitionRef.current.stop();
-        }
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-        }
+        if (recognitionRef.current && isListening) recognitionRef.current.stop();
+        if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
         setStatusText("Tap the mic to start");
     };
 
@@ -172,17 +114,16 @@ const Mic = () => {
             panelContentRef.current.scrollTop = panelContentRef.current.scrollHeight;
         }
     }, [messages]);
-
-
+    
+    // The JSX for rendering remains exactly the same.
     return (
         <>
             {/* --- Floating Action Button (FAB) --- */}
             <div className="fixed bottom-6 right-6 z-[90]">
-                {/* // <-- NEW: Replaced conditional rendering with AnimatePresence */}
                 <AnimatePresence>
                     {showSpeakHint && !isPanelOpen && (
                         <motion.div
-                            variants={fabHintVariants} // <-- NEW
+                            variants={fabHintVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
@@ -193,16 +134,16 @@ const Mic = () => {
                     )}
                 </AnimatePresence>
 
-                <AnimatePresence> {/* // <-- NEW: Lets button animate out */}
+                <AnimatePresence>
                 {!isPanelOpen && (
                     <motion.button
                         onClick={() => setIsPanelOpen(true)}
-                        variants={fabHintVariants} // <-- NEW: Re-using variants
+                        variants={fabHintVariants}
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        whileHover={{ scale: 1.1 }} // <-- NEW: Bouncy hover
-                        whileTap={{ scale: 0.9 }} // <-- NEW: Tap effect
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                         className="bg-white w-18 h-18 rounded-2xl flex items-center justify-center shadow-lg border border-gray-200 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-blue"
                         aria-label="Open AI Assistant"
                     >
@@ -214,12 +155,11 @@ const Mic = () => {
 
             {/* --- Assistant Panel (Bottom Sheet Style) --- */}
             
-            {/* // <-- NEW: AnimatePresence to handle panel open/close */}
             <AnimatePresence>
                 {isPanelOpen && (
                     <>
                         <motion.div
-                            variants={backdropVariants} // <-- NEW
+                            variants={backdropVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
@@ -228,11 +168,11 @@ const Mic = () => {
                             aria-hidden="true"
                         />
                         <motion.div
-                            variants={panelVariants} // <-- NEW
+                            variants={panelVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            transition={{ type: "spring", damping: 40, stiffness: 400 }} // <-- NEW: Custom physics
+                            transition={{ type: "spring", damping: 40, stiffness: 400 }}
                             className="fixed bottom-0 left-0 right-0 z-[100] w-full max-w-xl mx-auto bg-white rounded-t-2xl shadow-2xl overflow-hidden"
                             style={{ maxHeight: '75vh' }}
                         >
@@ -245,13 +185,12 @@ const Mic = () => {
 
                             <div className="h-[60vh] flex flex-col">
                                 <div ref={panelContentRef} className="flex-grow overflow-y-auto p-4 space-y-4">
-                                    {/* // <-- NEW: AnimatePresence for chat messages */}
                                     <AnimatePresence>
                                         {messages.map((msg, index) => (
                                             <motion.div
                                                 key={index}
-                                                variants={messageVariants} // <-- NEW
-                                                layout // <-- NEW: Animates list as items are added
+                                                variants={messageVariants}
+                                                layout
                                                 initial="hidden"
                                                 animate="visible"
                                                 exit="exit"
@@ -271,7 +210,7 @@ const Mic = () => {
                                     </AnimatePresence>
                                     
                                     {statusText === "Thinking..." && (
-                                        <motion.div // <-- NEW: Also animating the "thinking" bubble
+                                        <motion.div 
                                             variants={messageVariants}
                                             initial="hidden"
                                             animate="visible"
@@ -280,7 +219,7 @@ const Mic = () => {
                                             <div className="bg-gray-100 text-gray-500 p-3 rounded-xl rounded-bl-none inline-flex items-center space-x-2">
                                                 <motion.span
                                                     className="w-2 h-2 bg-gray-400 rounded-full"
-                                                    animate={{ y: [0, -4, 0] }} // <-- NEW: Bouncing dots
+                                                    animate={{ y: [0, -4, 0] }}
                                                     transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
                                                 />
                                                 <motion.span
@@ -299,16 +238,16 @@ const Mic = () => {
                                 </div>
 
                                 <div className="flex flex-col items-center justify-center p-4 border-t border-gray-200 bg-white">
-                                    <motion.button // <-- NEW: Converted to motion.button
+                                    <motion.button 
                                         onClick={handleMicClick}
                                         disabled={!SpeechRecognition}
-                                        whileTap={{ scale: isListening ? 1 : 0.9 }} // <-- NEW: Tap effect
+                                        whileTap={{ scale: isListening ? 1 : 0.9 }} 
                                         className={`relative w-16 h-16 rounded-full flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-google-blue/30 disabled:opacity-50 ${isListening ? 'bg-white shadow-inner' : 'bg-white shadow-md hover:shadow-lg'}`}
                                         aria-label={isListening ? "Stop listening" : "Start listening"}
                                     >
                                         <GoogleMicIcon className="w-8 h-8" isListening={isListening} />
                                         {isListening && (
-                                            <motion.span // <-- NEW: Replaced CSS pulse
+                                            <motion.span
                                                 className="absolute inset-0 rounded-full border-4 border-blue-200"
                                                 animate={{
                                                     scale: [1, 1.4, 1],
