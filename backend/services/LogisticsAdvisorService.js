@@ -1,6 +1,3 @@
-// backend/services/LogisticsAdvisorService.js
-
-// 1. Simplified Rate Cards (Store this in a config or DB in a real app)
 const partnerRateCards = {
   "A F Xpress": {
     baseRate: 150,
