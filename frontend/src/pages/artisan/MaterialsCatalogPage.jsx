@@ -6,14 +6,14 @@ import {
     ArrowLeftIcon,
     BuildingStorefrontIcon,
     ArchiveIcon,
-    SearchIcon, // <-- Add SearchIcon
-    ExclamationCircleIcon, // <-- Add ExclamationCircleIcon
+    SearchIcon,
+    ExclamationCircleIcon,
     CollectionIcon,
-    RefreshIcon, // <-- Add RefreshIcon
-    TagIcon, // <-- Add TagIcon
+    RefreshIcon,
+    TagIcon,
 } from '../../components/common/Icons'; // Adjusted path
 
-// --- Skeleton Component (Import or define here) ---
+// --- Skeleton Component ---
 const SkeletonMaterialCard = () => (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden animate-pulse">
         <div className="bg-gray-200 h-40 w-full"></div>
@@ -40,9 +40,8 @@ const TabButton = ({ title, isActive, onClick }) => (
     </button>
 );
 
-// --- Quick-search categories (from RawMaterialsPage.jsx) ---
+// --- Quick-search categories ---
 const categories = [
-  // Textiles
   "Cotton Thread",
   "Silk Yarn",
   "Wool Fiber",
@@ -51,47 +50,35 @@ const categories = [
   "Embroidery Floss",
   "Linen Fabric",
   "Handloom Cotton",
-
-  // Pottery
   "Terracotta Clay",
   "Earthen Clay",
   "Stoneware Clay",
   "Glazing Powder",
   "Pottery Paints",
   "Ceramic Pigments",
-
-  // Painting
   "Canvas Sheets",
   "Natural Pigments",
   "Acrylic Colors",
   "Oil Paints",
   "Brush Sets",
   "Wooden Frames",
-
-  // Woodwork
   "Wooden Beads",
   "Teak Wood Blocks",
   "Sandalwood Pieces",
   "Plywood Sheets",
   "Varnish",
   "Carving Tools",
-
-  // Metalwork
   "Brass Fittings",
   "Copper Wire",
   "Iron Rods",
   "Aluminum Sheets",
   "Silver Foil",
   "Metal Casting Powder",
-
-  // Sculpture
   "Plaster of Paris",
   "Marble Dust",
   "Stone Blocks",
   "Clay Molds",
   "Chisels and Hammers",
-
-  // Jewelry
   "Leather Scraps",
   "Cane",
   "Jute Rope",
@@ -99,33 +86,27 @@ const categories = [
   "Shell Pieces",
   "Silver Chains",
   "Gemstone Chips",
-
-  // Misc / Other
   "Recycled Paper",
   "Bamboo Sticks",
   "Natural Resin",
   "Organic Glue",
   "Lac Material",
 ];
- // Shortened list for example
 
-// --- MODIFIED Catalog View to include search/results ---
+// --- Catalog View Component ---
 const CatalogBrowseView = () => {
     const [searchTerm, setSearchTerm] = useState("");
-    // <--- 1. A DEFAULT SEARCH TERM IS SET ON LOAD
-    const [activeQuery, setActiveQuery] = useState("cotton"); // Default search
+    const [activeQuery, setActiveQuery] = useState("cotton");
     const [materials, setMaterials] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // <--- 2. THIS EFFECT RUNS WHEN THE COMPONENT LOADS
     useEffect(() => {
         const fetchMaterials = async (isRefresh = false) => {
             if (!activeQuery) return;
             setLoading(true);
             setError("");
             try {
-                // <--- 3. IT USES THE DEFAULT TERM TO FETCH DATA
                 const params = { q: activeQuery, refresh: isRefresh };
                 const response = await api.get("/materials", { params });
                 setMaterials(response.data || []); 
@@ -137,9 +118,8 @@ const CatalogBrowseView = () => {
                 setLoading(false);
             }
         };
-        
-        fetchMaterials(false); // <--- 4. THE FETCH IS CALLED
-    }, [activeQuery]); // <--- IT RUNS BECAUSE 'activeQuery' WAS INITIALIZED
+        fetchMaterials(false);
+    }, [activeQuery]);
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
@@ -176,7 +156,7 @@ const CatalogBrowseView = () => {
 
     return (
         <AnimatedSection>
-            {/* --- Search Bar & Filters (from RawMaterialsPage.jsx) --- */}
+            {/* --- Search Bar & Filters --- */}
             <div className="mb-6 space-y-4">
                 <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
                     <div className="relative flex-grow">
@@ -206,7 +186,7 @@ const CatalogBrowseView = () => {
                 </div>
             </div>
 
-            {/* --- Results Grid (from RawMaterialsPage.jsx) --- */}
+            {/* --- Results Grid --- */}
             <div>
                 {loading && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -235,9 +215,19 @@ const CatalogBrowseView = () => {
                                 <div className="p-4 flex flex-col flex-grow">
                                     <h3 className="text-sm font-semibold text-gray-800 line-clamp-2" title={item.title}>{item.title}</h3>
                                     <p className="text-xs text-gray-500 mt-1.5 line-clamp-3 flex-grow">{item.snippet}</p>
-                                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="mt-4 w-full block text-center bg-google-blue/10 text-google-blue text-xs font-bold py-2 rounded-md hover:bg-google-blue/20 transition-colors">
-                                        View on IndiaMART
-                                    </a>
+                                    
+                                    <div className="mt-4">
+                                        {/* --- THIS IS THE ONLY CHANGE: PRICE DISPLAY --- */}
+                                        {item.price && (
+                                            <p className="text-lg font-bold text-google-green mb-2">
+                                                {item.price}
+                                            </p>
+                                        )}
+                                        
+                                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="w-full block text-center bg-google-blue/10 text-google-blue text-xs font-bold py-2 rounded-md hover:bg-google-blue/20 transition-colors">
+                                            View on IndiaMART
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -247,8 +237,6 @@ const CatalogBrowseView = () => {
         </AnimatedSection>
     );
 };
-// --- End Modified Catalog View ---
-
 
 // --- Placeholder for Order History View ---
 const OrderHistoryView = () => (
@@ -265,20 +253,18 @@ const OrderHistoryView = () => (
 
 // --- MAIN MATERIALS CATALOG PAGE ---
 const MaterialsCatalogPage = () => {
-    const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' or 'history'
+    const [activeTab, setActiveTab] = useState('catalog');
 
     return (
         <div className="px-6 md:px-8 py-8 md:py-15 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
             <AnimatedSection className="mb-8">
-
                 <Link
-                                        to="/artisan/logistics"
-                                        className="inline-flex items-center gap-1.5 text-sm font-medium text-google-blue hover:underline mb-4"
-                                    >
-                                        <ArrowLeftIcon className="w-4 h-4" />
-                                        Back to Logistics
-                                    </Link>
-                 {/* REMOVED Back Link as per RawMaterialsPage.jsx structure */}
+                    to="/artisan/logistics"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-google-blue hover:underline mb-4"
+                >
+                    <ArrowLeftIcon className="w-4 h-4" />
+                    Back to Logistics
+                </Link>
                 <h1 className="text-3xl font-semibold text-gray-800 tracking-tight">
                     Materials Marketplace
                 </h1>

@@ -30,7 +30,7 @@ class AIReportService extends BaseService {
    */
   async getLatestReport(type, userId = null) {
     try {
-      let query = this.collection.where("type", "==", type);
+      let query = this.collectionRef.where("type", "==", type);
 
       if (userId) {
         query = query.where("userId", "==", userId);
