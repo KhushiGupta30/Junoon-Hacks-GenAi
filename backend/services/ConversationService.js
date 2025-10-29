@@ -1,15 +1,10 @@
 const { db } = require('../firebase');
 const BaseService = require('./BaseService');
 
-/**
- * ConversationService handles storing and retrieving
- * user–AI chat histories in Firestore.
- */
 class ConversationService extends BaseService {
   constructor() {
     super('conversations');
 
-    // 🔒 Explicitly bind the collection (fixes undefined .doc() errors)
     if (!db) {
       console.error("🔥 Firebase DB is undefined in ConversationService constructor");
       throw new Error("Firebase DB not initialized properly.");
@@ -32,14 +27,13 @@ class ConversationService extends BaseService {
       const doc = await this.collection.doc(userId).get();
       if (!doc.exists) {
         console.log(`🆕 No conversation history found for user ${userId}`);
-        return []; // Start with empty history
+        return []; 
       }
 
       const data = doc.data();
       return data.messages || [];
     } catch (error) {
       console.error(`❌ Error getting history for user ${userId}:`, error);
-      // Fail gracefully with an empty array so AI assistant still works
       return [];
     }
   }
