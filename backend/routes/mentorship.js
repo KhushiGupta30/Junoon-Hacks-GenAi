@@ -6,7 +6,6 @@ const UserService = require("../services/UserService");
 
 const router = express.Router();
 
-// GET /api/mentorship/my-mentor - For an artisan to find their current mentor
 router.get("/my-mentor", [auth, authorize("artisan")], async (req, res) => {
   try {
     const mentorship = await MentorshipService.findAmbassadorByArtisan(
@@ -43,7 +42,6 @@ router.put(
   }
 );
 
-// GET /api/mentorship/requests - For an artisan to see pending requests
 router.get("/requests", [auth, authorize("artisan")], async (req, res) => {
   try {
     const pendingMentorships = await MentorshipService.findMany({
@@ -53,7 +51,6 @@ router.get("/requests", [auth, authorize("artisan")], async (req, res) => {
     if (pendingMentorships.length === 0) {
       return res.json({ requests: [] });
     }
-    // Get the details of the ambassadors who made the requests
     const ambassadorIds = pendingMentorships.map((p) => p.ambassadorId);
     const ambassadors = await UserService.findMany({
       id: { in: ambassadorIds },
@@ -71,7 +68,6 @@ router.get("/requests", [auth, authorize("artisan")], async (req, res) => {
   }
 });
 
-// GET /api/mentorship/status/:artisanId - Check mentorship status for a specific artisan
 router.get("/status/:artisanId", auth, async (req, res) => {
   try {
     const { artisanId } = req.params;
@@ -82,7 +78,7 @@ router.get("/status/:artisanId", auth, async (req, res) => {
       ambassadorId,
     });
     if (existing) {
-      return res.json({ status: existing.status }); // 'pending' or 'active'
+      return res.json({ status: existing.status });
     }
 
     const artisanMentorship = await MentorshipService.findAmbassadorByArtisan(
