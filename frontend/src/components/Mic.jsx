@@ -3,6 +3,9 @@ import api from '../api/axiosConfig'; // Adjust path if needed
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleMicIcon, XIcon } from './common/Icons'; // Adjust path if needed
 
+// <-- 1. IMPORT THE MARKDOWN COMPONENT ---
+import ReactMarkdown from 'react-markdown';
+
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 // --- Animation Variants (Unchanged) ---
@@ -11,82 +14,112 @@ const backdropVariants = { hidden: { opacity: 0 }, visible: { opacity: 1 }, exit
 const panelVariants = { hidden: { y: "100vh", opacity: 0 }, visible: { y: 0, opacity: 1 }, exit: { y: "100vh", opacity: 0 } };
 const messageVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 }, exit: { opacity: 0, x: -20 } };
 
+// --- Main Component ---
 const Mic = () => {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [messages, setMessages] = useState([]);
     const [statusText, setStatusText] = useState("Tap the mic to start");
     const [showSpeakHint, setShowSpeakHint] = useState(true);
-    const audioRef = useRef(new Audio());
+    const audioRef = useRef(null);
     const recognitionRef = useRef(null);
     const panelContentRef = useRef(null);
 
+    // <-- 2. CREATE A HELPER FUNCTION TO CLEAN TEXT FOR SPEECH ---
+    const cleanTextForSpeech = (text) => {
+        // This removes markdown characters like *, **, etc.
+        return text.replace(/[*_`]/g, '');
+    };
+    
     // Setup Speech Recognition
     useEffect(() => {
         if (!SpeechRecognition) {
-            console.error("SpeechRecognition API not supported.");
+            console.error("SpeechRecognition API not supported in this browser.");
             setStatusText("Voice recognition not supported.");
             return;
         }
 
-        const recognition = new SpeechRecognition();
+        recognitionRef.current = new SpeechRecognition();
+        const recognition = recognitionRef.current;
         recognition.continuous = false;
-        recognition.lang = 'en-US';
+        recognition.lang = 'en-US'; // This is untouched, as you requested.
         recognition.interimResults = true;
 
-        recognition.onstart = () => { setIsListening(true); setStatusText("Listening..."); };
-        recognition.onend = () => { setIsListening(false); if (statusText === "Listening...") setStatusText("Tap the mic to start"); };
+        recognition.onstart = () => {
+            setIsListening(true);
+            setStatusText("Listening...");
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+            if (statusText === "Listening...") {
+                setStatusText("Tap the mic to start");
+            }
+        };
+
         recognition.onerror = (event) => {
             console.error("Speech recognition error:", event.error);
             setIsListening(false);
-            let msg = "Sorry, I didn't catch that.";
-            if (event.error === 'not-allowed') msg = "Microphone access denied.";
-            if (event.error === 'no-speech') msg = "Didn't hear anything.";
-            setStatusText(msg);
+            let errorMessage = "Sorry, I didn't catch that.";
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                errorMessage = "Microphone access denied.";
+            } else if (event.error === 'no-speech') {
+                errorMessage = "Didn't hear anything.";
+            } else if (event.error === 'network') {
+                errorMessage = "Network error. Please try again.";
+            }
+            setStatusText(errorMessage);
         };
 
         recognition.onresult = async (event) => {
-            const transcript = Array.from(event.results).map(r => r[0].transcript).join('');
+            const currentTranscript = Array.from(event.results)
+                .map(result => result[0])
+                .map(result => result.transcript)
+                .join('');
+
             if (event.results[0].isFinal) {
-                setMessages(prev => [...prev, { role: 'user', text: transcript }]);
+                setMessages(prev => [...prev, { role: 'user', text: currentTranscript }]);
                 setStatusText("Thinking...");
                 try {
-                    const response = await api.post('/ai/assistant', { prompt: transcript });
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    const response = await api.post('/ai/assistant', { prompt: currentTranscript });
+                    const { reply, language } = response.data;
 
-                    // --- THIS IS THE ROBUSTNESS FIX ---
-                    // Check if the response.data exists and has the properties we need.
-                    if (response.data && response.data.reply && response.data.language) {
-                        const { reply, language } = response.data;
-                        setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
-                        playAudio(reply, language);
-                    } else {
-                        // Handle cases where the backend might send an unexpected response
-                        throw new Error("Invalid response structure from AI assistant.");
+                    setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
+                    setStatusText("Tap the mic to start");
+                    
+                    if (reply && language) {
+                        // <-- 3. USE THE CLEANING FUNCTION BEFORE PLAYING AUDIO ---
+                        const cleanReply = cleanTextForSpeech(reply);
+                        playAudio(cleanReply, language);
                     }
-
                 } catch (error) {
                     const errorMessage = "Sorry, I had trouble responding.";
                     setMessages(prev => [...prev, { role: 'assistant', text: errorMessage, isError: true }]);
+                    setStatusText("Tap the mic to start");
                     playAudio(errorMessage, 'en-US');
                     console.error("AI Assistant API error:", error);
-                } finally {
-                    setStatusText("Tap the mic to start");
                 }
             }
         };
-        recognitionRef.current = recognition;
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [statusText]);
 
     const playAudio = async (text, languageCode) => {
-        const audio = audioRef.current;
-        if (audio) { audio.pause(); audio.currentTime = 0; }
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
         try {
-            const response = await api.post('/ai/synthesize-speech', { text, languageCode });
-            if (response.data && response.data.audioContent) {
-                audio.src = `data:audio/mp3;base64,${response.data.audioContent}`;
-                audio.play();
-            }
+            const response = await api.post('/ai/synthesize-speech', {
+                text,
+                languageCode
+            });
+            const { audioContent } = response.data;
+            if (!audioContent) return;
+            const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+            audioRef.current = audio;
+            audio.play();
         } catch (error) {
             console.error("Error playing synthesized speech:", error);
         }
@@ -97,15 +130,23 @@ const Mic = () => {
         if (isListening) {
             recognitionRef.current.stop();
         } else {
-            if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
             recognitionRef.current.start();
         }
     };
 
     const closePanel = () => {
         setIsPanelOpen(false);
-        if (recognitionRef.current && isListening) recognitionRef.current.stop();
-        if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
+        if (recognitionRef.current && isListening) {
+            recognitionRef.current.stop();
+        }
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
         setStatusText("Tap the mic to start");
     };
 
@@ -114,8 +155,8 @@ const Mic = () => {
             panelContentRef.current.scrollTop = panelContentRef.current.scrollHeight;
         }
     }, [messages]);
-    
-    // The JSX for rendering remains exactly the same.
+
+
     return (
         <>
             {/* --- Floating Action Button (FAB) --- */}
@@ -154,7 +195,6 @@ const Mic = () => {
             </div>
 
             {/* --- Assistant Panel (Bottom Sheet Style) --- */}
-            
             <AnimatePresence>
                 {isPanelOpen && (
                     <>
@@ -196,21 +236,22 @@ const Mic = () => {
                                                 exit="exit"
                                                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                             >
-                                                <div className={`p-3 rounded-xl max-w-[80%] ${
+                                                <div className={`p-3 rounded-xl max-w-[80%] prose prose-sm ${
                                                     msg.role === 'user'
-                                                        ? 'bg-google-blue text-white rounded-br-none'
+                                                        ? 'bg-google-blue text-white rounded-br-none prose-invert' // Added prose-invert for white text
                                                         : msg.isError
                                                             ? 'bg-red-100 text-red-800 rounded-bl-none'
                                                             : 'bg-gray-100 text-gray-800 rounded-bl-none'
                                                 }`}>
-                                                    <p className="text-sm">{msg.text}</p>
+                                                    {/* <-- 4. USE THE MARKDOWN COMPONENT FOR DISPLAY --- */}
+                                                    <ReactMarkdown>{msg.text}</ReactMarkdown>
                                                 </div>
                                             </motion.div>
                                         ))}
                                     </AnimatePresence>
                                     
                                     {statusText === "Thinking..." && (
-                                        <motion.div 
+                                        <motion.div
                                             variants={messageVariants}
                                             initial="hidden"
                                             animate="visible"
@@ -238,10 +279,10 @@ const Mic = () => {
                                 </div>
 
                                 <div className="flex flex-col items-center justify-center p-4 border-t border-gray-200 bg-white">
-                                    <motion.button 
+                                    <motion.button
                                         onClick={handleMicClick}
                                         disabled={!SpeechRecognition}
-                                        whileTap={{ scale: isListening ? 1 : 0.9 }} 
+                                        whileTap={{ scale: isListening ? 1 : 0.9 }}
                                         className={`relative w-16 h-16 rounded-full flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-google-blue/30 disabled:opacity-50 ${isListening ? 'bg-white shadow-inner' : 'bg-white shadow-md hover:shadow-lg'}`}
                                         aria-label={isListening ? "Stop listening" : "Start listening"}
                                     >
