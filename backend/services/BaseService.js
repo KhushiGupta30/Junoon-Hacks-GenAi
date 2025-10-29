@@ -1,44 +1,69 @@
-const { db, admin } = require('../firebase');
+const { db } = require('../firebase.js');
+const { FieldValue } = require('firebase-admin/firestore');
 
 class BaseService {
   constructor(collectionName) {
-    this.collection = db.collection(collectionName);
+    this.collectionName = collectionName;
+    // Use Admin SDK syntax to get collection
+    this.collectionRef = db.collection(collectionName);
   }
 
+  /**
+   * --- CORRECTED ---
+   * Uses Firebase Admin SDK syntax
+   */
   async create(data) {
     try {
-      const docRef = await this.collection.add({
+      const timestamp = FieldValue.serverTimestamp(); // Use Admin SDK server timestamp
+      const docRef = await this.collectionRef.add({
         ...data,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: timestamp,
+        updatedAt: timestamp
       });
-      return { id: docRef.id, ...data };
+      // Fetch the created doc to return it
+      const docSnap = await docRef.get();
+      return { id: docSnap.id, ...docSnap.data() };
     } catch (error) {
+      console.error(`Error in create for ${this.collectionName}:`, error);
       throw new Error(`Error creating document: ${error.message}`);
     }
   }
 
+  /**
+   * --- CORRECTED ---
+   * Uses Firebase Admin SDK syntax
+   */
   async findById(id) {
     try {
-      const doc = await this.collection.doc(id).get();
-      if (!doc.exists) {
+      const docRef = this.collectionRef.doc(id);
+      const docSnap = await docRef.get();
+
+      if (docSnap.exists) {
+        return { id: docSnap.id, ...docSnap.data() };
+      } else {
+        console.warn(`No document found with id ${id} in ${this.collectionName}`);
         return null;
       }
-      return { id: doc.id, ...doc.data() };
     } catch (error) {
+      console.error(`Error in findById for ${this.collectionName}:`, error);
       throw new Error(`Error finding document: ${error.message}`);
     }
   }
 
+  /**
+   * --- CORRECTED ---
+   * Uses Firebase Admin SDK syntax
+   */
   async findOne(filters) {
     try {
-      let query = this.collection;
+      let query = this.collectionRef;
       
       Object.keys(filters).forEach(key => {
         query = query.where(key, '==', filters[key]);
-    });
+      });
       
-      const snapshot = await query.limit(1).get();
+      const snapshot = await query.limit(1).get(); // .limit(1).get() is valid Admin SDK syntax
+      
       if (snapshot.empty) {
         return null;
       }
@@ -46,13 +71,18 @@ class BaseService {
       const doc = snapshot.docs[0];
       return { id: doc.id, ...doc.data() };
     } catch (error) {
+      console.error(`Error in findOne for ${this.collectionName}:`, error);
       throw new Error(`Error finding document: ${error.message}`);
     }
   }
 
+  /**
+   * --- CORRECTED ---
+   * Uses Firebase Admin SDK syntax
+   */
   async findMany(filters = {}, options = {}) {
     try {
-      let query = this.collection;
+      let query = this.collectionRef;
       
       // Apply filters
       for (const key of Object.keys(filters)) {
@@ -83,6 +113,12 @@ class BaseService {
         query = query.limit(options.limit);
       }
       if (options.offset) {
+        // Note: Firestore Admin SDK uses startAfter(doc) for offsets, not simple number.
+        // For simplicity, we'll keep offset, but warn if it's used with sortBy.
+        // A simple offset without orderBy is not guaranteed to be consistent.
+        // For real pagination, 'startAfter' with the last doc ID is needed.
+        // This simple 'offset' will likely fail with 'orderBy'.
+        // We will use the 'offset' method as it exists, but it's not recommended.
         query = query.offset(options.offset);
       }
 
@@ -91,9 +127,11 @@ class BaseService {
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       } catch (err) {
         // Firestore composite index missing: retry without orderBy
-        const needsIndex = typeof err?.message === 'string' && err.message.toLowerCase().includes('index');
+        const needsIndex = typeof err?.message === 'string' && (err.message.toLowerCase().includes('index') || err.message.toLowerCase().includes('order by'));
+        
         if (needsIndex && options.sortBy) {
-          let fallbackQuery = this.collection;
+          console.warn(`Firestore query failed, likely missing index. Retrying without sorting for ${this.collectionName}. Error: ${err.message}`);
+          let fallbackQuery = this.collectionRef;
           for (const key of Object.keys(filters)) {
             if (key === 'price' && typeof filters[key] === 'object') {
               if (filters[key].$gte !== undefined) fallbackQuery = fallbackQuery.where('price', '>=', filters[key].$gte);
@@ -105,60 +143,87 @@ class BaseService {
           }
           if (options.limit) fallbackQuery = fallbackQuery.limit(options.limit);
           if (options.offset) fallbackQuery = fallbackQuery.offset(options.offset);
+          
           const snapshot = await fallbackQuery.get();
           return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
-        throw err;
+        throw err; // Re-throw if it's not an index error
       }
     } catch (error) {
+      console.error(`Error in findMany for ${this.collectionName}:`, error);
       throw new Error(`Error finding documents: ${error.message}`);
     }
   }
 
+  /**
+   * --- CORRECTED ---
+   * Uses Firebase Admin SDK syntax
+   */
   async update(id, data) {
     try {
-      await this.collection.doc(id).update({
+      const docRef = this.collectionRef.doc(id);
+      await docRef.update({
         ...data,
-        updatedAt: new Date()
+        updatedAt: FieldValue.serverTimestamp() // Use Admin SDK server timestamp
       });
-      return await this.findById(id);
+      // Return the updated document
+      const updatedDocSnap = await docRef.get();
+      return { id: updatedDocSnap.id, ...updatedDocSnap.data() };
     } catch (error) {
+      console.error(`Error in update for ${this.collectionName}:`, error);
       throw new Error(`Error updating document: ${error.message}`);
     }
   }
 
+  /**
+   * --- CORRECTED ---
+   * Uses Firebase Admin SDK syntax
+   */
   async delete(id) {
     try {
-      await this.collection.doc(id).delete();
-      return true;
+      await this.collectionRef.doc(id).delete();
+      return true; // Return boolean on success
     } catch (error) {
+      console.error(`Error in delete for ${this.collectionName}:`, error);
       throw new Error(`Error deleting document: ${error.message}`);
     }
   }
 
+  /**
+   * --- CORRECTED ---
+   * Uses Firebase Admin SDK syntax
+   */
   async count(filters = {}) {
     try {
-      let query = this.collection;
+      let query = this.collectionRef;
       
       Object.keys(filters).forEach(key => {
         query = query.where(key, '==', filters[key]);
-    });
+      });
       
-      const snapshot = await query.get();
-      return snapshot.size;
+      // Use Admin SDK's .count() aggregate
+      const snapshot = await query.count().get();
+      return snapshot.data().count;
     } catch (error) {
+      console.error(`Error in count for ${this.collectionName}:`, error);
       throw new Error(`Error counting documents: ${error.message}`);
     }
   }
 
+  /**
+   * --- CORRECTED ---
+   * Uses Firebase Admin SDK syntax
+   */
   async exists(id) {
     try {
-      const doc = await this.collection.doc(id).get();
-      return doc.exists;
+      const docSnap = await this.collectionRef.doc(id).get();
+      return docSnap.exists;
     } catch (error) {
+      console.error(`Error in exists for ${this.collectionName}:`, error);
       throw new Error(`Error checking document existence: ${error.message}`);
     }
   }
 }
 
 module.exports = BaseService;
+
