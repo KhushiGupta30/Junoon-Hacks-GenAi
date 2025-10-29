@@ -4,19 +4,29 @@ const AmbassadorService = require("../services/AmbassadorService");
 const { auth, authorize } = require("../middleware/auth");
 const MentorshipService = require("../services/MentorshipService");
 const UserService = require("../services/UserService");
-const { getDistance } = require('../utils/geolocation');
+const { getDistance } = require("../utils/geolocation");
 
 const router = express.Router();
 
-router.get('/dashboard-summary', auth, authorize('ambassador'), async (req, res) => {
-  try {
-    const data = await AmbassadorService.getDashboardSummary(req.user.id);
-    res.json(data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching dashboard summary', error: error.message });
+router.get(
+  "/dashboard-summary",
+  auth,
+  authorize("ambassador"),
+  async (req, res) => {
+    try {
+      const data = await AmbassadorService.getDashboardSummary(req.user.id);
+      res.json(data);
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .json({
+          message: "Error fetching dashboard summary",
+          error: error.message,
+        });
+    }
   }
-});
+);
 
 router.post(
   "/apply",
@@ -64,41 +74,46 @@ router.post(
 );
 
 router.get("/nearest", auth, async (req, res) => {
-    try {
-        const currentUser = req.user;
-        const userLocation = currentUser.profile?.location;
+  try {
+    const currentUser = req.user;
+    const userLocation = currentUser.profile?.location;
 
-        if (!userLocation?.latitude || !userLocation?.longitude) {
-            return res.status(400).json({ message: "Your location is not set." });
-        }
-
-        const allAmbassadors = await UserService.findMany({ role: 'ambassador' });
-
-        const ambassadorsWithDistance = allAmbassadors
-            .filter(ambassador =>
-                ambassador.id !== currentUser.id &&
-                ambassador.profile?.location?.latitude &&
-                ambassador.profile?.location?.longitude
-            )
-            .map(ambassador => {
-                const distance = getDistance(
-                    userLocation.latitude,
-                    userLocation.longitude,
-                    ambassador.profile.location.latitude,
-                    ambassador.profile.location.longitude
-                );
-                return { ...UserService.toJSON(ambassador), distance: Math.round(distance) };
-            });
-
-        ambassadorsWithDistance.sort((a, b) => a.distance - b.distance);
-
-        res.json({ ambassadors: ambassadorsWithDistance.slice(0, 5) });
-    } catch (error) {
-        console.error("Failed to fetch nearest ambassadors:", error);
-        res.status(500).json({ message: "Server error while fetching nearest ambassadors." });
+    if (!userLocation?.latitude || !userLocation?.longitude) {
+      return res.status(400).json({ message: "Your location is not set." });
     }
-});
 
+    const allAmbassadors = await UserService.findMany({ role: "ambassador" });
+
+    const ambassadorsWithDistance = allAmbassadors
+      .filter(
+        (ambassador) =>
+          ambassador.id !== currentUser.id &&
+          ambassador.profile?.location?.latitude &&
+          ambassador.profile?.location?.longitude
+      )
+      .map((ambassador) => {
+        const distance = getDistance(
+          userLocation.latitude,
+          userLocation.longitude,
+          ambassador.profile.location.latitude,
+          ambassador.profile.location.longitude
+        );
+        return {
+          ...UserService.toJSON(ambassador),
+          distance: Math.round(distance),
+        };
+      });
+
+    ambassadorsWithDistance.sort((a, b) => a.distance - b.distance);
+
+    res.json({ ambassadors: ambassadorsWithDistance.slice(0, 5) });
+  } catch (error) {
+    console.error("Failed to fetch nearest ambassadors:", error);
+    res
+      .status(500)
+      .json({ message: "Server error while fetching nearest ambassadors." });
+  }
+});
 
 router.get("/artisans", [auth, authorize("ambassador")], async (req, res) => {
   try {
