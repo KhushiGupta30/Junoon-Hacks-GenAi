@@ -6,10 +6,10 @@ import React, {
   useRef,
 } from "react";
 import { Link } from "react-router-dom";
+// --- CORRECTED PATHS ---
 import api from "../../api/axiosConfig";
 import AnimatedSection from "../../components/ui/AnimatedSection";
 import { useAuth } from "../../context/AuthContext";
-import { toast } from "react-hot-toast";
 import {
   StarIcon,
   ExclamationCircleIcon,
@@ -19,8 +19,12 @@ import {
   CalendarIcon,
   TagIcon,
   ArchiveIcon,
+  XIcon, // Make sure XIcon is exported from Icons.jsx or replace if needed
 } from "../../components/common/Icons";
+// --- END CORRECTED PATHS ---
+import { toast } from "react-hot-toast";
 
+// --- Skeleton Component Placeholders ---
 const SkeletonBase = ({ className = "" }) => (
   <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>
 );
@@ -44,7 +48,9 @@ const SkeletonReviewCard = () => (
     </div>
   </div>
 );
+// --- End Skeletons ---
 
+// --- Internal Components ---
 const StarRating = ({ rating, size = "h-4 w-4" }) => (
   <div className="flex items-center">
     {[...Array(5)].map((_, i) => (
@@ -78,47 +84,59 @@ const ReviewCard = ({ review, onReplySubmit }) => {
     }
   };
 
+  // Helper for placeholder image
+  const placeholderText = review.productName
+    ? review.productName.charAt(0).toUpperCase()
+    : "?";
+  const placeholderUrl = `https://placehold.co/40x40/E8F0FE/4285F4?text=${placeholderText}`;
+
   return (
     <div className="bg-white p-5 rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
           <img
-            src={
-              review.productImage ||
-              "https://placehold.co/40x40/E8F0FE/4285F4?text=K"
-            }
-            alt={review.productName}
+            src={review.productImage || placeholderUrl}
+            alt={review.productName || "Product image"}
             className="w-10 h-10 rounded-md object-cover flex-shrink-0"
-            onError={(e) =>
-              (e.currentTarget.src =
-                "https://placehold.co/40x40/E8F0FE/4285F4?text=K")
-            }
+            onError={(e) => (e.currentTarget.src = placeholderUrl)}
           />
           <div className="min-w-0">
             <p className="font-semibold text-sm text-gray-800 truncate">
-              {review.productName}
+              {review.productName || "Unknown Product"}
             </p>
-            <p className="text-xs text-gray-500">by {review.userName}</p>
+            <p className="text-xs text-gray-500">
+              by {review.customerName || "Anonymous"}
+            </p>
           </div>
         </div>
-        <div className="flex-shrink-0 flex flex-col items-end">
+        <div className="flex-shrink-0 flex flex-col items-end ml-2">
           <StarRating rating={review.rating} />
-          <p className="text-xs text-gray-400 mt-1">
-            {new Date(review.date).toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })}
+          <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">
+            {new Date(review.date || review.createdAt).toLocaleDateString(
+              "en-GB",
+              {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }
+            )}
           </p>
         </div>
       </div>
-      <p className="text-sm text-gray-600 mt-3 pl-13">{review.comment}</p>
+      <p className="text-sm text-gray-600 mt-3 pl-[52px]">{review.comment}</p>
 
-      <div className="mt-4 pl-13">
+      <div className="mt-4 pl-[52px]">
         {review.reply ? (
           <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
             <p className="text-xs font-semibold text-gray-700">Your reply:</p>
             <p className="text-xs text-gray-600 mt-1">{review.reply.text}</p>
+            <p className="text-xs text-gray-400 mt-1 text-right">
+              Replied on{" "}
+              {new Date(review.reply.date).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+              })}
+            </p>
           </div>
         ) : showReplyForm ? (
           <form onSubmit={handleSubmitReply} className="space-y-2">
@@ -195,46 +213,81 @@ const ReviewsPage = () => {
   const [selectedDateRange, setSelectedDateRange] = useState("all");
 
   const fetchPageData = useCallback(async () => {
-    if (!user?.id) return;
+    console.log("Fetching data for user:", user);
+
+    if (!user?.id) {
+      console.log("User ID not available yet in fetchPageData.");
+      setLoading(false);
+      setError("Could not verify user. Please log in again.");
+      return;
+    }
 
     setLoading(true);
     setError("");
     try {
+      console.log(`Fetching reviews from: /reviews/artisan/${user.id}`);
+      console.log(`Fetching products from: /products/artisan/${user.id}`);
+
       const [reviewsResponse, productsResponse] = await Promise.all([
         api.get(`/reviews/artisan/${user.id}`),
         api.get(`/products/artisan/${user.id}`),
       ]);
 
-      setReviews(
-        Array.isArray(reviewsResponse.data) ? reviewsResponse.data : []
-      );
-      setProducts(
-        Array.isArray(productsResponse.data) ? productsResponse.data : []
-      );
+      console.log("Reviews API Response:", reviewsResponse);
+      console.log("Products API Response:", productsResponse);
+
+      const fetchedReviews = Array.isArray(reviewsResponse.data)
+        ? reviewsResponse.data
+        : [];
+      const fetchedProducts = Array.isArray(productsResponse.data)
+        ? productsResponse.data
+        : [];
+
+      console.log("Fetched Reviews:", fetchedReviews);
+      console.log("Fetched Products:", fetchedProducts);
+
+      setReviews(fetchedReviews);
+      setProducts(fetchedProducts);
     } catch (err) {
       setError("Failed to fetch page data. Please try again.");
-      console.error(err);
+      console.error("Error fetching artisan data:", err);
+      if (err.response) {
+        console.error("API Error Response Data:", err.response.data);
+        console.error("API Error Response Status:", err.response.status);
+      } else if (err.request) {
+        console.error("API No response received:", err.request);
+      } else {
+        console.error("API Request setup error:", err.message);
+      }
       setReviews([]);
       setProducts([]);
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user]);
 
   useEffect(() => {
-    fetchPageData();
-  }, [fetchPageData]);
+    if (user) {
+      fetchPageData();
+    } else {
+      console.log("useEffect: User object not yet available.");
+    }
+  }, [user, fetchPageData]);
 
   const { summary, filteredReviews } = useMemo(() => {
-    let dateFiltered = [...reviews];
+    let currentReviews = reviews || [];
+
+    let dateFiltered = currentReviews;
     if (selectedDateRange !== "all") {
       const daysAgo = parseInt(selectedDateRange, 10);
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
-      dateFiltered = reviews.filter((r) => new Date(r.date) >= cutoffDate);
+      dateFiltered = currentReviews.filter(
+        (r) => new Date(r.date || r.createdAt) >= cutoffDate
+      );
     }
 
-    let productFiltered = [...dateFiltered];
+    let productFiltered = dateFiltered;
     if (selectedProduct !== "all") {
       productFiltered = dateFiltered.filter(
         (r) => r.productId === selectedProduct
@@ -246,7 +299,7 @@ const ReviewsPage = () => {
     const avgRating =
       total > 0
         ? (
-            productFiltered.reduce((sum, r) => sum + r.rating, 0) / total
+            productFiltered.reduce((sum, r) => sum + (r.rating || 0), 0) / total
           ).toFixed(1)
         : "0.0";
 
@@ -254,6 +307,8 @@ const ReviewsPage = () => {
       activeTab === "needsReply"
         ? productFiltered.filter((r) => !r.reply)
         : productFiltered;
+
+    console.log("Filtered Reviews for display:", tabFiltered);
 
     return {
       summary: { total, needsReply, avgRating },
@@ -264,7 +319,14 @@ const ReviewsPage = () => {
   const handleReplySubmit = async (reviewId, replyText) => {
     const originalReviews = [...reviews];
 
-    const newReviews = reviews.map((r) => {
+    const reviewIndex = reviews.findIndex((r) => r.id === reviewId);
+    if (reviewIndex === -1) {
+      console.error("Review not found for optimistic update:", reviewId);
+      toast.error("Could not find the review to reply to.");
+      return;
+    }
+
+    const updatedReviews = reviews.map((r) => {
       if (r.id === reviewId) {
         return {
           ...r,
@@ -273,7 +335,7 @@ const ReviewsPage = () => {
       }
       return r;
     });
-    setReviews(newReviews);
+    setReviews(updatedReviews);
 
     try {
       await api.put(`/reviews/${reviewId}/reply`, { text: replyText });
@@ -294,24 +356,29 @@ const ReviewsPage = () => {
       <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
         <div className="flex-grow space-y-8 md:space-y-10">
           <SkeletonBase className="h-10 w-1/3 mb-4" /> {/* Title */}
-          <SkeletonBase className="h-10 w-full mb-8" />
+          <SkeletonBase className="h-10 w-full mb-8" /> {/* Tabs */}
           <div className="flex gap-4">
+            {" "}
+            {/* Filters */}
             <SkeletonBase className="h-10 w-1/2" />
             <SkeletonBase className="h-10 w-1/2" />
           </div>
           <div className="space-y-4">
             {" "}
-            <SkeletonReviewCard /> <SkeletonReviewCard />{" "}
+            {/* Reviews */}
+            <SkeletonReviewCard /> <SkeletonReviewCard />
           </div>
         </div>
         <div className="lg:w-80 flex-shrink-0 space-y-6">
+          {" "}
+          {/* Stats */}
           <SkeletonStatCard /> <SkeletonStatCard /> <SkeletonStatCard />
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !loading) {
     return (
       <div className="flex flex-col justify-center items-center min-h-[calc(100vh-10rem)] px-6 text-center bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE]">
         <ExclamationCircleIcon className="w-12 h-12 text-red-400 mb-4" />
@@ -347,7 +414,6 @@ const ReviewsPage = () => {
           </p>
         </AnimatedSection>
 
-        {/* --- Tab Navigation --- */}
         <div className="border-b border-gray-200 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8">
           <div className="flex">
             <TabButton
@@ -365,13 +431,11 @@ const ReviewsPage = () => {
           </div>
         </div>
 
-        {/* --- Filter Bar --- */}
         <div className="flex flex-col sm:flex-row gap-3 pt-8 mb-6">
-          {/* Product Filter */}
           <div className="flex-1">
             <label
               htmlFor="productFilter"
-              className="block text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5"
+              className="text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5"
             >
               <TagIcon className="w-4 h-4" /> Filter by Product
             </label>
@@ -382,19 +446,17 @@ const ReviewsPage = () => {
               className="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-google-blue focus:border-google-blue"
             >
               <option value="all">All Products</option>
-              {/* Use product._id and product.name from fetched data */}
               {products.map((product) => (
-                <option key={product._id} value={product._id}>
+                <option key={product.id} value={product.id}>
                   {product.name}
                 </option>
               ))}
             </select>
           </div>
-          {/* Date Filter */}
           <div className="flex-1">
             <label
               htmlFor="dateFilter"
-              className="block text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5"
+              className="text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5"
             >
               <CalendarIcon className="w-4 h-4" /> Filter by Date
             </label>
@@ -412,7 +474,6 @@ const ReviewsPage = () => {
           </div>
         </div>
 
-        {/* Reviews List */}
         <div className="space-y-4">
           {filteredReviews.length > 0 ? (
             filteredReviews.map((review) => (
@@ -431,8 +492,10 @@ const ReviewsPage = () => {
                 </h2>
                 <p className="text-gray-500 mt-2 text-sm">
                   {activeTab === "needsReply"
-                    ? "You've replied to all reviews in this group."
-                    : "Try adjusting your product or date filters."}
+                    ? "You've replied to all applicable reviews."
+                    : products.length === 0 && reviews.length === 0
+                    ? "You haven't received any reviews yet."
+                    : "Try adjusting your product or date filters, or check back later for new reviews."}
                 </p>
               </div>
             </AnimatedSection>
@@ -440,7 +503,6 @@ const ReviewsPage = () => {
         </div>
       </div>
 
-      {/* --- Right Sidebar (Review Stats) --- */}
       <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4 lg:mt-0">
         <AnimatedSection>
           <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">

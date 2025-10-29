@@ -49,8 +49,16 @@ router.post(
 
       const { items, shippingAddress, billingAddress, payment } = req.body;
       const buyer = await UserService.findById(req.user.id);
-      if (!buyer?.profile?.location?.latitude || !buyer?.profile?.location?.longitude) {
-        return res.status(400).json({ message: "Your location is not set. Please update your profile before ordering." });
+      if (
+        !buyer?.profile?.location?.latitude ||
+        !buyer?.profile?.location?.longitude
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Your location is not set. Please update your profile before ordering.",
+          });
       }
       let subtotal = 0;
       const orderItems = [];
@@ -93,7 +101,7 @@ router.post(
           await ProductService.reserveInventory(product.id, item.quantity);
         }
       }
-      const artisanIds = [...new Set(orderItems.map(item => item.artisan))];
+      const artisanIds = [...new Set(orderItems.map((item) => item.artisan))];
       const tax = subtotal * 0.08;
       const shipping = subtotal > 100 ? 0 : 15;
       const total = subtotal + tax + shipping;
@@ -102,7 +110,7 @@ router.post(
         buyer: req.user.id,
         items: orderItems,
         artisanIds: artisanIds,
-        status: 'pending',
+        status: "pending",
         pricing: {
           subtotal,
           tax,
@@ -113,53 +121,71 @@ router.post(
         billingAddress: billingAddress || shippingAddress,
         payment,
       };
-      const artisan = await UserService.findById(orderItems[0].artisan); 
-      if (!artisan?.profile?.location?.latitude || !artisan?.profile?.location?.longitude) {
-         console.error(`Artisan ${artisan.id} is missing location data. Skipping distance calculation.`);
+      const artisan = await UserService.findById(orderItems[0].artisan);
+      if (
+        !artisan?.profile?.location?.latitude ||
+        !artisan?.profile?.location?.longitude
+      ) {
+        console.error(
+          `Artisan ${artisan.id} is missing location data. Skipping distance calculation.`
+        );
       }
       const originCity = artisan.profile.location.city;
       const destinationCity = buyer.profile.location.city;
-      const originCoords = { lat: artisan.profile.location.latitude, lon: artisan.profile.location.longitude };
-      const destinationCoords = { lat: buyer.profile.location.latitude, lon: buyer.profile.location.longitude };
+      const originCoords = {
+        lat: artisan.profile.location.latitude,
+        lon: artisan.profile.location.longitude,
+      };
+      const destinationCoords = {
+        lat: buyer.profile.location.latitude,
+        lon: buyer.profile.location.longitude,
+      };
 
       let distanceKm = 0;
       let durationHours = 0;
 
-      if (typeof originCoords.lat === 'number' && typeof originCoords.lon === 'number' &&
-          typeof destinationCoords.lat === 'number' && typeof destinationCoords.lon === 'number') {
-          
-          const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-          const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originCoords.lat},${originCoords.lon}&destinations=${destinationCoords.lat},${destinationCoords.lon}&key=${apiKey}`;
-          
-          try {
-              const response = await axios.get(url);
-              const data = response.data;
-              // Check for valid response structure and status before accessing nested properties
-              if (data?.rows?.[0]?.elements?.[0]?.status === "OK") {
-                  distanceKm = data.rows[0].elements[0].distance.value / 1000; 
-                  durationHours = data.rows[0].elements[0].duration.value / 3600; 
-              } else {
-                  console.warn("Distance Matrix API returned a non-OK status:", data?.rows?.[0]?.elements?.[0]?.status);
-              }
-          } catch (apiError) {
-              console.error("Distance Matrix API call failed:", apiError.message);
+      if (
+        typeof originCoords.lat === "number" &&
+        typeof originCoords.lon === "number" &&
+        typeof destinationCoords.lat === "number" &&
+        typeof destinationCoords.lon === "number"
+      ) {
+        const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+        const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originCoords.lat},${originCoords.lon}&destinations=${destinationCoords.lat},${destinationCoords.lon}&key=${apiKey}`;
+
+        try {
+          const response = await axios.get(url);
+          const data = response.data;
+          if (data?.rows?.[0]?.elements?.[0]?.status === "OK") {
+            distanceKm = data.rows[0].elements[0].distance.value / 1000;
+            durationHours = data.rows[0].elements[0].duration.value / 3600;
+          } else {
+            console.warn(
+              "Distance Matrix API returned a non-OK status:",
+              data?.rows?.[0]?.elements?.[0]?.status
+            );
           }
+        } catch (apiError) {
+          console.error("Distance Matrix API call failed:", apiError.message);
+        }
       } else {
-          console.warn("Skipping distance calculation due to incomplete coordinates.");
+        console.warn(
+          "Skipping distance calculation due to incomplete coordinates."
+        );
       }
 
       let totalWeightKg = 0;
       for (const item of orderItems) {
-          totalWeightKg += (item.quantity * 0.5); 
+        totalWeightKg += item.quantity * 0.5;
       }
 
       orderData.logistics = {
-          originCity,
-          destinationCity,
-          distanceKm: Math.round(distanceKm),
-          estimatedDurationHours: Math.round(durationHours),
-          packageWeightKg: totalWeightKg,
-          recommendations: []
+        originCity,
+        destinationCity,
+        distanceKm: Math.round(distanceKm),
+        estimatedDurationHours: Math.round(durationHours),
+        packageWeightKg: totalWeightKg,
+        recommendations: [],
       };
       const order = await OrderService.create(orderData);
 
@@ -212,7 +238,6 @@ router.get("/", auth, async (req, res) => {
     let total = 0;
 
     if (req.user.role === "buyer") {
-      // --- BUYER LOGIC (This is your original, working logic) ---
       let filter = { buyer: req.user.id };
       if (status) filter.status = status;
 
@@ -224,41 +249,29 @@ router.get("/", auth, async (req, res) => {
       };
       orders = await OrderService.findMany(filter, options);
       total = await OrderService.count(filter);
-
     } else if (req.user.role === "artisan") {
-      // --- NEW ARTISAN LOGIC (Bypasses BaseService) ---
-      
-      // 1. Create the base query
-      let baseQuery = db.collection('orders')
-                        .where('artisanIds', 'array-contains', req.user.id);
+      let baseQuery = db
+        .collection("orders")
+        .where("artisanIds", "array-contains", req.user.id);
 
-      // 2. Add status filter if it exists
       if (status) {
-        baseQuery = baseQuery.where('status', '==', status);
+        baseQuery = baseQuery.where("status", "==", status);
       }
 
-      // 3. Get TOTAL count for pagination (must be done *before* pagination)
       const totalSnapshot = await baseQuery.get();
       total = totalSnapshot.size;
 
-      // 4. Get PAGINATED data
-      const dataQuery = baseQuery.orderBy('createdAt', 'desc')
-                                 .limit(parsedLimit)
-                                 .offset(offset);
+      const dataQuery = baseQuery
+        .orderBy("createdAt", "desc")
+        .limit(parsedLimit)
+        .offset(offset);
 
       const ordersSnapshot = await dataQuery.get();
-      ordersSnapshot.forEach(doc => {
-        // Manually add the ID just like BaseService does
+      ordersSnapshot.forEach((doc) => {
         orders.push({ ...doc.data(), id: doc.id });
       });
-
-    } else {
-      // For any other role (like admin, if you add it later)
-      // This will just return empty for now
     }
 
-    // --- POPULATION LOGIC (This part is unchanged) ---
-    // Populate buyer and item data
     const populatedOrders = await Promise.all(
       orders.map(async (order) => {
         const buyer = await UserService.findById(order.buyer);
@@ -300,7 +313,6 @@ router.get("/", auth, async (req, res) => {
       })
     );
 
-    // --- RESPONSE LOGIC (This part is unchanged) ---
     res.json({
       orders: populatedOrders,
       pagination: {
@@ -309,7 +321,6 @@ router.get("/", auth, async (req, res) => {
         totalOrders: total,
       },
     });
-
   } catch (error) {
     console.error("Get orders error:", error);
     res.status(500).json({ message: "Server error while fetching orders" });
@@ -413,8 +424,8 @@ router.put(
       }
 
       const { status, notes } = req.body;
-      await db.collection('orders').doc(req.params.id).update({
-        status: status
+      await db.collection("orders").doc(req.params.id).update({
+        status: status,
       });
       const updatedOrder = await OrderService.updateStatus(
         req.params.id,
@@ -438,8 +449,12 @@ router.put(
   [
     auth,
     authorize("artisan"),
-    body("partnerName").notEmpty().withMessage("Shipping partner name is required"),
-    body("estimatedPrice").isNumeric().withMessage("Estimated price is required"),
+    body("partnerName")
+      .notEmpty()
+      .withMessage("Shipping partner name is required"),
+    body("estimatedPrice")
+      .isNumeric()
+      .withMessage("Estimated price is required"),
   ],
   async (req, res) => {
     try {
@@ -461,17 +476,18 @@ router.put(
       const { partnerName, estimatedPrice } = req.body;
       const notes = `Shipped via ${partnerName}.`;
 
-      // Add shipping details to the logistics object
       const updatedLogistics = {
         ...order.logistics,
         selectedPartner: partnerName,
         shippingCost: estimatedPrice,
-        shippedAt: new Date()
+        shippedAt: new Date(),
       };
-      
-      await db.collection('orders').doc(req.params.id).update({ logistics: updatedLogistics });
 
-      // Update the status and timeline
+      await db
+        .collection("orders")
+        .doc(req.params.id)
+        .update({ logistics: updatedLogistics });
+
       const updatedOrder = await OrderService.updateStatus(
         req.params.id,
         "shipped",
@@ -483,7 +499,6 @@ router.put(
         message: "Order marked as shipped successfully",
         order: updatedOrder,
       });
-
     } catch (error) {
       console.error("Ship order error:", error);
       res.status(500).json({ message: "Server error while shipping order" });
