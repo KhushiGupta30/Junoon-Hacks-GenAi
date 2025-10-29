@@ -186,7 +186,7 @@ const MyOrdersPage = () => {
     );
   }
 
- const formatDate = (dateInput) => {
+  const formatDate = (dateInput) => {
     if (!dateInput) {
       return '---'; 
     }
@@ -205,6 +205,14 @@ const MyOrdersPage = () => {
       day: "2-digit",
     });
   };
+  const statusOptions = [
+    "pending",
+    "confirmed",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+  ];
   const statusColors = {
     pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
     confirmed: "bg-blue-100 text-blue-800 border-blue-300",
