@@ -175,7 +175,7 @@ router.post(
             - Tell a short story about the product, its handcrafted nature, and skill involved.
             - Describe how it can fit into the buyer's life.
             - The tone must be warm, authentic, and personal.
-            - The description should be 3-4 paragraphs.
+            - The description should be 2 paragraphs. - 50 words
             - *** IMPORTANT: The final description MUST be under 1900 characters in total. ***
             - Return only the description text. Do not use markdown.
         `;
@@ -241,12 +241,13 @@ router.post(
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const prompt = `
             You are an expert e-commerce pricing analyst for "KalaGhar," a marketplace for handmade goods.
-            Suggest a competitive price for a new product.
+            Suggest a competitive price in rupees for a new product.
             Product Details:
             - Name: "${name}"
             - Category: "${category}"
             - Description: "${description}"
-            Market Data (similar products in USD):
+            Market Data (similar products in INR):
+            Analyze the indian market for similar products and then give a reaosnable price an artisan would expect
             ${
               similarProducts.length > 0
                 ? JSON.stringify(similarProducts, null, 2)
