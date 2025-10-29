@@ -1,12 +1,15 @@
-const BaseService = require('./BaseService');
+const BaseService = require("./BaseService");
 
 class EventService extends BaseService {
   constructor() {
-    super('events');
+    super("events");
   }
 
   async findUpcoming() {
-    return this.findMany({ date: { '>=': new Date() } }, { sortBy: 'date', sortOrder: 'asc' });
+    return this.findMany(
+      { date: { ">=": new Date() } },
+      { sortBy: "date", sortOrder: "asc" }
+    );
   }
 
   async findByCreator(creatorId) {
@@ -15,7 +18,7 @@ class EventService extends BaseService {
 
   async addAttendee(eventId, userId) {
     const event = await this.findById(eventId);
-    if (!event) throw new Error('Event not found.');
+    if (!event) throw new Error("Event not found.");
 
     if (event.attendees?.includes(userId)) {
       console.log("User is already an attendee.");

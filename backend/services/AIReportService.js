@@ -1,10 +1,8 @@
-// --- START OF FILE services/AIReportService.js ---
-
-const BaseService = require('./BaseService');
+const BaseService = require("./BaseService");
 
 class AIReportService extends BaseService {
   constructor() {
-    super('ai_reports'); // This will be our new collection in Firestore
+    super("ai_reports");
   }
 
   /**
@@ -17,7 +15,7 @@ class AIReportService extends BaseService {
   async saveReport(type, reportData, userId = null) {
     const reportDocument = {
       type,
-      userId, // Will be null for general reports like 'trends'
+      userId,
       reportData,
       generatedAt: new Date(),
     };
@@ -32,14 +30,16 @@ class AIReportService extends BaseService {
    */
   async getLatestReport(type, userId = null) {
     try {
-      let query = this.collection.where('type', '==', type);
+      let query = this.collection.where("type", "==", type);
 
       if (userId) {
-        query = query.where('userId', '==', userId);
+        query = query.where("userId", "==", userId);
       }
 
-      // Order by generation date in descending order and get the first one
-      const snapshot = await query.orderBy('generatedAt', 'desc').limit(1).get();
+      const snapshot = await query
+        .orderBy("generatedAt", "desc")
+        .limit(1)
+        .get();
 
       if (snapshot.empty) {
         return null;
@@ -60,14 +60,15 @@ class AIReportService extends BaseService {
    */
   isReportFresh(generatedAt) {
     if (!generatedAt) return false;
-    
-    // The 'generatedAt' from Firestore might be a Timestamp object, so convert to Date
-    const generatedDate = generatedAt.toDate ? generatedAt.toDate() : new Date(generatedAt);
-    
+
+    const generatedDate = generatedAt.toDate
+      ? generatedAt.toDate()
+      : new Date(generatedAt);
+
     const twentyFourHoursInMillis = 24 * 60 * 60 * 1000;
     const now = new Date();
-    
-    return (now.getTime() - generatedDate.getTime()) < twentyFourHoursInMillis;
+
+    return now.getTime() - generatedDate.getTime() < twentyFourHoursInMillis;
   }
 }
 

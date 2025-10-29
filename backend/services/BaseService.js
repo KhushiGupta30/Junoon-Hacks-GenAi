@@ -4,7 +4,6 @@ const { FieldValue } = require("firebase-admin/firestore");
 class BaseService {
   constructor(collectionName) {
     this.collectionName = collectionName;
-    // Use Admin SDK syntax to get collection
     this.collectionRef = db.collection(collectionName);
   }
 
@@ -14,13 +13,12 @@ class BaseService {
    */
   async create(data) {
     try {
-      const timestamp = FieldValue.serverTimestamp(); // Use Admin SDK server timestamp
+      const timestamp = FieldValue.serverTimestamp();
       const docRef = await this.collectionRef.add({
         ...data,
         createdAt: timestamp,
         updatedAt: timestamp,
       });
-      // Fetch the created doc to return it
       const docSnap = await docRef.get();
       return { id: docSnap.id, ...docSnap.data() };
     } catch (error) {
@@ -29,17 +27,12 @@ class BaseService {
     }
   }
 
-  /**
-   * --- CORRECTED ---
-   * Uses Firebase Admin SDK syntax
-   */
   async findById(id) {
     try {
       const docRef = this.collectionRef.doc(id);
       const docSnap = await docRef.get();
 
       if (docSnap.exists) {
-        // .exists is a property, not a function
         return { id: docSnap.id, ...docSnap.data() };
       } else {
         console.warn(
@@ -53,10 +46,6 @@ class BaseService {
     }
   }
 
-  /**
-   * --- CORRECTED ---
-   * Uses Firebase Admin SDK syntax
-   */
   async findOne(filters) {
     try {
       let query = this.collectionRef;
@@ -65,7 +54,7 @@ class BaseService {
         query = query.where(key, "==", filters[key]);
       });
 
-      const snapshot = await query.limit(1).get(); // .limit(1).get() is valid Admin SDK syntax
+      const snapshot = await query.limit(1).get();
 
       if (snapshot.empty) {
         return null;
@@ -79,15 +68,10 @@ class BaseService {
     }
   }
 
-  /**
-   * --- CORRECTED ---
-   * Uses Firebase Admin SDK syntax
-   */
   async findMany(filters = {}, options = {}) {
     try {
       let query = this.collectionRef;
 
-      // Apply filters
       for (const key of Object.keys(filters)) {
         if (key === "price" && typeof filters[key] === "object") {
           if (filters[key].$gte !== undefined) {
@@ -98,10 +82,11 @@ class BaseService {
           }
           continue;
         }
+
         if (key === "$text") {
           continue;
         }
-        // Handle 'in' query for arrays
+
         if (
           typeof filters[key] === "object" &&
           filters[key].in &&
@@ -113,13 +98,11 @@ class BaseService {
         query = query.where(key, "==", filters[key]);
       }
 
-      // Apply sorting
       if (options.sortBy) {
         const direction = options.sortOrder === "asc" ? "asc" : "desc";
         query = query.orderBy(options.sortBy, direction);
       }
 
-      // Apply pagination
       if (options.limit) {
         query = query.limit(options.limit);
       }
@@ -158,7 +141,7 @@ class BaseService {
               continue;
             }
             if (key === "$text") continue;
-            // Handle 'in' query for arrays
+
             if (
               typeof filters[key] === "object" &&
               filters[key].in &&
@@ -184,18 +167,13 @@ class BaseService {
     }
   }
 
-  /**
-   * --- CORRECTED ---
-   * Uses Firebase Admin SDK syntax
-   */
   async update(id, data) {
     try {
       const docRef = this.collectionRef.doc(id);
       await docRef.update({
         ...data,
-        updatedAt: FieldValue.serverTimestamp(), // Use Admin SDK server timestamp
+        updatedAt: FieldValue.serverTimestamp(),
       });
-      // Return the updated document
       const updatedDocSnap = await docRef.get();
       return { id: updatedDocSnap.id, ...updatedDocSnap.data() };
     } catch (error) {
@@ -204,30 +182,21 @@ class BaseService {
     }
   }
 
-  /**
-   * --- CORRECTED ---
-   * Uses Firebase Admin SDK syntax
-   */
   async delete(id) {
     try {
       await this.collectionRef.doc(id).delete();
-      return true; // Return boolean on success
+      return true;
     } catch (error) {
       console.error(`Error in delete for ${this.collectionName}:`, error);
       throw new Error(`Error deleting document: ${error.message}`);
     }
   }
 
-  /**
-   * --- CORRECTED ---
-   * Uses Firebase Admin SDK syntax
-   */
   async count(filters = {}) {
     try {
       let query = this.collectionRef;
 
       Object.keys(filters).forEach((key) => {
-        // Handle 'in' query for arrays
         if (
           typeof filters[key] === "object" &&
           filters[key].in &&
@@ -239,24 +208,18 @@ class BaseService {
         }
       });
 
-      // Use Admin SDK's .count() aggregate
       const snapshot = await query.count().get();
       return snapshot.data().count;
     } catch (error) {
       console.error(`Error in count for ${this.collectionName}:`, error);
-      // Don't throw, just return 0
       return 0;
     }
   }
 
-  /**
-   * --- CORRECTED ---
-   * Uses Firebase Admin SDK syntax
-   */
   async exists(id) {
     try {
       const docSnap = await this.collectionRef.doc(id).get();
-      return docSnap.exists; // .exists is a property
+      return docSnap.exists;
     } catch (error) {
       console.error(`Error in exists for ${this.collectionName}:`, error);
       throw new Error(`Error checking document existence: ${error.message}`);

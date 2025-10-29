@@ -87,7 +87,6 @@ class UserService extends BaseService {
     return null;
   }
 
-  // Override toJSON to exclude password but keep firebaseUid for auth
   toJSON(user) {
     if (!user) return null;
     const userObj = { ...user };

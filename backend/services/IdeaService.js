@@ -1,8 +1,8 @@
-const BaseService = require('./BaseService');
+const BaseService = require("./BaseService");
 
 class IdeaService extends BaseService {
   constructor() {
-    super('ideas');
+    super("ideas");
   }
 
   async create(ideaData) {
@@ -11,13 +11,13 @@ class IdeaService extends BaseService {
       votes: {
         upvotes: 0,
         downvotes: 0,
-        voters: []
-      }
+        voters: [],
+      },
     });
   }
 
   async findPublished(filters = {}, options = {}) {
-    return await this.findMany({ ...filters, status: 'published' }, options);
+    return await this.findMany({ ...filters, status: "published" }, options);
   }
 
   async findByArtisan(artisanId, options = {}) {
@@ -31,11 +31,13 @@ class IdeaService extends BaseService {
   async addVote(ideaId, userId, voteType) {
     const idea = await this.findById(ideaId);
     if (!idea) {
-      throw new Error('Idea not found');
+      throw new Error("Idea not found");
     }
 
     const voters = idea.votes?.voters || [];
-    const existingVoteIndex = voters.findIndex(voter => voter.user === userId);
+    const existingVoteIndex = voters.findIndex(
+      (voter) => voter.user === userId
+    );
 
     let newVoters = [...voters];
     let upvotes = idea.votes?.upvotes || 0;
@@ -43,31 +45,27 @@ class IdeaService extends BaseService {
 
     if (existingVoteIndex !== -1) {
       const existingVote = voters[existingVoteIndex];
-      
-      // Remove old vote counts
-      if (existingVote.vote === 'up') {
+
+      if (existingVote.vote === "up") {
         upvotes -= 1;
       } else {
         downvotes -= 1;
       }
 
-      // Update existing vote
       newVoters[existingVoteIndex] = {
         user: userId,
         vote: voteType,
-        date: new Date()
+        date: new Date(),
       };
     } else {
-      // Add new vote
       newVoters.push({
         user: userId,
         vote: voteType,
-        date: new Date()
+        date: new Date(),
       });
     }
 
-    // Add new vote counts
-    if (voteType === 'up') {
+    if (voteType === "up") {
       upvotes += 1;
     } else {
       downvotes += 1;
@@ -77,22 +75,22 @@ class IdeaService extends BaseService {
       votes: {
         upvotes,
         downvotes,
-        voters: newVoters
-      }
+        voters: newVoters,
+      },
     });
   }
 
   async removeVote(ideaId, userId) {
     const idea = await this.findById(ideaId);
     if (!idea) {
-      throw new Error('Idea not found');
+      throw new Error("Idea not found");
     }
 
     const voters = idea.votes?.voters || [];
-    const voteIndex = voters.findIndex(voter => voter.user === userId);
+    const voteIndex = voters.findIndex((voter) => voter.user === userId);
 
     if (voteIndex === -1) {
-      throw new Error('Vote not found');
+      throw new Error("Vote not found");
     }
 
     const voteToRemove = voters[voteIndex];
@@ -101,8 +99,7 @@ class IdeaService extends BaseService {
     let upvotes = idea.votes?.upvotes || 0;
     let downvotes = idea.votes?.downvotes || 0;
 
-    // Remove vote counts
-    if (voteToRemove.vote === 'up') {
+    if (voteToRemove.vote === "up") {
       upvotes -= 1;
     } else {
       downvotes -= 1;
@@ -112,22 +109,22 @@ class IdeaService extends BaseService {
       votes: {
         upvotes,
         downvotes,
-        voters: newVoters
-      }
+        voters: newVoters,
+      },
     });
   }
 
   async addComment(ideaId, commentData) {
     const idea = await this.findById(ideaId);
     if (!idea) {
-      throw new Error('Idea not found');
+      throw new Error("Idea not found");
     }
 
     const comments = idea.comments || [];
     comments.push({
       ...commentData,
       date: new Date(),
-      likes: 0
+      likes: 0,
     });
 
     return await this.update(ideaId, { comments });
@@ -136,14 +133,14 @@ class IdeaService extends BaseService {
   async updateComment(ideaId, commentIndex, commentData) {
     const idea = await this.findById(ideaId);
     if (!idea || !idea.comments || !idea.comments[commentIndex]) {
-      throw new Error('Comment not found');
+      throw new Error("Comment not found");
     }
 
     const comments = [...idea.comments];
     comments[commentIndex] = {
       ...comments[commentIndex],
       ...commentData,
-      date: new Date()
+      date: new Date(),
     };
 
     return await this.update(ideaId, { comments });
@@ -152,7 +149,7 @@ class IdeaService extends BaseService {
   async deleteComment(ideaId, commentIndex) {
     const idea = await this.findById(ideaId);
     if (!idea || !idea.comments || !idea.comments[commentIndex]) {
-      throw new Error('Comment not found');
+      throw new Error("Comment not found");
     }
 
     const comments = [...idea.comments];
@@ -164,13 +161,13 @@ class IdeaService extends BaseService {
   async addPreOrder(ideaId, preOrderData) {
     const idea = await this.findById(ideaId);
     if (!idea) {
-      throw new Error('Idea not found');
+      throw new Error("Idea not found");
     }
 
     const preOrders = idea.preOrders || [];
     preOrders.push({
       ...preOrderData,
-      date: new Date()
+      date: new Date(),
     });
 
     return await this.update(ideaId, { preOrders });
@@ -179,7 +176,7 @@ class IdeaService extends BaseService {
   async getVoteScore(ideaId) {
     const idea = await this.findById(ideaId);
     if (!idea) {
-      throw new Error('Idea not found');
+      throw new Error("Idea not found");
     }
 
     const upvotes = idea.votes?.upvotes || 0;
@@ -190,7 +187,7 @@ class IdeaService extends BaseService {
   async getTotalVotes(ideaId) {
     const idea = await this.findById(ideaId);
     if (!idea) {
-      throw new Error('Idea not found');
+      throw new Error("Idea not found");
     }
 
     const upvotes = idea.votes?.upvotes || 0;

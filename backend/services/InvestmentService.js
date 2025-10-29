@@ -19,18 +19,17 @@ class InvestmentService extends BaseService {
       investor: investorId,
       artisan: artisanId,
       amount: Number(amount),
-      status: "completed", // Or 'pending' if you have an approval process
+      status: "completed",
       createdAt: new Date(),
     };
 
     const newInvestment = await this.collection.add(investmentData);
 
-    // Create a notification for the artisan
     await NotificationService.create({
       userId: artisanId,
       message: `Great news! You have received a new investment of $${amount} from ${investorName}.`,
       type: "new_investment",
-      link: `/artisan/dashboard`, // Link to their dashboard or a specific investment page
+      link: `/artisan/dashboard`,
     });
 
     return { id: newInvestment.id, ...investmentData };
