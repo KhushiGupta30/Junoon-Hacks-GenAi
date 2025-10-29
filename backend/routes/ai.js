@@ -554,7 +554,7 @@ router.post("/assistant", [auth, authorize("artisan")], async (req, res) => {
         const recentOrdersSnapshot = await db
           .collection("orders")
           .where("artisanIds", "array-contains", artisanId)
-          .where("status", "==", "delivered")
+          .where('status', 'in', ['shipped', 'delivered'])
           .where("createdAt", ">=", sevenDaysAgo)
           .get();
         let totalSalesLast7Days = 0;
