@@ -1,31 +1,32 @@
-const BaseService = require('./BaseService');
+const BaseService = require("./BaseService");
 
 class OrderService extends BaseService {
   constructor() {
-    super('orders');
+    super("orders");
   }
 
   async create(orderData) {
-    // Generate order number
     const orderNumber = await this.generateOrderNumber();
-    
+
     return await super.create({
       ...orderData,
       orderNumber,
-      status: 'pending',
-      timeline: [{
-        status: 'pending',
-        timestamp: new Date(),
-        note: 'Order created',
-        updatedBy: orderData.buyer
-      }]
+      status: "pending",
+      timeline: [
+        {
+          status: "pending",
+          timestamp: new Date(),
+          note: "Order created",
+          updatedBy: orderData.buyer,
+        },
+      ],
     });
   }
 
   async generateOrderNumber() {
     const timestamp = Date.now().toString().slice(-6);
     const count = await this.count();
-    const sequence = (count + 1).toString().padStart(4, '0');
+    const sequence = (count + 1).toString().padStart(4, "0");
     return `KG${timestamp}${sequence}`;
   }
 
@@ -34,7 +35,10 @@ class OrderService extends BaseService {
   }
 
   async findByArtisan(artisanId, options = {}) {
-    return await this.findMany({ artisanIds: { 'array-contains': artisanId } }, options);
+    return await this.findMany(
+      { artisanIds: { "array-contains": artisanId } },
+      options
+    );
   }
 
   async findByStatus(status, options = {}) {
@@ -44,7 +48,7 @@ class OrderService extends BaseService {
   async updateStatus(orderId, status, note, updatedBy) {
     const order = await this.findById(orderId);
     if (!order) {
-      throw new Error('Order not found');
+      throw new Error("Order not found");
     }
 
     const timeline = order.timeline || [];
@@ -52,19 +56,19 @@ class OrderService extends BaseService {
       status,
       timestamp: new Date(),
       note: note || `Status updated to ${status}`,
-      updatedBy
+      updatedBy,
     });
 
     return await this.update(orderId, {
       status,
-      timeline
+      timeline,
     });
   }
 
   async updateItemStatus(orderId, itemIndex, status) {
     const order = await this.findById(orderId);
     if (!order || !order.items || !order.items[itemIndex]) {
-      throw new Error('Order item not found');
+      throw new Error("Order item not found");
     }
 
     const items = [...order.items];
@@ -77,8 +81,8 @@ class OrderService extends BaseService {
     return await this.update(orderId, {
       payment: {
         ...paymentData,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
   }
 
@@ -86,21 +90,21 @@ class OrderService extends BaseService {
     return await this.update(orderId, {
       shipping: {
         ...shippingData,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
   }
 
   async addTimelineEntry(orderId, entry) {
     const order = await this.findById(orderId);
     if (!order) {
-      throw new Error('Order not found');
+      throw new Error("Order not found");
     }
 
     const timeline = order.timeline || [];
     timeline.push({
       ...entry,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
 
     return await this.update(orderId, { timeline });
@@ -108,9 +112,9 @@ class OrderService extends BaseService {
 
   async calculateTotal(orderData) {
     const { items, pricing } = orderData;
-    
+
     let subtotal = 0;
-    items.forEach(item => {
+    items.forEach((item) => {
       subtotal += item.priceAtTime * item.quantity;
       if (item.customization?.additionalCost) {
         subtotal += item.customization.additionalCost;
@@ -127,38 +131,38 @@ class OrderService extends BaseService {
       tax,
       shipping,
       discount,
-      total
+      total,
     };
   }
 
   async getOrderStats(artisanId = null) {
     let filter = {};
     if (artisanId) {
-      // This would require a more complex query
-      // For now, we'll get all orders and filter client-side
       const allOrders = await this.findMany({});
-      const filteredOrders = allOrders.filter(order => 
-        order.items.some(item => item.artisan === artisanId)
+      const filteredOrders = allOrders.filter((order) =>
+        order.items.some((item) => item.artisan === artisanId)
       );
-      
+
       return {
         totalOrders: filteredOrders.length,
-        pendingOrders: filteredOrders.filter(o => o.status === 'pending').length,
-        completedOrders: filteredOrders.filter(o => o.status === 'delivered').length,
+        pendingOrders: filteredOrders.filter((o) => o.status === "pending")
+          .length,
+        completedOrders: filteredOrders.filter((o) => o.status === "delivered")
+          .length,
         totalRevenue: filteredOrders
-          .filter(o => o.status === 'delivered')
-          .reduce((sum, order) => sum + order.pricing.total, 0)
+          .filter((o) => o.status === "delivered")
+          .reduce((sum, order) => sum + order.pricing.total, 0),
       };
     }
 
     const allOrders = await this.findMany({});
     return {
       totalOrders: allOrders.length,
-      pendingOrders: allOrders.filter(o => o.status === 'pending').length,
-      completedOrders: allOrders.filter(o => o.status === 'delivered').length,
+      pendingOrders: allOrders.filter((o) => o.status === "pending").length,
+      completedOrders: allOrders.filter((o) => o.status === "delivered").length,
       totalRevenue: allOrders
-        .filter(o => o.status === 'delivered')
-        .reduce((sum, order) => sum + order.pricing.total, 0)
+        .filter((o) => o.status === "delivered")
+        .reduce((sum, order) => sum + order.pricing.total, 0),
     };
   }
 }

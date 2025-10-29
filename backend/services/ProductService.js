@@ -91,14 +91,11 @@ class ProductService extends BaseService {
     return null;
   }
 
-  /**
-   * --- REFINED addReview with LOGGING ---
-   */
   async addReview(productId, reviewInput) {
     const { rating, comment, userId, userName } = reviewInput;
     console.log(
       `[addReview DEBUG] Starting addReview for product: ${productId}, user: ${userId}`
-    ); // LOG 1
+    );
 
     if (!userId) {
       console.error(
@@ -110,10 +107,9 @@ class ProductService extends BaseService {
     const productRef = this.collectionRef.doc(productId);
 
     try {
-      // Using a transaction ensures both updates succeed or fail together
       const denormalizedReviewDataForResponse = await db.runTransaction(
         async (transaction) => {
-          console.log("[addReview DEBUG] Entered transaction"); // LOG 2
+          console.log("[addReview DEBUG] Entered transaction");
           const productSnap = await transaction.get(productRef);
 
           if (!productSnap.exists) {
@@ -136,7 +132,7 @@ class ProductService extends BaseService {
           }
           console.log(
             `[addReview DEBUG] Found product, artisanId: ${artisanId}`
-          ); // LOG 3
+          );
 
           const hasReviewed = product.reviews?.some((r) => r.userId === userId);
           if (hasReviewed) {
@@ -146,29 +142,26 @@ class ProductService extends BaseService {
             throw new Error("You have already reviewed this product.");
           }
 
-          // Generate ID for the denormalized doc in 'reviews' collection
           const newReviewRef = db.collection("reviews").doc();
           const reviewTimestamp = Timestamp.now();
           const reviewDateISO = reviewTimestamp.toDate().toISOString();
 
           console.log(
             `[addReview DEBUG] Generated new review ID: ${newReviewRef.id}`
-          ); // LOG 4
+          );
 
-          // Data for the nested review array in the product document
           const nestedReviewData = {
             _id: newReviewRef.id,
             userId: userId,
             userName: userName || "Anonymous",
             rating: rating,
             comment: comment || "",
-            date: reviewDateISO, // Use consistent ISO string
+            date: reviewDateISO,
             reply: null,
           };
 
-          // Data for the top-level 'reviews' collection (denormalized)
           const reviewDocData = {
-            artisanId: artisanId, // CRITICAL: Ensure this is correct
+            artisanId: artisanId,
             productId: productId,
             productName: product.name || "Untitled Product",
             productImage: product.images?.[0]?.url || null,
@@ -177,17 +170,15 @@ class ProductService extends BaseService {
             rating: rating,
             comment: comment || "",
             reply: null,
-            createdAt: reviewTimestamp, // Firestore Timestamp
-            date: reviewDateISO, // ISO string for consistency if needed elsewhere
-            // Make sure the ID used here is correct
-            id: newReviewRef.id, // Explicitly adding ID for clarity, though it's the doc ID
+            createdAt: reviewTimestamp,
+            date: reviewDateISO,
+            id: newReviewRef.id,
           };
           console.log(
             "[addReview DEBUG] Prepared reviewDocData:",
             JSON.stringify(reviewDocData, null, 2)
-          ); // LOG 5
+          );
 
-          // --- Transactional Updates ---
           const currentTotalReviews = product.totalReviews || 0;
           const currentAverageRating = product.averageRating || 0;
           const newTotalReviews = currentTotalReviews + 1;
@@ -195,7 +186,7 @@ class ProductService extends BaseService {
             (currentAverageRating * currentTotalReviews + rating) /
             newTotalReviews;
 
-          console.log("[addReview DEBUG] Updating product document..."); // LOG 6
+          console.log("[addReview DEBUG] Updating product document...");
           transaction.update(productRef, {
             reviews: FieldValue.arrayUnion(nestedReviewData),
             totalReviews: newTotalReviews,
@@ -204,29 +195,25 @@ class ProductService extends BaseService {
 
           console.log(
             `[addReview DEBUG] Setting denormalized review document ${newReviewRef.id}...`
-          ); // LOG 7
+          );
           transaction.set(newReviewRef, reviewDocData);
-          // --- End Transactional Updates ---
 
-          console.log("[addReview DEBUG] Transaction operations queued."); // LOG 8
-          // Return the denormalized data, including the ID, for the API response
+          console.log("[addReview DEBUG] Transaction operations queued.");
           return { id: newReviewRef.id, ...reviewDocData };
         }
       );
 
-      console.log("[addReview DEBUG] Transaction committed successfully."); // LOG 9
-      // runTransaction returns the value from the transaction function
-      return denormalizedReviewDataForResponse; // Return the full denormalized review data
+      console.log("[addReview DEBUG] Transaction committed successfully.");
+      return denormalizedReviewDataForResponse;
     } catch (error) {
       console.error(
         `[addReview DEBUG] Add review transaction error for product ${productId}:`,
         error
-      ); // LOG 10 (Error)
-      throw error; // Re-throw
+      );
+      throw error;
     }
   }
 
-  // --- replyToReview remains the same ---
   static async replyToReview(reviewId, replyText, artisanId) {
     const reviewRef = db.collection("reviews").doc(reviewId);
     const reviewSnap = await reviewRef.get();
@@ -264,9 +251,7 @@ class ProductService extends BaseService {
     return { ...review, reply };
   }
 
-  // --- Other methods remain the same ---
   async updateReview(productId, reviewIndex, reviewData) {
-    // ... (implementation as before)
     const productRef = this.collectionRef.doc(productId);
     const productSnap = await productRef.get();
     if (!productSnap.exists) throw new Error("Product not found");
@@ -295,7 +280,6 @@ class ProductService extends BaseService {
   }
 
   async deleteReview(productId, reviewDataToDelete) {
-    // ... (implementation as before)
     const productRef = this.collectionRef.doc(productId);
     try {
       await db.runTransaction(async (transaction) => {
@@ -338,7 +322,6 @@ class ProductService extends BaseService {
   }
 
   async updateInventory(productId, quantityChange) {
-    // ... (implementation as before)
     const productRef = this.collectionRef.doc(productId);
     await productRef.update({
       "inventory.quantity": FieldValue.increment(quantityChange),
@@ -348,7 +331,6 @@ class ProductService extends BaseService {
   }
 
   async reserveInventory(productId, quantity) {
-    // ... (implementation as before)
     const productRef = this.collectionRef.doc(productId);
     try {
       await db.runTransaction(async (transaction) => {
@@ -373,7 +355,6 @@ class ProductService extends BaseService {
   }
 
   async releaseInventory(productId, quantity) {
-    // ... (implementation as before)
     const productRef = this.collectionRef.doc(productId);
     try {
       await db.runTransaction(async (transaction) => {

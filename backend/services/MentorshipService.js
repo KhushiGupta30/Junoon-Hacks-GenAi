@@ -19,7 +19,6 @@ class MentorshipService extends BaseService {
     mentorship.status = "accepted";
     await mentorship.save();
 
-    // Create notifications for both the artisan and the ambassador
     await NotificationService.createNotification(
       mentorship.artisan,
       `You have accepted the mentorship request from ${mentorship.ambassador.name}`,
@@ -37,19 +36,15 @@ class MentorshipService extends BaseService {
     return mentorship;
   }
 
-  // Find all artisans mentored by a specific ambassador
   async findArtisansByAmbassador(ambassadorId) {
     return this.findMany({ ambassadorId: ambassadorId, status: "active" });
   }
 
-  // Find the ambassador for a specific artisan
   async findAmbassadorByArtisan(artisanId) {
     return this.findOne({ artisanId: artisanId, status: "active" });
   }
 
-  // Create a new mentorship request (can be initiated by either)
   async requestMentorship(artisanId, ambassadorId) {
-    // Ensure a request doesn't already exist
     const existing = await this.findOne({ artisanId, ambassadorId });
     if (existing) {
       throw new Error("A mentorship relationship or request already exists.");
