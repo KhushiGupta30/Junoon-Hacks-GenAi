@@ -1,22 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom'; 
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import api from '../../api/axiosConfig.js';
+import api from '../../api/axiosConfig.js'; 
 import { useCart } from '../../context/CartContext.jsx';
 import BulkOrderModal from '../../components/modal/BulkOrder.jsx';
 import ReviewModal from '../../components/modal/ReviewModal.jsx';
-// --- Icons remain the same ---
+import { toast } from 'react-hot-toast'; 
+import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'; 
+import { StarIcon as StarIconOutline } from '@heroicons/react/24/outline'; 
+
 const HeartIcon = () => ( <svg className="w-6 h-6 text-gray-600 group-hover:text-google-red transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 116.364 6.364L12 21l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg> );
 const PlayIcon = () => <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>;
 const PauseIcon = () => <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"></path></svg>;
 
-// --- Animation Variants ---
+const StarRatingDisplay = ({ rating, size = "h-5 w-5" }) => (
+    <div className="flex items-center">
+        {[...Array(5)].map((_, i) => {
+            const Icon = i < Math.round(rating) ? StarIconSolid : StarIconOutline;
+            return <Icon key={i} className={`${size} ${i < Math.round(rating) ? 'text-yellow-400' : 'text-gray-300'}`} />;
+        })}
+    </div>
+);
+
 const gridContainerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.15, // Stagger the left and right columns
+      staggerChildren: 0.15, 
     },
   },
 };
@@ -31,12 +42,12 @@ const columnItemVariants = {
 };
 
 const detailsContainerVariants = {
-  hidden: { opacity: 1 }, // Keep container visible
+  hidden: { opacity: 1 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1, // Stagger the content inside the right column
-      delayChildren: 0.2, // Start after the column itself animates in
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
     },
   },
 };
@@ -53,8 +64,8 @@ const ProductPage = () => {
   const [isPlaying, setIsPlaying] = useState(true);
   
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
-  // You would also add state for a review modal if you have one
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviews, setReviews] = useState([]); 
 
   const isBuyerRoute = location.pathname.startsWith('/buyer');
   const isInvestorRoute = location.pathname.startsWith('/investor');
@@ -66,6 +77,7 @@ const ProductPage = () => {
       try {
         const response = await api.get(`/products/${id}`);
         setProduct(response.data);
+        setReviews(response.data.reviews || []); 
       } catch (err) {
         console.error("Failed to fetch product:", err);
         setError("Could not find this product. It might have been moved or deleted.");
@@ -75,6 +87,11 @@ const ProductPage = () => {
     };
     fetchProduct();
   }, [id]);
+
+  const handleReviewSubmitted = (newReview) => {
+    setReviews(prevReviews => [...prevReviews, newReview]);
+    toast.success("Thank you for your review!");
+  };
 
   const allMedia = product ? [...(product.images?.map(img => ({ type: 'image', url: img.url })) || []), ...(product.videos?.map(vid => ({ type: 'video', url: vid.url })) || [])] : [];
 
@@ -98,8 +115,6 @@ const ProductPage = () => {
     return () => clearInterval(timer);
   }, [isPlaying, allMedia.length]);
 
-
-  // --- Loading State ---
   if (loading) {
     return (
       <div className="pt-24 pb-12 text-center container mx-auto">
@@ -107,15 +122,13 @@ const ProductPage = () => {
         <div className="flex justify-center items-center mt-4">
           <svg className="animate-spin h-8 w-8 text-google-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8
- 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
         </div>
       </div>
     );
   }
 
-  // --- Error State ---
   if (error || !product) {
     return (
       <div className="pt-24 pb-20 text-center container mx-auto">
@@ -145,7 +158,6 @@ const ProductPage = () => {
           >
             
             <motion.div className="flex flex-col" variants={columnItemVariants}>
-              {/* --- Media Carousel (Smaller) --- */}
               <div
                 className="relative group"
                 onMouseEnter={() => setIsPlaying(false)}
@@ -174,7 +186,6 @@ const ProductPage = () => {
                   )}
                 </div>
                 
-                {/* Carousel Controls */}
                 {allMedia.length > 1 && (
                   <>
                     <button
@@ -212,11 +223,9 @@ const ProductPage = () => {
                 )}
               </div>
 
-              {/* --- Reviews Section --- */}
               <div className="mt-12">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-2xl font-bold text-gray-800">Reviews</h2>
-                  {/* --- NEW: Write a Review Button --- */}
+                  <h2 className="text-2xl font-bold text-gray-800">Reviews ({reviews.length})</h2>
                   {isBuyerRoute && (
                      <button 
                       onClick={() => setIsReviewModalOpen(true)}
@@ -226,13 +235,29 @@ const ProductPage = () => {
                      </button>
                   )}
                 </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                  <p className="text-gray-500 text-center">No reviews yet for this product.</p>
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-5">
+                  {reviews.length > 0 ? (
+                    reviews.map(review => (
+                      <div key={review._id || review.date} className="border-b border-gray-100 pb-4 last:border-b-0">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-gray-800">
+                            {review.user?.name || 'Anonymous'}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(review.date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <StarRatingDisplay rating={review.rating} />
+                        <p className="text-sm text-gray-700 mt-2">{review.comment}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center">No reviews yet for this product.</p>
+                  )}
                 </div>
               </div>
             </motion.div>
             
-            {/* --- Product Details (Right Column) --- */}
             <motion.div 
               className="flex flex-col" 
               variants={detailsContainerVariants}
@@ -248,17 +273,14 @@ const ProductPage = () => {
                 className="flex justify-between items-start gap-6 mt-3"
                 variants={columnItemVariants}
               >
-                {/* Left Side: Info */}
                 <div className="flex-grow">
                   <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">{product.name}</h1>
                   <p className="text-lg text-gray-500 mt-2">
-                    by <Link to={`../seller/${product.artisan.id}`} className="font-medium text-gray-700 hover:text-google-blue hover:underline">{product.artisan.name}</Link>
+                    by <Link to={`/buyer/seller/${product.artisan._id}`} className="font-medium text-gray-700 hover:text-google-blue hover:underline">{product.artisan.name}</Link>
                   </p>
-                  {/* --- FIXED: Added Rupee Symbol --- */}
                   <p className="text-4xl font-bold text-google-green mt-4">₹{(Number(product.price) || 0).toFixed(2)}</p>
                 </div>
 
-                {/* Right Side: Buttons (Smaller) */}
                 <div className="flex flex-col space-y-3 pt-2 flex-shrink-0 w-48">
                   {isBuyerRoute && (
                     <div className="flex items-center space-x-3">
@@ -277,7 +299,6 @@ const ProductPage = () => {
                   {(isBuyerRoute || isInvestorRoute) && (
                     <button
                       onClick={() => setIsBulkModalOpen(true)}
-                      // --- FIXED: Changed bg-green-500 to bg-orange-500 ---
                       className="w-full text-center bg-green-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-orange-600 transition-colors duration-300 text-sm shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                     >
                       Place Bulk Order
@@ -286,7 +307,6 @@ const ProductPage = () => {
                 </div>
               </motion.div>
 
-              {/* --- DESCRIPTION --- */}
               <motion.div 
                 className="border-t pt-6 mt-6"
                 variants={columnItemVariants}
@@ -307,11 +327,12 @@ const ProductPage = () => {
         productName={product?.name}
       />
       
-    
       <ReviewModal
         isOpen={isReviewModalOpen}
         onClose={() => setIsReviewModalOpen(false)}
         productId={id}
+        productName={product?.name} 
+        onReviewSubmitted={handleReviewSubmitted} 
       /> 
       
     </>
