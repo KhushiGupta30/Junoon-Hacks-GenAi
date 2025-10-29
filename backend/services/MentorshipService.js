@@ -57,17 +57,32 @@ class MentorshipService extends BaseService {
     return this.create({
       artisanId,
       ambassadorId,
-      status: "pending", // Starts as a pending request
+      status: "pending",
       startedAt: null,
     });
   }
 
-  // Accept a mentorship request
-  async acceptMentorship(mentorshipId) {
-    return this.update(mentorshipId, {
-      status: "active",
-      startedAt: new Date(),
-    });
+  async acceptMentorship(mentorshipId, artisanId) {
+    this.logger.info(
+      `Artisan ${artisanId} accepting mentorship ${mentorshipId}`
+    );
+    const mentorship = await this.getById(mentorshipId);
+
+    if (!mentorship) {
+      throw new Error("Mentorship request not found");
+    }
+
+    if (mentorship.artisanId !== artisanId) {
+      throw new Error("You are not authorized to accept this request");
+    }
+
+    if (mentorship.status !== "pending") {
+      throw new Error("This request is not pending");
+    }
+
+    await this.update(mentorshipId, { status: "active" });
+
+    return { message: "Mentorship accepted successfully", mentorshipId };
   }
 }
 

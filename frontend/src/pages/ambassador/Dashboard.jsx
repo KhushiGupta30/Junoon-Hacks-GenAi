@@ -1,75 +1,251 @@
-import React, { useState, useEffect } from 'react';
-import api from '../../api/axiosConfig';
-import { Users, Star, BarChart2 } from 'lucide-react';
-import SkeletonStat from '../../components/ui/SkeletonStat';
+import React, { useState, useEffect } from "react";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import {
+  Users,
+  Clock,
+  DollarSign,
+  Star,
+  User,
+  Activity,
+  CheckCircle,
+} from "lucide-react";
+import AnimatedPage from "../../components/ui/AnimatedPage";
+import api from "../../api/axiosConfig"; 
+import SkeletonStat from "../../components/ui/SkeletonStat";
+import SkeletonListItem from "../../components/ui/SkeletonListItem";
 
-const StatCard = ({ icon, title, value, colorClass }) => (
-    <div className="bg-white p-6 rounded-lg shadow flex items-center">
-        <div className={`rounded-full p-3 ${colorClass}`}>
-            {icon}
-        </div>
-        <div className="ml-4">
-            <h3 className="text-gray-500 text-sm font-medium">{title}</h3>
-            <p className="text-2xl font-semibold text-gray-900">{value}</p>
-        </div>
-    </div>
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
 );
 
-const AmbassadorDashboard = () => {
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                setLoading(true);
-                const response = await api.get('/dashboard/ambassador-stats');
-                setStats(response.data);
-            } catch (error) {
-                console.error("Failed to fetch ambassador stats:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchStats();
-    }, []);
-
-    if (loading) {
-        return (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <SkeletonStat />
-                <SkeletonStat />
-                <SkeletonStat />
-            </div>
-        );
-    }
-
-    return (
-        <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">Your Impact</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard 
-                    icon={<Users size={24} className="text-white" />}
-                    title="Mentored Artisans"
-                    value={stats?.mentoredArtisans || 0}
-                    colorClass="bg-blue-500"
-                />
-                <StatCard 
-                    icon={<Star size={24} className="text-white" />}
-                    title="Community Rating"
-                    value={stats?.communityRating || 'N/A'}
-                    colorClass="bg-yellow-500"
-                />
-                <StatCard 
-                    icon={<BarChart2 size={24} className="text-white" />}
-                    title="Artisan Sales Growth"
-                    value={`${stats?.artisanSalesGrowth || 0}%`}
-                    colorClass="bg-green-500"
-                />
-            </div>
-            {/* You can add more dashboard components here */}
-        </div>
-    );
+const icons = {
+  Users: <Users className="h-6 w-6 text-violet-500" />,
+  Clock: <Clock className="h-6 w-6 text-yellow-500" />,
+  DollarSign: <DollarSign className="h-6 w-6 text-green-500" />,
+  Star: <Star className="h-6 w-6 text-blue-500" />,
 };
 
-export default AmbassadorDashboard;
+const Dashboard = () => {
+  const [stats, setStats] = useState([]);
+  const [artisansData, setArtisansData] = useState(null);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [topArtisans, setTopArtisans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/ambassador/dashboard-summary");
+        const data = response.data;
+
+        setStats(data.stats);
+        setArtisansData(data.artisansData);
+        setRecentActivities(data.recentActivities);
+        setTopArtisans(data.topArtisans);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setError("Failed to load dashboard data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text: "Artisan Onboarding",
+      },
+    },
+  };
+
+  if (error) {
+    return (
+      <AnimatedPage>
+        <div className="text-center text-red-500 p-8">{error}</div>
+      </AnimatedPage>
+    );
+  }
+
+  return (
+    <AnimatedPage>
+      <div className="bg-gray-50 min-h-screen">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">
+          Ambassador Dashboard
+        </h1>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {loading
+            ? Array(4)
+                .fill(0)
+                .map((_, i) => <SkeletonStat key={i} />)
+            : stats.map((stat, index) => (
+                <div
+                  key={index}
+                  className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center space-x-4"
+                >
+                  <div className="p-3 rounded-full bg-gray-100">
+                    {icons[stat.icon] || (
+                      <Activity className="h-6 w-6 text-gray-500" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      {stat.name}
+                    </p>
+                    <p className="text-2xl font-bold text-gray-800">
+                      {stat.value}
+                    </p>
+                  </div>
+                </div>
+              ))}
+        </div>
+
+        {/* Charts and Lists */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Artisan Onboarding Chart */}
+          <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">
+              Onboarding Analytics
+            </h2>
+            <div className="h-80">
+              {loading || !artisansData ? (
+                <div className="h-full w-full bg-gray-200 rounded-md animate-pulse"></div>
+              ) : (
+                <Bar options={chartOptions} data={artisansData} />
+              )}
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">
+              Recent Activity
+            </h2>
+            <ul className="space-y-4">
+              {loading
+                ? Array(3)
+                    .fill(0)
+                    .map((_, i) => <SkeletonListItem key={i} />)
+                : recentActivities.map((activity) => (
+                    <li
+                      key={activity.id}
+                      className="flex items-center space-x-3"
+                    >
+                      <div className="p-2 rounded-full bg-blue-100">
+                        <CheckCircle className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          {activity.description}
+                        </p>
+                        <p className="text-xs text-gray-400">{activity.time}</p>
+                      </div>
+                    </li>
+                  ))}
+            </ul>
+          </div>
+
+          {/* Top Artisans */}
+          <div className="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">
+              Top Performing Artisans
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Artisan
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Sales
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {loading
+                    ? Array(3)
+                        .fill(0)
+                        .map((_, i) => (
+                          <tr key={i}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <SkeletonListItem />
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="h-4 bg-gray-200 rounded w-20"></div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="h-4 bg-gray-200 rounded w-24"></div>
+                            </td>
+                          </tr>
+                        ))
+                    : topArtisans.map((artisan) => (
+                        <tr key={artisan.id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10">
+                                <img
+                                  className="h-10 w-10 rounded-full object-cover"
+                                  src={artisan.profilePic}
+                                  alt={artisan.name}
+                                />
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {artisan.name}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              ₹{artisan.value.toLocaleString()}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                              Active
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AnimatedPage>
+  );
+};
+
+export default Dashboard;

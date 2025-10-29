@@ -86,8 +86,24 @@ router.get('/status/:artisanId', auth, async (req, res) => {
     }
 });
 
+router.put(
+    "/:requestId/accept",
+    auth,
+    authorize("artisan"),
+    async (req, res) => {
+      try {
+        const result = await MentorshipService.acceptRequest(
+          req.params.requestId,
+          req.user.id
+        );
+        res.json(result);
+      } catch (error) {
+        console.error("Accept mentorship error:", error);
+        res.status(500).json({ message: error.message });
+      }
+    }
+  );
 
-// POST /api/mentorship/request/:artisanId - Ambassador requests to mentor an artisan
 router.post('/request/:artisanId', [auth, authorize('ambassador')], async (req, res) => {
     try {
         const { artisanId } = req.params;
@@ -113,7 +129,6 @@ router.post('/request/:artisanId', [auth, authorize('ambassador')], async (req, 
     }
 });
 
-// PUT /api/mentorship/accept/:mentorshipId - Artisan accepts a request
 router.put('/accept/:mentorshipId', [auth, authorize('artisan')], async (req, res) => {
     try {
         const { mentorshipId } = req.params;

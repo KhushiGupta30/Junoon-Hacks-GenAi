@@ -8,6 +8,16 @@ const { getDistance } = require('../utils/geolocation');
 
 const router = express.Router();
 
+router.get('/dashboard-summary', auth, authorize('ambassador'), async (req, res) => {
+  try {
+    const data = await AmbassadorService.getDashboardSummary(req.user.id);
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching dashboard summary', error: error.message });
+  }
+});
+
 router.post(
   "/apply",
   [
@@ -101,7 +111,6 @@ router.get("/artisans", [auth, authorize("ambassador")], async (req, res) => {
       return res.json({ artisans: [] });
     }
 
-    // Fetch user details for each artisan
     const artisans = await UserService.findMany({ id: { in: artisanIds } });
 
     res.json({ artisans: artisans.map(UserService.toJSON) });
