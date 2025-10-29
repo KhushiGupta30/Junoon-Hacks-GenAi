@@ -269,9 +269,10 @@ const HowItWorks = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {steps.map((step, index) => (
           <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex space-x-4">
-            <div className={`flex-shrink-0 rounded-full p-3 bg-${step.color}-100 text-${step.color}-600`}>
-              <step.icon size={24} className={`text-google-${step.color}`} />
-            </div>
+            <div className={`w-10 h-10 flex items-center justify-center rounded-full bg-google-${step.color}/10 text-google-${step.color}`}>
+  <step.icon size={24} /> {/* Adjusted icon size for smaller container */}
+</div>
+            
             <div>
               <h3 className="text-base font-semibold text-gray-800 mb-1">{step.title}</h3>
               <p className="text-sm text-gray-600">{step.description}</p>
