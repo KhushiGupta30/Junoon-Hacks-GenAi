@@ -1,8 +1,20 @@
-const BaseService = require("./BaseService");
+const { db } = require('../firebase');
+const BaseService = require('./BaseService');
 
+/**
+ * ConversationService handles storing and retrieving
+ * user–AI chat histories in Firestore.
+ */
 class ConversationService extends BaseService {
   constructor() {
-    super("conversations");
+    super('conversations');
+
+    // 🔒 Explicitly bind the collection (fixes undefined .doc() errors)
+    if (!db) {
+      console.error("🔥 Firebase DB is undefined in ConversationService constructor");
+      throw new Error("Firebase DB not initialized properly.");
+    }
+    this.collection = db.collection('conversations');
   }
 
   /**
@@ -12,14 +24,23 @@ class ConversationService extends BaseService {
    */
   async getHistory(userId) {
     try {
+      if (!this.collection) {
+        console.error("🔥 Firestore collection is undefined in getHistory()");
+        throw new Error("Collection not initialized.");
+      }
+
       const doc = await this.collection.doc(userId).get();
       if (!doc.exists) {
-        return null;
+        console.log(`🆕 No conversation history found for user ${userId}`);
+        return []; // Start with empty history
       }
-      return doc.data().messages || [];
+
+      const data = doc.data();
+      return data.messages || [];
     } catch (error) {
-      console.error(`Error getting history for user ${userId}:`, error);
-      throw error;
+      console.error(`❌ Error getting history for user ${userId}:`, error);
+      // Fail gracefully with an empty array so AI assistant still works
+      return [];
     }
   }
 
@@ -30,6 +51,11 @@ class ConversationService extends BaseService {
    */
   async saveHistory(userId, history) {
     try {
+      if (!this.collection) {
+        console.error("🔥 Firestore collection is undefined in saveHistory()");
+        throw new Error("Collection not initialized.");
+      }
+
       await this.collection.doc(userId).set(
         {
           messages: history,
@@ -37,9 +63,10 @@ class ConversationService extends BaseService {
         },
         { merge: true }
       );
+
+      console.log(`✅ Conversation history saved for user ${userId}`);
     } catch (error) {
-      console.error(`Error saving history for user ${userId}:`, error);
-      throw error;
+      console.error(`❌ Error saving history for user ${userId}:`, error);
     }
   }
 }
