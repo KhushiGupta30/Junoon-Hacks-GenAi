@@ -1,5 +1,3 @@
-// backend/utils/geolocation.js
-
 /**
  * Calculates the distance between two points on Earth using the Haversine formula.
  * @param {number} lat1 Latitude of point 1
@@ -23,8 +21,8 @@ function getDistance(lat1, lon1, lat2, lon2) {
     }
     dist = Math.acos(dist);
     dist = dist * 180 / Math.PI;
-    dist = dist * 60 * 1.1515; // Distance in miles
-    dist = dist * 1.609344; // Convert to kilometers
+    dist = dist * 60 * 1.1515; 
+    dist = dist * 1.609344; 
 
     return dist;
 }

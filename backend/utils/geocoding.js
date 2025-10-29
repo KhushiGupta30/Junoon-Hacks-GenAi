@@ -1,7 +1,3 @@
-// backend/utils/geocoding.js
-
-// A mapping of city names to their approximate latitude and longitude.
-// This is now the central source of truth for location data.
 const cityCoordinates = {
     "Port Blair": { lat: 11.6234, lon: 92.7265 },
     "Visakhapatnam": { lat: 17.6868, lon: 83.2185 },
@@ -98,7 +94,6 @@ const cityCoordinates = {
  */
 function getCoordsForCity(city) {
     if (city && cityCoordinates[city]) {
-        // Correctly map lat/lon to latitude/longitude as expected by auth.js
         return {
             latitude: cityCoordinates[city].lat,
             longitude: cityCoordinates[city].lon
@@ -109,5 +104,5 @@ function getCoordsForCity(city) {
 
 module.exports = {
     getCoordsForCity,
-    cityCoordinates // Export the map so other files can use it
+    cityCoordinates 
 };
