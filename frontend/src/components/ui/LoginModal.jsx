@@ -42,6 +42,31 @@ const indianStatesAndCities = {
     "West Bengal": ["Kolkata", "Asansol", "Siliguri"]
 };
 
+const localLanguages = [
+  { code: 'en-IN', name: 'English' },
+  { code: 'hi-IN', name: 'हिन्दी (Hindi)' },
+  { code: 'bn-IN', name: 'বাংলা (Bengali)' },
+  { code: 'te-IN', name: 'తెలుగు (Telugu)' },
+  { code: 'mr-IN', name: 'मराठी (Marathi)' },
+  { code: 'ta-IN', name: 'தமிழ் (Tamil)' },
+  { code: 'ur-IN', name: 'اردو (Urdu)' },
+  { code: 'gu-IN', name: 'ગુજરાતી (Gujarati)' },
+  { code: 'kn-IN', name: 'ಕನ್ನಡ (Kannada)' },
+  { code: 'or-IN', name: 'ଓଡ଼ିଆ (Odia)' },
+  { code: 'ml-IN', name: 'മലയാളം (Malayalam)' },
+  { code: 'pa-IN', name: 'ਪੰਜਾਬੀ (Punjabi)' },
+  { code: 'as-IN', name: 'অসমীয়া (Assamese)' },
+  { code: 'mai-IN', name: 'मैथिली (Maithili)' },
+  { code: 'sat-IN', name: 'संताली (Santali)' },
+  { code: 'ks-IN', name: 'कश्मीरी (Kashmiri)' },
+  { code: 'ne-IN', name: 'नेपाली (Nepali)' },
+  { code: 'sd-IN', name: 'सिन्धी (Sindhi)' },
+  { code: 'kok-IN', name: 'कोंकणी (Konkani)' },
+  { code: 'mni-IN', name: 'মৈতৈলোন্ (Manipuri)' },
+  { code: 'doi-IN', name: 'डोगरी (Dogri)' },
+  { code: 'brx-IN', name: 'बोड़ो (Bodo)' },
+];
+
 const states = Object.keys(indianStatesAndCities);
 
 // --- 2. Animation Variants ---
@@ -80,11 +105,11 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
     const [role, setRole] = useState(selectedRole || 'buyer');
     const [state, setState] = useState('');
     const [city, setCity] = useState('');
-    const [language, setLanguage] = useState('en');
     
     const [availableCities, setAvailableCities] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [language, setLanguage] = useState('en-IN'); 
 
     // ... (Your useEffect, handleStateChange, handleSubmit logic remains exactly the same) ...
     useEffect(() => {
@@ -99,6 +124,7 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
             setState('');
             setCity('');
             setLanguage('en');
+            setLanguage('en-IN');
             setAvailableCities([]);
         }
     }, [isOpen, selectedRole]);
@@ -244,8 +270,11 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-500 focus:text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="en">English</option>
-                        <option value="hi">Hindi (हिन्दी)</option>
+                        {localLanguages.map(lang => (
+                          <option key={lang.code} value={lang.code}>
+                            {lang.name}
+                          </option>
+                        ))}
                       </select>
                     </motion.div>
                   )}

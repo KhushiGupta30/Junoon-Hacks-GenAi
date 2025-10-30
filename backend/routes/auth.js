@@ -4,9 +4,35 @@ const { body, validationResult } = require("express-validator");
 const UserService = require("../services/UserService");
 const { auth } = require("../middleware/auth");
 const { admin } = require("../firebase");
-const { getCoordsForCity } = require("../utils/geocoding"); // Import our new utility
+const { getCoordsForCity } = require("../utils/geocoding");
 
 const router = express.Router();
+
+// --- NEW: A comprehensive list of BCP-47 language codes for India ---
+const supportedLanguages = [
+  "en-IN", // English (India)
+  "hi-IN", // Hindi
+  "bn-IN", // Bengali
+  "te-IN", // Telugu
+  "mr-IN", // Marathi
+  "ta-IN", // Tamil
+  "ur-IN", // Urdu
+  "gu-IN", // Gujarati
+  "kn-IN", // Kannada
+  "or-IN", // Odia
+  "ml-IN", // Malayalam
+  "pa-IN", // Punjabi
+  "as-IN", // Assamese
+  "mai-IN",// Maithili
+  "sat-IN",// Santali
+  "ks-IN", // Kashmiri
+  "ne-IN", // Nepali
+  "sd-IN", // Sindhi
+  "kok-IN",// Konkani
+  "mni-IN",// Manipuri
+  "doi-IN",// Dogri
+  "brx-IN",// Bodo
+];
 
 router.post(
   "/register",
@@ -22,11 +48,11 @@ router.post(
     body("role")
       .isIn(["artisan", "buyer", "investor", "ambassador"])
       .withMessage("Invalid role"),
-    // --- NEW VALIDATION RULES ---
     body("state").trim().notEmpty().withMessage("State is required"),
     body("city").trim().notEmpty().withMessage("City is required"),
+    // --- UPDATED VALIDATION RULE ---
     body("language")
-      .isIn(["en", "hi"])
+      .isIn(supportedLanguages)
       .withMessage("Invalid language selected"),
   ],
   async (req, res) => {
@@ -36,7 +62,7 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      // --- DESTRUCTURE NEW FIELDS ---
+      // Destructure the new fields
       const { name, email, role, state, city, language } = req.body;
 
       const authHeader = req.header("Authorization");
@@ -88,7 +114,7 @@ router.post(
           },
         },
         settings: {
-          language,
+          language, 
         },
       });
 

@@ -54,3 +54,44 @@ body {
   font-family: 'Roboto', sans-serif;
   /* Add other base styles */
 }
+/* Add these new rules at the bottom of your index.css file */
+
+/* 
+  Rule 1: Hide the Google Translate banner itself.
+  The banner is inside an iframe with this class name. 
+  !important is needed to override Google's default styles.
+*/
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+/*
+  Rule 2: Remove the gap at the top of the page.
+  The Google script adds an inline style `top: 40px;` to your <body> tag
+  to push your whole website down. This rule resets it.
+*/
+body {
+  top: 0 !important;
+}
+
+/*
+  Optional Rule 3: Hide the language selection dropdown.
+  If you want the translation to be purely automatic without showing the
+  user any UI, you can also hide the widget you created. The cookie will
+  still work to translate the page.
+*/
+#google_translate_element {
+  display: none !important;
+}
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+/* 2. This rule removes the empty space the banner leaves behind. */
+body {
+  top: 0 !important;
+}
+/* Optional: Also hide the language dropdown menu */
+#google_translate_element {
+  display: none !important;
+}

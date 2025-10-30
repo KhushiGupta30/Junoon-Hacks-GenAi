@@ -11,9 +11,20 @@ const AIReportService = require("../services/AIReportService");
 const { db } = require("../firebase");
 const GoogleEventsService = require("../services/GoogleEventsService");
 const GoogleSchemesService = require("../services/GovernmentSchemesService");
+const { TranslationServiceClient } = require('@google-cloud/translate').v3;
 const router = express.Router();
 
+const textToSpeech = require("@google-cloud/text-to-speech");
+const fs = require("fs");
+const path = require("path");
+const credentials = JSON.parse(process.env.GOOGLE_CREDS);
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const translationClient = new TranslationServiceClient({ credentials });
+
+const projectId = credentials.project_id; // Get project ID for translate API
+const location = 'global';// The location for the Translate API
+
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -673,11 +684,7 @@ router.post("/assistant", [auth, authorize("artisan")], async (req, res) => {
   }
 });
 
-const textToSpeech = require("@google-cloud/text-to-speech");
-const fs = require("fs");
-const path = require("path");
 
-const credentials = JSON.parse(process.env.GOOGLE_CREDS);
 
 const ttsClient = new textToSpeech.TextToSpeechClient({
   credentials,
@@ -710,4 +717,32 @@ router.post("/synthesize-speech", auth, async (req, res) => {
   }
 });
 
+router.post("/translate", auth, async (req, res) => {
+  const { text, targetLanguage } = req.body;
+
+  if (!text || !targetLanguage) {
+    return res.status(400).json({ message: "Text and targetLanguage are required." });
+  }
+
+  try {
+    const request = {
+      parent: `projects/${projectId}/locations/${location}`,
+      contents: Array.isArray(text) ? text : [text], // Ensure contents is an array
+      mimeType: 'text/plain',
+      sourceLanguageCode: 'en-IN', // Assuming your base content is English
+      targetLanguageCode: targetLanguage,
+    };
+
+    const [response] = await translationClient.translateText(request);
+    
+    // Handle both single and multiple text translations
+    const translatedTexts = response.translations.map(t => t.translatedText);
+    
+    res.json({ translatedText: translatedTexts.length > 1 ? translatedTexts : translatedTexts[0] });
+
+  } catch (error) {
+    console.error("Google Translate API Error:", error);
+    res.status(500).json({ message: "Failed to translate text." });
+  }
+});
 module.exports = router;

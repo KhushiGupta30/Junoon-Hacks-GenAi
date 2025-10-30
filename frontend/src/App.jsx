@@ -51,6 +51,8 @@ import RawMaterialsPage from "./pages/artisan/RawMaterialsPage.jsx";
 import MaterialsCatalogPage from "./pages/artisan/MaterialsCatalogPage.jsx";
 import BuyerLayout from "./components/layout/BuyerLayout.jsx";
 
+import GoogleTranslateWidget from "./components/ui/GoogleTranslateWidget.jsx"; 
+
 const AppLayout = () => {
   const location = useLocation();
   const hideFor = ["/artisan", "/ambassador","/investor","/buyer"];
@@ -60,6 +62,7 @@ const AppLayout = () => {
   return (
     <>
       {!shouldHide && <Header />}   
+      <GoogleTranslateWidget />
       <main>
         {/* --- 3. WRAP YOUR ROUTES --- */}
         <AnimatePresence mode="wait">
