@@ -95,3 +95,15 @@ body {
 #google_translate_element {
   display: none !important;
 }
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+/*
+  Rule 2: When the banner is created, Google pushes your entire
+  website down. This rule moves your website back to the top of the
+  screen, removing the empty white gap.
+*/
+body {
+  top: 0 !important;
+}
