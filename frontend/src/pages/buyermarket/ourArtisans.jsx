@@ -64,7 +64,14 @@ const HeroBanner = () => {
     </section>
   );
 };
-
+const placeholderColors = [
+  { bg: 'E8F0FE', text: '4285F4' }, // Blue background, dark blue text
+  { bg: 'E6F4EA', text: '34A853' }, // Green background, dark green text
+  { bg: 'FCE8E6', text: 'EA4335' }, // Red background, dark red text
+  { bg: 'FEF7E0', text: 'FBBC05' }, // Yellow background, dark yellow text
+  { bg: 'F3E8FD', text: '8E24AA' }, // Purple background, dark purple text
+  { bg: 'E0F7FA', text: '00796B' }, // Cyan background, dark cyan text
+];
 const ArtisanCard = ({ artisan }) => {
   const colors = {
     Textiles: "text-google-blue",
@@ -76,12 +83,22 @@ const ArtisanCard = ({ artisan }) => {
     default: "text-google-blue",
   };
   const craftColor = colors[artisan.artisanProfile?.craftSpecialty?.[0]] || colors.default;
+  const firstName = artisan.name?.split(' ')[0] || 'Artisan';
+  let hash = 0;
+  if (artisan.name) {
+    for (let i = 0; i < artisan.name.length; i++) {
+      hash += artisan.name.charCodeAt(i);
+    }
+  }
+  const colorIndex = hash % placeholderColors.length;
+  const selectedColor = placeholderColors[colorIndex];
+  const placeholderUrl = `https://placehold.co/600x600/${selectedColor.bg}/${selectedColor.text}?text=${firstName}&font=roboto`;
 
   return (
     <div className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg flex flex-col">
       <div className="relative h-40 bg-gray-100">
         <img
-          src={artisan.profile?.avatar || `https://ui-avatars.com/api/?name=${artisan.name.replace(' ','+')}&background=random&font=roboto`}
+          src={artisan.profile?.avatar || placeholderUrl}
           alt={`Portrait of ${artisan.name}`}
           className="w-full h-full object-cover"
           onError={(e) => {
