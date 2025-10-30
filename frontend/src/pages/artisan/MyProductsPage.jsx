@@ -1,35 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import api from '../../api/axiosConfig';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import api from "../../api/axiosConfig";
+import { useAuth } from "../../context/AuthContext";
 import {
   PencilSquareIcon,
   TrashIcon,
   EyeIcon,
   PlusIcon,
-  MagnifyingGlassIcon
-} from '../../components/common/Icons'; // Assuming you have these
-import AnimatedSection from '../../components/ui/AnimatedSection';
-import SkeletonListItem from '../../components/ui/SkeletonListItem'; 
-
+  MagnifyingGlassIcon,
+} from "../../components/common/Icons";
+import AnimatedSection from "../../components/ui/AnimatedSection";
+import SkeletonListItem from "../../components/ui/SkeletonListItem";
 
 const ProductRow = ({ product, onEdit, onDelete }) => {
   const navigate = useNavigate();
 
   const handleView = () => {
-    navigate(`/product/${product.id}`); 
+    navigate(`/product/${product.id}`);
   };
 
   const getStatusClass = (status) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'draft':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800';
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "draft":
+        return "bg-yellow-100 text-yellow-800";
+      case "inactive":
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -40,7 +39,9 @@ const ProductRow = ({ product, onEdit, onDelete }) => {
           <div className="h-11 w-11 flex-shrink-0">
             <img
               className="h-11 w-11 rounded-lg object-cover"
-              src={product.images?.[0]?.url || 'https://via.placeholder.com/150'}
+              src={
+                product.images?.[0]?.url || "https://via.placeholder.com/150"
+              }
               alt={product.name}
             />
           </div>
@@ -60,14 +61,15 @@ const ProductRow = ({ product, onEdit, onDelete }) => {
         </span>
       </td>
       <td className="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">
-        
         ₹{(parseFloat(product.price) || 0).toFixed(0)}
       </td>
       <td className="px-3 py-4 text-sm text-gray-500">
         {product.inventory?.isUnlimited ? (
           <span className="text-gray-700">Made to Order</span>
         ) : (
-          <span className="text-gray-900">{product.inventory?.quantity ?? 0} in stock</span>
+          <span className="text-gray-900">
+            {product.inventory?.quantity ?? 0} in stock
+          </span>
         )}
       </td>
       <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
@@ -102,36 +104,41 @@ const ProductRow = ({ product, onEdit, onDelete }) => {
   );
 };
 
-
-// --- Main MyProductsPage Component ---
 const MyProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  
+  const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const categories = [
-    'All', 'Pottery', 'Textiles', 'Painting', 'Woodwork', 
-    'Metalwork', 'Sculpture', 'Jewelry', 'Other'
+    "All",
+    "Pottery",
+    "Textiles",
+    "Painting",
+    "Woodwork",
+    "Metalwork",
+    "Sculpture",
+    "Jewelry",
+    "Other",
   ];
-  const statuses = ['All', 'Active', 'Draft', 'Inactive'];
+  const statuses = ["All", "Active", "Draft", "Inactive"];
 
   useEffect(() => {
     const fetchProducts = async () => {
       if (!user) return;
       setLoading(true);
-      setError('');
+      setError("");
       try {
-        const response = await api.get('/users/my-products');
+        const response = await api.get("/users/my-products");
         setProducts(response.data.products);
       } catch (err) {
-        console.error('Failed to fetch products:', err);
-        setError('Failed to load products. Please try again.');
+        console.error("Failed to fetch products:", err);
+        setError("Failed to load products. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -140,41 +147,60 @@ const MyProductsPage = () => {
   }, [user]);
 
   const handleEdit = (product) => {
-    navigate(`/artisan/products/edit/${product.id}`); 
+    navigate(`/artisan/products/edit/${product.id}`);
   };
 
   const handleDelete = async (productId) => {
-    if (window.confirm('Are you sure you want to delete this product? This cannot be undone.')) {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this product? This cannot be undone."
+      )
+    ) {
       try {
         await api.delete(`/products/${productId}`);
-        setProducts(products.filter(p => p.id !== productId)); // Or product._id
+        setProducts(products.filter((p) => p.id !== productId));
       } catch (err) {
-        console.error('Failed to delete product:', err);
-        setError('Failed to delete product. Please try again.');
+        console.error("Failed to delete product:", err);
+        setError("Failed to delete product. Please try again.");
       }
     }
   };
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || product.status.toLowerCase() === statusFilter.toLowerCase();
-    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" ||
+      product.status.toLowerCase() === statusFilter.toLowerCase();
+    const matchesCategory =
+      categoryFilter === "all" || product.category === categoryFilter;
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
   const renderStats = () => (
     <dl className="grid grid-cols-1 gap-5 sm:grid-cols-3">
       <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-        <dt className="truncate text-sm font-medium text-gray-500">Total Products</dt>
-        <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{products.length}</dd>
+        <dt className="truncate text-sm font-medium text-gray-500">
+          Total Products
+        </dt>
+        <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+          {products.length}
+        </dd>
       </div>
       <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-        <dt className="truncate text-sm font-medium text-gray-500">Active Listings</dt>
-        <dd className="mt-1 text-3xl font-semibold tracking-tight text-google-green">{products.filter(p => p.status === 'active').length}</dd>
+        <dt className="truncate text-sm font-medium text-gray-500">
+          Active Listings
+        </dt>
+        <dd className="mt-1 text-3xl font-semibold tracking-tight text-google-green">
+          {products.filter((p) => p.status === "active").length}
+        </dd>
       </div>
       <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
         <dt className="truncate text-sm font-medium text-gray-500">Drafts</dt>
-        <dd className="mt-1 text-3xl font-semibold tracking-tight text-google-yellow">{products.filter(p => p.status === 'draft').length}</dd>
+        <dd className="mt-1 text-3xl font-semibold tracking-tight text-google-yellow">
+          {products.filter((p) => p.status === "draft").length}
+        </dd>
       </div>
     </dl>
   );
@@ -182,7 +208,9 @@ const MyProductsPage = () => {
   const renderFilters = () => (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div className="relative">
-        <label htmlFor="search" className="sr-only">Search</label>
+        <label htmlFor="search" className="sr-only">
+          Search
+        </label>
         <input
           type="text"
           name="search"
@@ -197,7 +225,9 @@ const MyProductsPage = () => {
         </div>
       </div>
       <div>
-        <label htmlFor="status" className="sr-only">Filter by status</label>
+        <label htmlFor="status" className="sr-only">
+          Filter by status
+        </label>
         <select
           id="status"
           name="status"
@@ -205,13 +235,17 @@ const MyProductsPage = () => {
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
-          {statuses.map(status => (
-            <option key={status} value={status}>{status}</option>
+          {statuses.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
           ))}
         </select>
       </div>
       <div>
-        <label htmlFor="category" className="sr-only">Filter by category</label>
+        <label htmlFor="category" className="sr-only">
+          Filter by category
+        </label>
         <select
           id="category"
           name="category"
@@ -219,8 +253,10 @@ const MyProductsPage = () => {
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
         >
-          {categories.map(category => (
-            <option key={category} value={category}>{category}</option>
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
           ))}
         </select>
       </div>
@@ -235,16 +271,28 @@ const MyProductsPage = () => {
             <table className="min-w-full divide-y divide-gray-300">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                  <th
+                    scope="col"
+                    className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                  >
                     Product
                   </th>
-                  <th scope="col" className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                  <th
+                    scope="col"
+                    className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                  >
                     Status
                   </th>
-                  <th scope="col" className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">
+                  <th
+                    scope="col"
+                    className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
+                  >
                     Price
                   </th>
-                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  >
                     Stock
                   </th>
                   <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
@@ -253,16 +301,11 @@ const MyProductsPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {/*
-                  *
-                  * FIX 2 (Key Prop):
-                  * Was: <ProductRow product={product} ... />
-                  * Now: Add the 'key' prop with a unique ID from the product
-                  *
-                  */}
+                {
+}
                 {filteredProducts.map((product) => (
                   <ProductRow
-                    key={product.id || product._id} // <-- FIX IS HERE
+                    key={product.id || product._id}
                     product={product}
                     onEdit={() => handleEdit(product)}
                     onDelete={() => handleDelete(product.id || product._id)}
@@ -271,7 +314,9 @@ const MyProductsPage = () => {
               </tbody>
             </table>
             {filteredProducts.length === 0 && (
-              <p className="py-6 text-center text-gray-500">No products match your filters.</p>
+              <p className="py-6 text-center text-gray-500">
+                No products match your filters.
+              </p>
             )}
           </div>
         </div>
@@ -280,13 +325,16 @@ const MyProductsPage = () => {
   );
 
   return (
-    <AnimatedSection className='pt-8'>
+    <AnimatedSection className="pt-8">
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-2xl font-semibold text-gray-900">My Products</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              My Products
+            </h1>
             <p className="mt-2 text-sm text-gray-700">
-              A list of all the products in your shop including their name, price, stock, and status.
+              A list of all the products in your shop including their name,
+              price, stock, and status.
             </p>
           </div>
           <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">

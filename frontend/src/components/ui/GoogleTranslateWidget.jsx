@@ -11,7 +11,7 @@ const GoogleTranslateWidget = () => {
     window.googleTranslateElementInit = () => {
       new window.google.translate.TranslateElement(
         {
-          includedLanguages: 'en,hi,bn,te,mr,ta,gu,kn,ml,pa', // Example list
+          includedLanguages: 'en,hi,bn,te,mr,ta,gu,kn,ml,pa',
           pageLanguage: 'en', 
           layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
           autoDisplay: false,

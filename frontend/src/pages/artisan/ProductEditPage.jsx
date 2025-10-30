@@ -5,26 +5,26 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom"; 
-import api from "../../api/axiosConfig"; 
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import api from "../../api/axiosConfig";
 
-import AnimatedSection from "../../components/ui/AnimatedSection"; 
+import AnimatedSection from "../../components/ui/AnimatedSection";
 import {
   SparklesIcon,
   LightBulbIcon,
   PencilIcon,
   ExclamationCircleIcon,
-  CheckCircleIcon, 
-  RadioButtonIcon, 
-  InformationCircleIcon, 
-  ArrowLeftIcon, 
-} from "../../components/common/Icons"; 
+  CheckCircleIcon,
+  RadioButtonIcon,
+  InformationCircleIcon,
+  ArrowLeftIcon,
+} from "../../components/common/Icons";
 
 const SkeletonBase = ({ className = "" }) => (
   <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>
 );
 const SkeletonSidebarCard = () => <SkeletonBase className="h-44 md:h-48" />;
-const SkeletonForm = () => <SkeletonBase className="h-[40rem]" />; 
+const SkeletonForm = () => <SkeletonBase className="h-[40rem]" />;
 
 const FormInput = ({ label, id, ...props }) => (
   <div>
@@ -38,7 +38,6 @@ const FormInput = ({ label, id, ...props }) => (
     <input
       id={id}
       {...props}
-
       className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 
                  focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm
                  disabled:bg-gray-50 disabled:text-gray-500"
@@ -84,7 +83,7 @@ const ProductFormFields = ({
     category: "Other",
     status: "draft",
     inventory: { quantity: 1, isUnlimited: false },
-    images: [{ url: "", alt: "" }], 
+    images: [{ url: "", alt: "" }],
   });
 
   const [formLoading, setFormLoading] = useState(false);
@@ -97,18 +96,16 @@ const ProductFormFields = ({
 
   useEffect(() => {
     const ideaData = location.state?.ideaData;
-    let effectiveData = {}; 
+    let effectiveData = {};
 
     if (ideaData) {
       effectiveData = {
-        ...formData, 
+        ...formData,
         name: ideaData.name || "",
         description: ideaData.description || "",
         category: ideaData.category || "Other",
       };
-    }
-
-    else if (initialData) {
+    } else if (initialData) {
       effectiveData = {
         name: initialData.name || "",
         description: initialData.description || "",
@@ -123,16 +120,14 @@ const ProductFormFields = ({
           ? initialData.images
           : [{ url: "", alt: "" }],
       };
-
     } else {
-
       effectiveData = { ...formData };
     }
 
     setFormData(effectiveData);
 
     onFormDataChange(effectiveData);
-  }, [initialData, location.state]); 
+  }, [initialData, location.state]);
 
   const categories = [
     "Pottery",
@@ -157,32 +152,31 @@ const ProductFormFields = ({
         [key]: type === "checkbox" ? checked : value,
       };
     } else if (name === "images.0.url") {
-
       newFormData.images = [{ ...newFormData.images[0], url: value }];
     } else {
       newFormData = { ...newFormData, [name]: value };
     }
 
     setFormData(newFormData);
-    onFormDataChange(newFormData); 
+    onFormDataChange(newFormData);
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file); 
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result); 
+        setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
 
       onFormDataChange({ ...formData, images: [{ url: "file_selected" }] });
     } else {
-      setImageFile(null); 
+      setImageFile(null);
 
       const initialImageUrl = initialData?.images?.[0]?.url || "";
-      setImagePreview(initialImageUrl); 
+      setImagePreview(initialImageUrl);
 
       onFormDataChange({ ...formData, images: [{ url: initialImageUrl }] });
     }
@@ -232,7 +226,6 @@ const ProductFormFields = ({
     setFormLoading(true);
     setError("");
     try {
-
       await onSubmit();
     } catch (err) {
       setError(
@@ -244,7 +237,6 @@ const ProductFormFields = ({
   };
 
   return (
-
     <form
       onSubmit={handleSubmit}
       className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200 space-y-8"
@@ -314,7 +306,9 @@ const ProductFormFields = ({
               <button
                 type="button"
                 onClick={handleSuggestPrice}
-                disabled={isSuggestingPrice || !formData.name || !formData.description}
+                disabled={
+                  isSuggestingPrice || !formData.name || !formData.description
+                }
                 className="flex items-center gap-1 text-xs font-semibold text-white bg-google-green px-2 py-1 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <LightBulbIcon className="w-3.5 h-3.5" /> {}
@@ -435,7 +429,7 @@ const ProductFormFields = ({
             name="productImage"
             type="file"
             accept="image/png, image/jpeg, image/webp"
-            onChange={handleFileChange} 
+            onChange={handleFileChange}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-google-blue hover:file:bg-blue-100"
           />
         </div>
@@ -542,7 +536,7 @@ const ProductEditPage = () => {
         try {
           const response = await api.get(`/products/${productId}`);
           setInitialData(response.data);
-          setChecklistData(response.data); 
+          setChecklistData(response.data);
 
           setImagePreview(response.data.images?.[0]?.url || "");
           setPageError("");
@@ -560,13 +554,12 @@ const ProductEditPage = () => {
     } else {
       setPageLoading(false);
       setInitialData(null);
-      setChecklistData({}); 
-      setImagePreview(""); 
+      setChecklistData({});
+      setImagePreview("");
     }
   }, [productId, isEditMode]);
 
-const handleFormSubmit = async () => {
-
+  const handleFormSubmit = async () => {
     const payload = {
       name: checklistData.name,
       description: checklistData.description,
@@ -579,7 +572,6 @@ const handleFormSubmit = async () => {
           ? 0
           : parseInt(checklistData.inventory.quantity, 10) || 0,
       },
-
     };
 
     if (isNaN(payload.price) || payload.price < 0)
@@ -590,44 +582,44 @@ const handleFormSubmit = async () => {
     )
       throw new Error("Invalid quantity.");
 
-  if (!imageFile && !isEditMode) {
-    throw new Error("Please select an image to upload.");
-  }
-
-  if (!imageFile && isEditMode && !initialData?.images?.[0]?.url) {
-    throw new Error("Please select an image to upload.");
-  }
-
-  try {
-    if (imageFile) {
-      const data = new FormData();
-
-      Object.keys(payload).forEach((key) => {
-        if (key === "inventory") {
-          data.append(key, JSON.stringify(payload[key])); 
-        } else if (key !== "productImage") { 
-          data.append(key, payload[key]); 
-        }
-      });
-
-      data.append("productImage", imageFile);
-
-      if (isEditMode) {
-        await api.put(`/products/${productId}`, data);
-      } else {
-        await api.post("/products", data);
-      }
-    } else {
-      if (isEditMode) {
-        payload.images = initialData.images; 
-        await api.put(`/products/${productId}`, payload); 
-      } else {
-        throw new Error("Image file is required for new products.");
-      }
+    if (!imageFile && !isEditMode) {
+      throw new Error("Please select an image to upload.");
     }
 
-    navigate("/artisan/products"); 
-  } catch (error) {
+    if (!imageFile && isEditMode && !initialData?.images?.[0]?.url) {
+      throw new Error("Please select an image to upload.");
+    }
+
+    try {
+      if (imageFile) {
+        const data = new FormData();
+
+        Object.keys(payload).forEach((key) => {
+          if (key === "inventory") {
+            data.append(key, JSON.stringify(payload[key]));
+          } else if (key !== "productImage") {
+            data.append(key, payload[key]);
+          }
+        });
+
+        data.append("productImage", imageFile);
+
+        if (isEditMode) {
+          await api.put(`/products/${productId}`, data);
+        } else {
+          await api.post("/products", data);
+        }
+      } else {
+        if (isEditMode) {
+          payload.images = initialData.images;
+          await api.put(`/products/${productId}`, payload);
+        } else {
+          throw new Error("Image file is required for new products.");
+        }
+      }
+
+      navigate("/artisan/products");
+    } catch (error) {
       console.error("Failed to submit form:", error);
       throw new Error(
         error.response?.data?.errors?.[0]?.msg ||
@@ -641,7 +633,10 @@ const handleFormSubmit = async () => {
     const data = checklistData || {};
     const inventory = data.inventory || {};
 
-    const hasImage = (data.images?.[0]?.url || "").length > 10 || (imagePreview && (imagePreview.startsWith("data:") || imagePreview.startsWith("http")));
+    const hasImage =
+      (data.images?.[0]?.url || "").length > 10 ||
+      (imagePreview &&
+        (imagePreview.startsWith("data:") || imagePreview.startsWith("http")));
 
     return [
       {
@@ -671,7 +666,7 @@ const handleFormSubmit = async () => {
         isComplete: data.status === "active",
       },
     ];
-  }, [checklistData, imagePreview]); 
+  }, [checklistData, imagePreview]);
 
   const isChecklistComplete = checklist.every((item) => item.isComplete);
 
@@ -723,8 +718,7 @@ const handleFormSubmit = async () => {
           <ProductFormFields
             initialData={initialData}
             onSubmit={handleFormSubmit}
-            onFormDataChange={setChecklistData} 
-
+            onFormDataChange={setChecklistData}
             imageFile={imageFile}
             setImageFile={setImageFile}
             imagePreview={imagePreview}

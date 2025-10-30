@@ -140,10 +140,10 @@ const ReviewModal = ({
               </button>
             </div>
 
-            {/* Form */}
+            {}
             <form onSubmit={handleSubmit}>
               <div className="p-6 space-y-5">
-                {/* Star Rating Input */}
+                {}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Your Rating*
@@ -156,7 +156,7 @@ const ReviewModal = ({
                   />
                 </div>
 
-                {/* Comment Input */}
+                {}
                 <div>
                   <label
                     htmlFor="comment"
@@ -175,7 +175,7 @@ const ReviewModal = ({
                 </div>
               </div>
 
-              {/* Footer / Actions */}
+              {}
               <div className="flex justify-end space-x-3 p-5 bg-gray-50 border-t border-gray-200">
                 <button
                   type="button"

@@ -1,30 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom"; // Keep Link if needed
-import api from "../../api/axiosConfig"; // Adjust path if needed
-// Import Shared Components
-import AnimatedSection from "../../components/ui/AnimatedSection"; // Adjust path if needed
+import { Link } from "react-router-dom";
+import api from "../../api/axiosConfig";
+import AnimatedSection from "../../components/ui/AnimatedSection";
 import {
   BriefcaseIcon,
   BuildingIcon,
-  CheckCircleIcon, // Using solid version
+  CheckCircleIcon,
   LightBulbIcon,
-  ExclamationCircleIcon, // Make sure this is in Icons.jsx
-  TrendingUpIcon, // Added for readiness score card
-  RefreshIcon, // Added for refresh button
-} from "../../components/common/Icons"; // Adjust path if needed
+  ExclamationCircleIcon,
+  TrendingUpIcon,
+  RefreshIcon,
+} from "../../components/common/Icons";
 
-// --- Skeleton Component Placeholders ---
 const SkeletonBase = ({ className = "" }) => (
   <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>
 );
 const SkeletonSidebarCard = () => <SkeletonBase className="h-44 md:h-48" />;
-const SkeletonTipCard = () => <SkeletonBase className="h-24 md:h-28" />; // For Action Plan
+const SkeletonTipCard = () => <SkeletonBase className="h-24 md:h-28" />;
 const SkeletonInvestorCard = () => <SkeletonBase className="h-64" />;
-const SkeletonSchemeCard = () => <SkeletonBase className="h-32" />; // Slightly shorter
+const SkeletonSchemeCard = () => <SkeletonBase className="h-32" />;
 const SkeletonSectionHeader = () => <SkeletonBase className="h-8 w-1/2 mb-4" />;
-// --- End Skeletons ---
 
-// --- Tab Component (Copied from LogiPage) ---
 const TabButton = ({ title, isActive, onClick }) => (
   <button
     onClick={onClick}
@@ -42,23 +38,18 @@ const TabButton = ({ title, isActive, onClick }) => (
   </button>
 );
 
-// --- MAIN GRANTS PAGE COMPONENT ---
 const GrantsPage = () => {
-  // State for AI Funding Report (Tabs 1 & 2)
   const [reportData, setReportData] = useState(null);
   const [reportLoading, setReportLoading] = useState(true);
   const [reportError, setReportError] = useState("");
 
-  // --- NEW ---
-  // State for Government Schemes (Tab 3)
   const [schemesData, setSchemesData] = useState([]);
-  const [schemesLoading, setSchemesLoading] = useState(false); // Start false
+  const [schemesLoading, setSchemesLoading] = useState(false);
   const [schemesError, setSchemesError] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [activeTab, setActiveTab] = useState("plan"); // 'plan', 'investors', 'schemes'
+  const [activeTab, setActiveTab] = useState("plan");
 
-  // Effect for AI Funding Report (Tabs 1 & 2)
   useEffect(() => {
     const generateReport = async () => {
       setReportLoading(true);
@@ -78,11 +69,7 @@ const GrantsPage = () => {
     generateReport();
   }, []);
 
-  // --- NEW ---
-  // Effect for Government Schemes (Tab 3)
-  // This runs when activeTab changes
   const fetchSchemes = async (forceRefresh = false) => {
-    // Only fetch if the tab is active AND (we're forcing refresh OR data is not yet loaded)
     if (activeTab === "schemes" && (forceRefresh || schemesData.length === 0)) {
       setSchemesLoading(true);
       setSchemesError("");
@@ -91,10 +78,8 @@ const GrantsPage = () => {
       try {
         let response;
         if (forceRefresh) {
-          // Use POST for a refresh
           response = await api.post("/schemes/refresh");
         } else {
-          // Use GET for the initial load
           response = await api.get("/schemes");
         }
         setSchemesData(response.data);
@@ -110,12 +95,10 @@ const GrantsPage = () => {
     }
   };
 
-  // Trigger fetchSchemes when the 'schemes' tab is activated
   useEffect(() => {
-    fetchSchemes(false); // Pass false to not force refresh
-  }, [activeTab]); // Dependency on activeTab
+    fetchSchemes(false);
+  }, [activeTab]);
 
-  // --- Helper Functions ---
   const getMatchScoreColor = (score) => {
     if (score >= 90) return "bg-google-green text-white";
     if (score >= 80) return "bg-yellow-100 text-yellow-800";
@@ -127,25 +110,22 @@ const GrantsPage = () => {
     if (score >= 50) return "text-yellow-500";
     return "text-google-red";
   };
-  // ---
 
-  // --- Loading State (for initial AI Report) ---
   if (reportLoading) {
-    // Styled like LogiPage skeleton
     return (
       <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
-        {/* Main Content Skeleton */}
+        {}
         <div className="flex-grow space-y-8 md:space-y-10">
-          <SkeletonBase className="h-10 w-3/4 mb-4" /> {/* Title Skeleton */}
-          <SkeletonBase className="h-10 w-full mb-6" /> {/* Tabs Skeleton */}
-          {/* Action Plan Skeleton (Default Tab) */}
+          <SkeletonBase className="h-10 w-3/4 mb-4" /> {}
+          <SkeletonBase className="h-10 w-full mb-6" /> {}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <SkeletonTipCard />
             <SkeletonTipCard />
             <SkeletonTipCard />
           </div>
         </div>
-        {/* Sidebar Skeleton */}
+        {}
         <div className="lg:w-80 flex-shrink-0 space-y-6">
           <SkeletonSidebarCard />
         </div>
@@ -153,9 +133,7 @@ const GrantsPage = () => {
     );
   }
 
-  // --- Error State (for initial AI Report) ---
   if (reportError || !reportData) {
-    // Styled like LogiPage error state
     return (
       <div className="flex flex-col justify-center items-center min-h-[calc(100vh-10rem)] px-6 text-center bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE]">
         <ExclamationCircleIcon className="w-12 h-12 text-red-400 mb-4" />
@@ -169,13 +147,11 @@ const GrantsPage = () => {
     );
   }
 
-  // --- Main Return (Loaded State) ---
   return (
-    // Copied LogiPage outer div styling
     <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
-      {/* --- Main Content Area (Left/Top) --- */}
+      {}
       <div className="flex-grow lg:w-2/3">
-        {/* Page Title - Styled like LogiPage */}
+        {}
         <AnimatedSection className="mb-8 pt-8 text-center">
           <h1
             className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
@@ -191,7 +167,7 @@ const GrantsPage = () => {
           </p>
         </AnimatedSection>
 
-        {/* --- Tab Navigation - Styled like LogiPage --- */}
+        {}
         <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8 pb-4">
           <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
             <TabButton
@@ -212,9 +188,9 @@ const GrantsPage = () => {
           </div>
         </div>
 
-        {/* --- Tab Content --- */}
+        {}
         <AnimatedSection>
-          {/* --- AI Application Tips (Tab 1) --- */}
+          {}
           {activeTab === "plan" && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-2 px-1">
@@ -252,7 +228,7 @@ const GrantsPage = () => {
             </div>
           )}
 
-          {/* --- AI-Matched Investors Section (Tab 2) --- */}
+          {}
           {activeTab === "investors" && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-6 px-1">
@@ -336,7 +312,7 @@ const GrantsPage = () => {
             </div>
           )}
 
-          {/* --- Government Schemes Section (Tab 3) --- */}
+          {}
           {activeTab === "schemes" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between gap-3 mb-6 px-1">
@@ -346,7 +322,7 @@ const GrantsPage = () => {
                     Recommended Schemes
                   </h2>
                 </div>
-                {/* --- NEW REFRESH BUTTON --- */}
+                {}
                 <button
                   onClick={() => fetchSchemes(true)}
                   disabled={isRefreshing}
@@ -359,7 +335,7 @@ const GrantsPage = () => {
                 </button>
               </div>
 
-              {/* --- NEW LOADING/ERROR/CONTENT STATES --- */}
+              {}
               {schemesLoading && (
                 <div className="space-y-4">
                   <SkeletonSchemeCard />
@@ -380,32 +356,30 @@ const GrantsPage = () => {
                 </div>
               )}
 
-              {!schemesLoading &&
-                !schemesError &&
-                schemesData.length === 0 && (
-                  <div className="bg-white p-6 rounded-lg border border-gray-200 text-center flex flex-col items-center justify-center min-h-[150px]">
-                    <BuildingIcon className="h-8 w-8 text-gray-400 mb-2" />
-                    <h3 className="font-medium text-sm text-gray-700">
-                      No Schemes Found
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1 px-4">
-                      We couldn't find any relevant government schemes for your
-                      location. Try refreshing or check back later.
-                    </p>
-                  </div>
-                )}
+              {!schemesLoading && !schemesError && schemesData.length === 0 && (
+                <div className="bg-white p-6 rounded-lg border border-gray-200 text-center flex flex-col items-center justify-center min-h-[150px]">
+                  <BuildingIcon className="h-8 w-8 text-gray-400 mb-2" />
+                  <h3 className="font-medium text-sm text-gray-700">
+                    No Schemes Found
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1 px-4">
+                    We couldn't find any relevant government schemes for your
+                    location. Try refreshing or check back later.
+                  </p>
+                </div>
+              )}
 
               {!schemesLoading && !schemesError && schemesData.length > 0 && (
                 <div className="space-y-4">
-                  {/* Map over the NEW schemesData state */}
+                  {}
                   {schemesData.map((scheme, index) => (
                     <div
-                      key={index} // Use index as key if no unique id
+                      key={index}
                       className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
                     >
                       <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3">
                         <div className="flex-1">
-                          {/* --- UPDATED --- */}
+                          {}
                           <h3 className="text-sm font-semibold text-gray-800">
                             {scheme.title}
                           </h3>
@@ -416,9 +390,9 @@ const GrantsPage = () => {
                             {scheme.snippet}
                           </p>
                         </div>
-                        {/* --- UPDATED --- */}
+                        {}
                         <a
-                          href={scheme.link} // Use the actual link
+                          href={scheme.link}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-google-blue/10 text-google-blue font-medium px-4 py-1.5 rounded-md text-xs hover:bg-google-blue/20 transition-colors whitespace-nowrap self-start sm:self-center mt-2 sm:mt-0"
@@ -435,11 +409,11 @@ const GrantsPage = () => {
         </AnimatedSection>
       </div>
 
-      {/* --- Right Sidebar - Styled like LogiPage --- */}
+      {}
       <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4">
-        {/* Funding Readiness Score Card */}
+        {}
         <AnimatedSection>
-          {/* Using subtle green */}
+          {}
           <div className="bg-green-50/60 p-6 rounded-xl border border-green-200/80 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <TrendingUpIcon className="h-5 w-5 text-google-green" />
@@ -461,11 +435,10 @@ const GrantsPage = () => {
           </div>
         </AnimatedSection>
 
-        {/* Optional: Add another relevant card here if needed */}
+        {}
       </aside>
     </div>
   );
 };
 
 export default GrantsPage;
-

@@ -1,4 +1,10 @@
-import React, { createContext, useState, useEffect, useContext, useCallback } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axiosConfig";
 import {
@@ -28,22 +34,27 @@ export const AuthProvider = ({ children }) => {
   const fetchNotifications = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await api.get('/notifications');
+      const response = await api.get("/notifications");
       setNotifications(response.data.notifications || []);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     }
   }, [token]);
 
-  const markNotificationAsRead = useCallback(async (notificationId) => {
-    setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
-    try {
-      await api.put(`/notifications/${notificationId}/read`);
-    } catch (error) {
-      console.error("Failed to mark notification as read:", error);
-      fetchNotifications();
-    }
-  }, [fetchNotifications]);
+  const markNotificationAsRead = useCallback(
+    async (notificationId) => {
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
+      );
+      try {
+        await api.put(`/notifications/${notificationId}/read`);
+      } catch (error) {
+        console.error("Failed to mark notification as read:", error);
+        fetchNotifications();
+      }
+    },
+    [fetchNotifications]
+  );
 
   useEffect(() => {
     const fetchUserOnLoad = async () => {
@@ -52,7 +63,7 @@ export const AuthProvider = ({ children }) => {
         try {
           const response = await api.get("/auth/me");
           setUser(response.data);
-          await fetchNotifications(); 
+          await fetchNotifications();
         } catch (error) {
           console.error("Token is invalid or expired. Logging out.", error);
           localStorage.removeItem("token");
@@ -72,8 +83,8 @@ export const AuthProvider = ({ children }) => {
     api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
     setUser(userData);
     setToken(idToken);
-    
-    await fetchNotifications(); 
+
+    await fetchNotifications();
 
     switch (userData.role) {
       case "artisan":
@@ -93,12 +104,16 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const idToken = await userCredential.user.getIdToken();
-      
+
       api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
       const response = await api.get("/auth/me");
-      
+
       await handleAuthSuccess(response.data, idToken);
       return response.data;
     } catch (error) {
@@ -107,21 +122,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // --- START OF THE ONLY CHANGES ---
 
-  const register = async (userData) => { // FIX 1: Accept one object 'userData'
+  const register = async (userData) => {
     try {
-      // FIX 2: Destructure the object to get all the variables
       const { name, email, password, role, state, city, language } = userData;
 
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const idToken = await userCredential.user.getIdToken();
 
       api.defaults.headers.common["Authorization"] = `Bearer ${idToken}`;
-      
-      // FIX 3: Send all the new fields to the backend
-      const response = await api.post("/auth/register", { name, email, role, state, city, language });
-      
+
+      const response = await api.post("/auth/register", {
+        name,
+        email,
+        role,
+        state,
+        city,
+        language,
+      });
+
       await handleAuthSuccess(response.data.user, idToken);
       return response.data.user;
     } catch (error) {
@@ -130,7 +153,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // --- END OF THE ONLY CHANGES ---
 
   const logout = async () => {
     try {

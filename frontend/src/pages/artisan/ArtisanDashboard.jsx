@@ -11,11 +11,10 @@ import {
   EyeIcon,
   CurrencyDollarIcon,
   UserCheck,
-  ExclamationCircleIcon
+  ExclamationCircleIcon,
 } from "../../components/common/Icons";
 import SkeletonCard from "../../components/ui/SkeletonCard";
 import SkeletonStat from "../../components/ui/SkeletonStat";
-
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -93,11 +92,10 @@ const MentorshipWidget = () => {
       const mentorRes = await api.get("/mentorship/my-mentor");
       if (mentorRes.data && mentorRes.data.mentor) {
         setMentor(mentorRes.data.mentor);
-        setRequests([]); 
+        setRequests([]);
       } else {
         const requestsRes = await api.get("/mentorship/requests");
-        // Filter out any requests that are missing an ambassador
-        setRequests(requestsRes.data.requests.filter(req => req.ambassador));
+        setRequests(requestsRes.data.requests.filter((req) => req.ambassador));
       }
     } catch (error) {
       console.error("Error fetching mentorship data:", error);
@@ -120,8 +118,7 @@ const MentorshipWidget = () => {
       console.error(error);
     }
   };
-  
-  // ... the rest of the MentorshipWidget component logic remains the same...
+
 
   if (loading) {
     return (
@@ -150,7 +147,6 @@ const MentorshipWidget = () => {
     );
   }
 
-  // This check is now safe because we filtered the requests array
   if (requests.length > 0) {
     return (
       <AnimatedSection className="mb-6">
@@ -191,13 +187,12 @@ const ArtisanDashboard = () => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        const response = await api.get("/dashboard/artisan-stats"); 
-        
+        const response = await api.get("/dashboard/artisan-stats");
+
         setStats(response.data.stats);
         setSalesData(response.data.salesData);
         setViewsData(response.data.viewsData);
         setTopProducts(response.data.topProducts);
-
       } catch (err) {
         setError("Failed to fetch dashboard data");
         console.error("Failed to fetch dashboard data:", err);
@@ -208,7 +203,6 @@ const ArtisanDashboard = () => {
 
     fetchDashboardData();
   }, []);
-
 
   const statsData = [
     {

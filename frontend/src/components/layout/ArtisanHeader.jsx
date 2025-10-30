@@ -24,7 +24,7 @@ const NavItem = ({ to, children }) => (
 );
 
 const ArtisanHeader = () => {
-  const { user, logout, notifications, markNotificationAsRead } = useAuth(); // <-- GET REAL DATA
+  const { user, logout, notifications, markNotificationAsRead } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 

@@ -1,7 +1,5 @@
 import React from "react";
 
-// --- Icons used for roles/sections ---
-
 export const ArtisanIcon = ({
   className = "w-12 h-12 mb-4 text-google-red",
 }) => (
@@ -76,8 +74,6 @@ export const AmbassadorIcon = ({
     ></path>
   </svg>
 );
-
-// --- General UI Icons ---
 
 export const PlusIcon = ({ className = "w-6 h-6" }) => (
   <svg
@@ -358,21 +354,21 @@ export const CogIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 export const ArrowRightIcon = ({ className = "w-6 h-6", ...props }) => (
-    <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        fill="none" 
-        viewBox="0 0 24 24" 
-        strokeWidth={1.5} 
-        stroke="currentColor" 
-        className={className} 
-        {...props}
-    >
-        <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" 
-        />
-    </svg>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className={className}
+    {...props}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+    />
+  </svg>
 );
 export const CheckCircleIcon = ({ className = "w-6 h-6" }) => (
   <svg
@@ -389,7 +385,6 @@ export const CheckCircleIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// --- RENAMED THIS ICON ---
 export const MagnifyingGlassIcon = ({ className = "w-5 h-5" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -407,7 +402,6 @@ export const MagnifyingGlassIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-// Using the second UsersIcon definition provided earlier
 export const UsersIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -460,7 +454,6 @@ export const GoogleMicIcon = ({
   </svg>
 );
 
-// --- Icons for Sidebar ---
 export const DashboardIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -601,7 +594,6 @@ export const LogisticsIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// --- Check Icon (Line version) ---
 export const CheckIcon = ({ className = "h-5 w-5 text-google-green" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -615,7 +607,6 @@ export const CheckIcon = ({ className = "h-5 w-5 text-google-green" }) => (
   </svg>
 );
 
-// --- CubeTransparentIcon ---
 export const CubeTransparentIcon = ({ className = "h-12 w-12" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -633,7 +624,6 @@ export const CubeTransparentIcon = ({ className = "h-12 w-12" }) => (
   </svg>
 );
 
-// --- GlobeAltIcon ---
 export const GlobeAltIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -651,7 +641,6 @@ export const GlobeAltIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// --- EyeIcon ---
 export const EyeIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -674,7 +663,6 @@ export const EyeIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// --- CurrencyDollarIcon ---
 export const CurrencyDollarIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -692,7 +680,6 @@ export const CurrencyDollarIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// --- ShieldCheckIcon ---
 export const ShieldCheckIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -710,7 +697,6 @@ export const ShieldCheckIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// --- InformationCircleIcon ---
 export const InformationCircleIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -728,7 +714,6 @@ export const InformationCircleIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// --- ExclamationCircleIcon (Larger default for errors) ---
 export const ExclamationCircleIcon = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -746,8 +731,6 @@ export const ExclamationCircleIcon = (props) => (
   </svg>
 );
 
-// --- TagIcon (Smaller default for tips) ---
-// Note: This replaces the previous TagIcon definition if both were present
 export const TagIcon = ({ className = "w-5 h-5" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -765,12 +748,7 @@ export const TagIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-// Add these inside src/components/common/Icons.jsx
-
-// ChatAlt2 Icon (For Discussions)
-export const ChatAlt2Icon = (
-  { className = "w-6 h-6" } // Defaulted to w-6 h-6
-) => (
+export const ChatAlt2Icon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className={className}
@@ -787,10 +765,7 @@ export const ChatAlt2Icon = (
   </svg>
 );
 
-// LocationMarker Icon (For Community Location)
-export const LocationMarkerIcon = (
-  { className = "w-5 h-5" } // Defaulted to w-5 h-5
-) => (
+export const LocationMarkerIcon = ({ className = "w-5 h-5" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className={className}
@@ -812,11 +787,7 @@ export const LocationMarkerIcon = (
   </svg>
 );
 
-// Add this inside src/components/common/Icons.jsx
-
-export const CalendarIcon = (
-  { className = "w-6 h-6" } // Defaulted to w-6 h-6
-) => (
+export const CalendarIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className={className}
@@ -833,11 +804,7 @@ export const CalendarIcon = (
   </svg>
 );
 
-// Add these inside src/components/common/Icons.jsx if they are missing
-
-export const BriefcaseIcon = (
-  { className = "w-6 h-6" } // Defaulted size
-) => (
+export const BriefcaseIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className={className}
@@ -871,9 +838,7 @@ export const PencilSquareIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-export const BuildingIcon = (
-  { className = "w-6 h-6" } // Defaulted size
-) => (
+export const BuildingIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className={className}
@@ -890,9 +855,6 @@ export const BuildingIcon = (
   </svg>
 );
 
-// Add these inside src/components/common/Icons.jsx
-
-// ChartBar Icon (for Category Chart)
 export const ChartBarIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -910,7 +872,6 @@ export const ChartBarIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// ColorSwatch Icon (for Materials Chart - using Palette icon as alternative)
 export const ColorSwatchIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -928,9 +889,6 @@ export const ColorSwatchIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// Add these to src/components/common/Icons.jsx if they don't exist
-
-// For the "Recently Submitted" sidebar card header
 export const HistoryIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -948,7 +906,6 @@ export const HistoryIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// For the form's "Cancel" button, a back arrow is more intuitive
 export const ArrowLeftIcon = ({ className = "w-5 h-5" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -966,9 +923,6 @@ export const ArrowLeftIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-// Add these to src/components/common/Icons.jsx if needed
-
-// Filter Icon
 export const FilterIcon = ({ className = "w-5 h-5" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -986,7 +940,6 @@ export const FilterIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-// Sort Ascending/Descending Icons (Example using Arrows)
 export const SortAscendingIcon = ({ className = "w-5 h-5" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1020,7 +973,6 @@ export const SortDescendingIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-// Thumbs Up Icon (for votes)
 export const ThumbUpIcon = ({ className = "w-4 h-4" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1065,9 +1017,6 @@ export const PlusCircleIcon = ({ className = "w-6 h-6" }) => (
     />
   </svg>
 );
-// Add/Ensure these are in src/components/common/Icons.jsx
-
-// Add this to src/components/common/Icons.jsx if needed
 
 export const CubeIcon = ({ className = "w-6 h-6" }) => (
   <svg
@@ -1086,9 +1035,6 @@ export const CubeIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// Add/Ensure these are in src/components/common/Icons.jsx
-
-// For Low Inventory Alert card
 export const ExclamationTriangleIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1106,9 +1052,6 @@ export const ExclamationTriangleIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// For Quick Stats card
-
-// For Edit button in table
 export const PencilIcon = ({ className = "w-4 h-4" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1126,7 +1069,6 @@ export const PencilIcon = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
-// For Delete button in table
 export const TrashIcon = ({ className = "w-4 h-4" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1144,12 +1086,7 @@ export const TrashIcon = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
-// Add these to src/components/common/Icons.jsx
-
-// For the checklist (pending)
-export const RadioButtonIcon = (
-  { className = "w-6 h-6" } // Using a radio button as a "pending" circle
-) => (
+export const RadioButtonIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className={className}
@@ -1166,9 +1103,6 @@ export const RadioButtonIcon = (
   </svg>
 );
 
-// Add these to src/components/common/Icons.jsx
-
-// User Circle Icon (for Profile)
 export const UserCircleIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1186,7 +1120,6 @@ export const UserCircleIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// Office Building Icon (for Business Info)
 export const OfficeBuildingIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1204,7 +1137,6 @@ export const OfficeBuildingIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// Credit Card Icon (for Payouts)
 export const CreditCardIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1222,7 +1154,6 @@ export const CreditCardIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-// Camera Icon (for image uploads)
 export const CameraIcon = ({ className = "w-5 h-5" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1238,9 +1169,6 @@ export const CameraIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-// Add these to src/components/common/Icons.jsx
-
-// Star Icon (Solid for ratings)
 export const StarIcon = ({ className = "w-5 h-5" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1252,7 +1180,6 @@ export const StarIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-// Reply Icon (for the reply button)
 export const ReplyIcon = ({ className = "w-4 h-4" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1269,8 +1196,6 @@ export const ReplyIcon = ({ className = "w-4 h-4" }) => (
     />
   </svg>
 );
-
-// Add this to src/components/common/Icons.jsx if it's not there
 
 export const CollectionIcon = ({ className = "w-6 h-6" }) => (
   <svg
@@ -1312,17 +1237,27 @@ export const UserCheck = (props) => (
   </svg>
 );
 
-// Add these to src/components/common/Icons.jsx
-
-
 export const ChartPieIcon = ({ className = "w-6 h-6" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-    </svg>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
+    />
+  </svg>
 );
-
-// --- ADD THIS ICON TO THE BOTTOM OF THE FILE ---
 
 export const SendIcon = ({ className = "w-5 h-5" }) => (
   <svg
@@ -1356,7 +1291,6 @@ export const ExternalLinkIcon = ({ className = "w-4 h-4" }) => (
     />
   </svg>
 );
-// Add this new icon component definition
 export const TicketIcon = ({ className = "w-6 h-6" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -1375,25 +1309,39 @@ export const TicketIcon = ({ className = "w-6 h-6" }) => (
 );
 
 export const BuildingStorefrontIcon = ({ className = "w-6 h-6", ...props }) => (
-    <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        fill="none" 
-        viewBox="0 0 24 24" 
-        strokeWidth={1.5} 
-        stroke="currentColor" 
-        className={className} 
-        {...props}
-    >
-        <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h2.64m-2.64 0l-1.14-7.5H13.5m4.5 7.5v-7.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h2.64m-2.64 0l-1.14-7.5H13.5m4.5 7.5L13.5 12H18m0 0l4.5 9.04M13.5 12L13.5 12H18m0 0l4.5 9.04M13.5 12v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12m-4.5 0v-3.375c0-.621-.504-1.125-1.125-1.125h-.75c-.621 0-1.125.504-1.125 1.125V12m0 0v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12m0 0v-3.375c0-.621-.504-1.125-1.125-1.125h-.75c-.621 0-1.125.504-1.125 1.125V12M12 9v.001M12 12v-3.375c0-.621-.504-1.125-1.125-1.125h-.75c-.621 0-1.125.504-1.125 1.125V12m-3 0v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12m-3 0v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12M9 9v.001M9 12v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12m-6 3v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12" 
-        />
-    </svg>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className={className}
+    {...props}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h2.64m-2.64 0l-1.14-7.5H13.5m4.5 7.5v-7.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h2.64m-2.64 0l-1.14-7.5H13.5m4.5 7.5L13.5 12H18m0 0l4.5 9.04M13.5 12L13.5 12H18m0 0l4.5 9.04M13.5 12v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12m-4.5 0v-3.375c0-.621-.504-1.125-1.125-1.125h-.75c-.621 0-1.125.504-1.125 1.125V12m0 0v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12m0 0v-3.375c0-.621-.504-1.125-1.125-1.125h-.75c-.621 0-1.125.504-1.125 1.125V12M12 9v.001M12 12v-3.375c0-.621-.504-1.125-1.125-1.125h-.75c-.621 0-1.125.504-1.125 1.125V12m-3 0v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12m-3 0v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12M9 9v.001M9 12v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12m-6 3v-3.375c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125V12"
+    />
+  </svg>
 );
 export const RefreshCwIcon = ({ className = "w-4 h-4" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.75 2.75L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.75-2.75L3 16"/><path d="M3 21v-5h5"/>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.75 2.75L21 8" />
+    <path d="M21 3v5h-5" />
+    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.75-2.75L3 16" />
+    <path d="M3 21v-5h5" />
   </svg>
 );
 export const RefreshIcon = (props) => (

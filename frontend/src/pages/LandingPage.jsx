@@ -10,18 +10,18 @@ import Roles from "../components/landing/Roles";
 
 export default function LandingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedRole, setSelectedRole] = useState("");
 
   const handleRoleSelect = (role) => {
-    setSelectedRole(role.toLowerCase()); // Ensure role is lowercase for consistency
+    setSelectedRole(role.toLowerCase());
     setIsModalOpen(true);
   };
 
   const handleOpenModal = () => {
-    setSelectedRole(''); // Clear role if opened from header
+    setSelectedRole("");
     setIsModalOpen(true);
   };
-  
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
@@ -36,10 +36,10 @@ export default function LandingPage() {
         <ExplainerCarousel />
         <Roles onRoleSelect={handleRoleSelect} />
       </main>
-      
-      <LoginModal 
-        isOpen={isModalOpen} 
-        onClose={handleCloseModal} 
+
+      <LoginModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
         selectedRole={selectedRole}
       />
     </div>

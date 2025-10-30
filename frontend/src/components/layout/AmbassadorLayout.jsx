@@ -3,7 +3,6 @@ import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { LogOut, User, Bell } from "lucide-react";
 
-// Reusable NavItem component
 const NavItem = ({ to, children }) => (
   <NavLink
     to={to}
@@ -21,7 +20,7 @@ const NavItem = ({ to, children }) => (
 );
 
 const AmbassadorHeader = () => {
-  const { user, logout, notifications, markNotificationAsRead } = useAuth(); // <-- GET REAL DATA
+  const { user, logout, notifications, markNotificationAsRead } = useAuth();
   const navigate = useNavigate();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);

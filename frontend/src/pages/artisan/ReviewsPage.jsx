@@ -6,7 +6,6 @@ import React, {
   useRef,
 } from "react";
 import { Link } from "react-router-dom";
-// --- CORRECTED PATHS ---
 import api from "../../api/axiosConfig";
 import AnimatedSection from "../../components/ui/AnimatedSection";
 import { useAuth } from "../../context/AuthContext";
@@ -19,12 +18,10 @@ import {
   CalendarIcon,
   TagIcon,
   ArchiveIcon,
-  XIcon, // Make sure XIcon is exported from Icons.jsx or replace if needed
+  XIcon,
 } from "../../components/common/Icons";
-// --- END CORRECTED PATHS ---
 import { toast } from "react-hot-toast";
 
-// --- Skeleton Component Placeholders ---
 const SkeletonBase = ({ className = "" }) => (
   <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>
 );
@@ -48,9 +45,7 @@ const SkeletonReviewCard = () => (
     </div>
   </div>
 );
-// --- End Skeletons ---
 
-// --- Internal Components ---
 const StarRating = ({ rating, size = "h-4 w-4" }) => (
   <div className="flex items-center">
     {[...Array(5)].map((_, i) => (
@@ -84,7 +79,6 @@ const ReviewCard = ({ review, onReplySubmit }) => {
     }
   };
 
-  // Helper for placeholder image
   const placeholderText = review.productName
     ? review.productName.charAt(0).toUpperCase()
     : "?";
@@ -355,23 +349,23 @@ const ReviewsPage = () => {
     return (
       <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
         <div className="flex-grow space-y-8 md:space-y-10">
-          <SkeletonBase className="h-10 w-1/3 mb-4" /> {/* Title */}
-          <SkeletonBase className="h-10 w-full mb-8" /> {/* Tabs */}
+          <SkeletonBase className="h-10 w-1/3 mb-4" /> {}
+          <SkeletonBase className="h-10 w-full mb-8" /> {}
           <div className="flex gap-4">
             {" "}
-            {/* Filters */}
+            {}
             <SkeletonBase className="h-10 w-1/2" />
             <SkeletonBase className="h-10 w-1/2" />
           </div>
           <div className="space-y-4">
             {" "}
-            {/* Reviews */}
+            {}
             <SkeletonReviewCard /> <SkeletonReviewCard />
           </div>
         </div>
         <div className="lg:w-80 flex-shrink-0 space-y-6">
           {" "}
-          {/* Stats */}
+          {}
           <SkeletonStatCard /> <SkeletonStatCard /> <SkeletonStatCard />
         </div>
       </div>

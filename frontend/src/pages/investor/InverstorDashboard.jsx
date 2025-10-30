@@ -2,23 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axiosConfig";
 import { Link } from "react-router-dom";
-
-// UI Components from Artisan Dashboard
 import AnimatedSection from "../../components/ui/AnimatedSection";
 import StatCard from "../../components/artisan/StatCard";
 import SkeletonCard from "../../components/ui/SkeletonCard";
 import SkeletonStat from "../../components/ui/SkeletonStat";
-
-// Icons
 import {
   CurrencyDollarIcon,
   UsersIcon,
   TrendingUpIcon,
   ExclamationCircleIcon,
-  BriefcaseIcon, // New icon for Jobs Created
+  BriefcaseIcon,
 } from "../../components/common/Icons";
-
-// Chart.js Components
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -32,7 +26,6 @@ import {
   Filler,
 } from "chart.js";
 
-// Register Chart.js modules
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -44,13 +37,20 @@ ChartJS.register(
   Filler
 );
 
-// --- MOCK DATA GENERATORS ---
 const getMockPortfolioChart = () => ({
-  labels: ["Oct 14", "Oct 15", "Oct 16", "Oct 17", "Oct 18", "Oct 19", "Oct 20"],
+  labels: [
+    "Oct 14",
+    "Oct 15",
+    "Oct 16",
+    "Oct 17",
+    "Oct 18",
+    "Oct 19",
+    "Oct 20",
+  ],
   data: [10000, 10250, 10150, 10300, 10450, 10400, 10550],
 });
 
-const getMockTopArtisans = () => ([
+const getMockTopArtisans = () => [
   {
     id: "1",
     name: "Rina Kumari",
@@ -69,13 +69,10 @@ const getMockTopArtisans = () => ([
     profilePic: { url: "https://placehold.co/40x40/FCE8E6/EA4335?text=A" },
     craft: "Kantha Embroidery",
   },
-]);
+];
 
-// Mock data for the new stat
 const getMockJobsCreated = () => 42;
-// --- END OF MOCK DATA ---
 
-// Re-usable MiniLineChart component
 const MiniLineChart = ({ title, data, labels, icon, borderColor, bgColor }) => {
   const chartData = {
     labels: labels,
@@ -119,34 +116,32 @@ const MiniLineChart = ({ title, data, labels, icon, borderColor, bgColor }) => {
   );
 };
 
-// New Rolling Number Stat Card component
 const RollingStatCard = ({ stat }) => {
-    const [count, setCount] = useState(0);
+  const [count, setCount] = useState(0);
 
-    useEffect(() => {
-        const endValue = parseInt(stat.value, 10) || 0;
-        if (endValue === 0) return;
+  useEffect(() => {
+    const endValue = parseInt(stat.value, 10) || 0;
+    if (endValue === 0) return;
 
-        let start = 0;
-        const duration = 1500; // Animation duration in ms
-        const increment = endValue / (duration / 16); // Calculate increment per frame (approx 60fps)
+    let start = 0;
+    const duration = 1500;
+    const increment = endValue / (duration / 16);
 
-        const counter = setInterval(() => {
-            start += increment;
-            if (start >= endValue) {
-                setCount(endValue);
-                clearInterval(counter);
-            } else {
-                setCount(Math.ceil(start));
-            }
-        }, 16);
+    const counter = setInterval(() => {
+      start += increment;
+      if (start >= endValue) {
+        setCount(endValue);
+        clearInterval(counter);
+      } else {
+        setCount(Math.ceil(start));
+      }
+    }, 16);
 
-        return () => clearInterval(counter);
-    }, [stat.value]);
+    return () => clearInterval(counter);
+  }, [stat.value]);
 
-    return <StatCard stat={{ ...stat, value: count }} />;
+  return <StatCard stat={{ ...stat, value: count }} />;
 };
-
 
 const InvestorDashboard = () => {
   const { user } = useAuth();
@@ -163,20 +158,16 @@ const InvestorDashboard = () => {
       setError(null);
 
       try {
-        // Fetch real stats from your existing endpoint
-        const response = await api.get('/investor/stats');
+        const response = await api.get("/investor/stats");
         setStats(response.data);
 
-        // Load mock data for new components
         setJobsCreated(getMockJobsCreated());
         setPortfolioChartData(getMockPortfolioChart());
         setTopArtisans(getMockTopArtisans());
-
       } catch (err) {
         setError("Failed to fetch investor stats. Please try again later.");
         console.error("Failed to fetch investor stats:", err);
       } finally {
-        // Simulate a small delay for a better user experience
         setTimeout(() => setLoading(false), 500);
       }
     };
@@ -186,7 +177,11 @@ const InvestorDashboard = () => {
   const statsData = [
     {
       title: "Total Invested",
-      value: `$${typeof stats?.totalInvested === 'number' ? stats.totalInvested.toLocaleString() : 0}`,
+      value: `$${
+        typeof stats?.totalInvested === "number"
+          ? stats.totalInvested.toLocaleString()
+          : 0
+      }`,
       icon: <CurrencyDollarIcon />,
       color: "text-google-green",
       borderColor: "border-google-green",
@@ -203,14 +198,14 @@ const InvestorDashboard = () => {
       description: "Discover new investment opportunities",
     },
     {
-        title: "Jobs Created",
-        value: jobsCreated,
-        icon: <BriefcaseIcon />,
-        color: "text-google-red",
-        borderColor: "border-google-red",
-        link: "/investor/portfolio",
-        description: "Impact of your investments",
-        isRolling: true, // Custom flag to identify this card
+      title: "Jobs Created",
+      value: jobsCreated,
+      icon: <BriefcaseIcon />,
+      color: "text-google-red",
+      borderColor: "border-google-red",
+      link: "/investor/portfolio",
+      description: "Impact of your investments",
+      isRolling: true,
     },
     {
       title: "Expected Returns",
@@ -228,10 +223,14 @@ const InvestorDashboard = () => {
       <div>
         <div className="h-40 bg-gray-200 rounded-2xl shadow-xl mb-10 md:mb-12 animate-pulse"></div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10 md:mb-12">
-          {[...Array(4)].map((_, i) => (<SkeletonStat key={i} />))}
+          {[...Array(4)].map((_, i) => (
+            <SkeletonStat key={i} />
+          ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2"><SkeletonCard className="h-40 md:h-48" /></div>
+          <div className="lg:col-span-2">
+            <SkeletonCard className="h-40 md:h-48" />
+          </div>
           <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg border animate-pulse">
             <div className="h-6 w-1/2 bg-gray-200 rounded mb-6"></div>
             <div className="space-y-4">
@@ -255,14 +254,15 @@ const InvestorDashboard = () => {
     return (
       <div className="text-center min-h-[calc(100vh-10rem)] flex flex-col justify-center items-center">
         <ExclamationCircleIcon className="w-12 h-12 text-red-400 mb-4" />
-        <h2 className="text-xl font-medium text-red-600 mb-2">Something went wrong</h2>
+        <h2 className="text-xl font-medium text-red-600 mb-2">
+          Something went wrong
+        </h2>
         <p className="text-gray-600 text-sm">{error}</p>
       </div>
     );
   }
 
   return (
-    // Removed py-8 md:py-10 from this wrapper to fix spacing
     <div className="py-8">
       <AnimatedSection className="mb-10 pt-8 md:mb-12">
         <div
@@ -282,20 +282,23 @@ const InvestorDashboard = () => {
               className="text-lg text-white/90 max-w-2xl mx-auto"
               style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
             >
-              Welcome back, {user.name}! Track your portfolio and find new opportunities.
+              Welcome back, {user.name}! Track your portfolio and find new
+              opportunities.
             </p>
           </header>
         </div>
       </AnimatedSection>
 
       <AnimatedSection className="mb-10 md:mb-12">
-        {/* Updated grid to support 4 items gracefully */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {statsData.map((stat, index) => (
-              stat.isRolling 
-                ? <RollingStatCard key={index} stat={stat} /> 
-                : <StatCard key={index} stat={stat} />
-          ))}
+          {statsData.map((stat, index) =>
+            stat.isRolling ? (
+              <RollingStatCard key={index} stat={stat} />
+            ) : (
+              <StatCard key={index} stat={stat} />
+            )
+          )}
         </div>
       </AnimatedSection>
 
@@ -315,7 +318,9 @@ const InvestorDashboard = () => {
 
         <AnimatedSection className="lg:col-span-1">
           <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 h-full">
-            <h2 className="text-base font-medium text-gray-800 mb-4">Top Performing Artisans</h2>
+            <h2 className="text-base font-medium text-gray-800 mb-4">
+              Top Performing Artisans
+            </h2>
             <div className="space-y-3">
               {topArtisans.length > 0 ? (
                 topArtisans.map((artisan) => (
@@ -325,18 +330,27 @@ const InvestorDashboard = () => {
                     className="flex items-center p-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <img
-                      src={artisan.profilePic?.url || "https://placehold.co/40x40/cccccc/ffffff?text=A"}
+                      src={
+                        artisan.profilePic?.url ||
+                        "https://placehold.co/40x40/cccccc/ffffff?text=A"
+                      }
                       alt={artisan.name}
                       className="w-10 h-10 rounded-full object-cover mr-3 flex-shrink-0"
                     />
                     <div className="flex-1 overflow-hidden">
-                      <p className="text-sm font-medium text-gray-800 truncate">{artisan.name}</p>
-                      <p className="text-xs text-gray-500">{artisan.craft || "View Profile"}</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">
+                        {artisan.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {artisan.craft || "View Profile"}
+                      </p>
                     </div>
                   </Link>
                 ))
               ) : (
-                <p className="text-center text-sm text-gray-500 py-6">No investment data available yet.</p>
+                <p className="text-center text-sm text-gray-500 py-6">
+                  No investment data available yet.
+                </p>
               )}
             </div>
             {topArtisans.length > 0 && (
@@ -357,4 +371,3 @@ const InvestorDashboard = () => {
 };
 
 export default InvestorDashboard;
-

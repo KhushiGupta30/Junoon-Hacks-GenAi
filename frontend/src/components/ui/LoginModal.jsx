@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
-// The data structure you provided, now available in the component
 const indianStatesAndCities = {
     "Andaman and Nicobar Islands": ["Port Blair"],
     "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool"],
@@ -69,7 +68,6 @@ const localLanguages = [
 
 const states = Object.keys(indianStatesAndCities);
 
-// --- 2. Animation Variants ---
 const backdropVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 },
@@ -98,7 +96,6 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
     const { login, register } = useAuth();
     const [isLoginView, setIsLoginView] = useState(true);
 
-    // Form State
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -111,13 +108,11 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
     const [error, setError] = useState('');
     const [language, setLanguage] = useState('en-IN'); 
 
-    // ... (Your useEffect, handleStateChange, handleSubmit logic remains exactly the same) ...
     useEffect(() => {
         if (isOpen) {
             setRole(selectedRole || 'buyer');
             setError('');
             setIsLoginView(true);
-            // Clear all form fields
             setName('');
             setEmail('');
             setPassword('');
@@ -138,7 +133,7 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
     const handleStateChange = (e) => {
         const selectedState = e.target.value;
         setState(selectedState);
-        setCity(''); // Reset city selection
+        setCity('');
         setAvailableCities(indianStatesAndCities[selectedState] || []);
     };
 
@@ -157,7 +152,7 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
             }
         } catch (err) {
             let errorMessage = 'An unexpected error occurred.';
-            if (err.code) { // Handle Firebase specific errors
+            if (err.code) {
                 switch (err.code) {
                     case 'auth/invalid-email': errorMessage = 'Invalid email address format.'; break;
                     case 'auth/user-not-found': errorMessage = 'No account found with this email.'; break;
@@ -166,7 +161,7 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
                     case 'auth/weak-password': errorMessage = 'Password should be at least 6 characters.'; break;
                     default: errorMessage = err.message;
                 }
-            } else if (err.response?.data?.message) { // Handle backend API errors
+            } else if (err.response?.data?.message) {
                 errorMessage = err.response.data.message;
             } else if (err.message) {
                 errorMessage = err.message;
@@ -189,7 +184,6 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
         setAvailableCities([]);
     };
   
-    // --- 3. Wrap entire return in AnimatePresence ---
     return (
       <AnimatePresence>
         {isOpen && (
@@ -199,12 +193,12 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            onClick={onClose} // Close on backdrop click
+            onClick={onClose}
           >
             <motion.div 
               className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 w-full max-w-md relative"
               variants={modalVariants}
-              onClick={(e) => e.stopPropagation()} // Prevent close on panel click
+              onClick={(e) => e.stopPropagation()}
             >
               <button 
                 onClick={onClose} 
@@ -224,7 +218,7 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
               </p>
               
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* --- 4. Animate the registration fields --- */}
+                {}
                 <AnimatePresence mode="wait">
                   {!isLoginView && (
                     <motion.div 
@@ -325,7 +319,7 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
                   )}
                 </AnimatePresence>
                 
-                {/* --- 5. Animate the error message --- */}
+                {}
                 <AnimatePresence>
                   {error && (
                     <motion.div 

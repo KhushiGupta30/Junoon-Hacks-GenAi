@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// Define a spring transition to be reused
 const springTransition = {
   type: "spring",
   stiffness: 400,
@@ -9,35 +8,27 @@ const springTransition = {
 };
 
 const Button = ({
-  as: Component = 'button', // Allows us to use it as <button> or <a>
+  as: Component = 'button',
   children,
   className = '',
   ...props
 }) => {
-  // We wrap the dynamic component 'Component' with 'motion'
-  // This gives it all the animation props.
   const MotionComponent = motion(Component);
 
   return (
     <MotionComponent
-      className={className} // Pass through any user-defined classes
-      {...props} // Pass through all other props (like onClick, to, href, etc.)
+      className={className}
+      {...props}
       
-      // --- Framer Motion Animations ---
       
-      // Animation to play when the user hovers over the button
       whileHover={{ 
-        scale: 1.05, // Gently scale up
-        // You could add other hover effects here, e.g.,
-        // backgroundColor: "#f0f0f0" 
+        scale: 1.05,
       }}
       
-      // Animation to play when the user clicks/taps the button
       whileTap={{ 
-        scale: 0.95, // Gently scale down
+        scale: 0.95,
       }}
       
-      // Use the spring transition for all animations on this component
       transition={springTransition}
     >
       {children}

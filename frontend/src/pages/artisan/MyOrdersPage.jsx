@@ -1,19 +1,18 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import api from "../../api/axiosConfig"; // Adjust path if needed
-// Import Shared Components & Icons
-import AnimatedSection from "../../components/ui/AnimatedSection"; // Adjust path if needed
+import api from "../../api/axiosConfig";
+import AnimatedSection from "../../components/ui/AnimatedSection";
 import {
-  ArchiveIcon, // For page header and empty state
-  ExclamationCircleIcon, // For error state
-  CheckCircleIcon, // For completed orders sidebar
-  CubeIcon, // New icon for Bulk Orders tab
-} from "../../components/common/Icons"; // Adjust path if needed
+  ArchiveIcon,
+  ExclamationCircleIcon,
+  CheckCircleIcon,
+  CubeIcon,
+} from "../../components/common/Icons";
 
-// --- Skeleton Component Placeholders ---
 const SkeletonBase = ({ className = "" }) => (
   <div className={`bg-gray-200 rounded animate-pulse ${className}`}></div>
 );
+
 const SkeletonTableRow = () => (
   <tr className="border-b border-gray-100">
     <td className="p-4">
@@ -28,9 +27,7 @@ const SkeletonTableRow = () => (
   </tr>
 );
 const SkeletonSidebarCard = () => <SkeletonBase className="h-64" />;
-// --- End Skeletons ---
 
-// --- Tab Component (Google Style - Copied from LogiPage) ---
 const TabButton = ({ title, isActive, onClick }) => (
   <button
     onClick={onClick}
@@ -49,7 +46,6 @@ const TabButton = ({ title, isActive, onClick }) => (
 );
 const getOrderStatus = (order) => {
   if (Array.isArray(order.timeline) && order.timeline.length > 0) {
-    // Assuming last entry is latest
     return order.timeline[order.timeline.length - 1].status || "unknown";
   }
   return "unknown";
@@ -59,15 +55,12 @@ const MyOrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState("pending"); // 'pending', 'bulk'
+  const [activeTab, setActiveTab] = useState("pending");
 
   const fetchOrders = useCallback(async () => {
-    // setLoading(true); // Maybe set true only on initial load or retry
     setError("");
     try {
-      // await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
       const response = await api.get("/orders");
-      // Ensure orders is always an array
       setOrders(
         Array.isArray(response.data.orders) ? response.data.orders : []
       );
@@ -83,31 +76,30 @@ const MyOrdersPage = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  // Filter orders into pending, bulk, and completed using useMemo
   const { pendingOrders, bulkOrders, completedOrders } = useMemo(() => {
     const pending = [];
-    const bulk = []; // Placeholder for bulk order logic
+    const bulk = [];
     const completed = [];
     const pendingStatuses = ["pending", "confirmed", "processing"];
-    // Define criteria for bulk orders if applicable (e.g., quantity > 10, special tag)
     const isBulkOrder = (order) =>
-      order.items.reduce((sum, item) => sum + item.quantity, 0) > 10; // EXAMPLE ONLY
+      order.items.reduce((sum, item) => sum + item.quantity, 0) > 10;
 
     const sortedOrders = [...orders].sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
 
     sortedOrders.forEach((order) => {
-      // Example bulk order check - MODIFY THIS LOGIC AS NEEDED
-      if (isBulkOrder(order) && pendingStatuses.includes(getOrderStatus(order))) {
-        bulk.push(order); // Add to bulk if it meets criteria AND is pending
+      if (
+        isBulkOrder(order) &&
+        pendingStatuses.includes(getOrderStatus(order))
+      ) {
+        bulk.push(order);
       } else if (pendingStatuses.includes(getOrderStatus(order))) {
-        pending.push(order); // Add to regular pending otherwise
+        pending.push(order);
       } else {
-        completed.push(order); // Add to completed if not pending
+        completed.push(order);
       }
     });
-    // Note: No need to filter pending again if bulk logic correctly separates them
     return {
       pendingOrders: pending,
       bulkOrders: bulk,
@@ -116,7 +108,6 @@ const MyOrdersPage = () => {
   }, [orders]);
 
   const handleStatusChange = async (orderId, newStatus) => {
-    // Optimistic Update (Optional but good UX)
     const originalOrders = [...orders];
     setOrders((currentOrders) =>
       currentOrders.map((o) =>
@@ -126,29 +117,25 @@ const MyOrdersPage = () => {
 
     try {
       await api.put(`/orders/${orderId}/status`, { status: newStatus });
-      // Refetch might not be needed if optimistic update is sufficient
-      // fetchOrders();
       console.log(`Order ${orderId} status updated to ${newStatus}`);
-      // Show success snackbar here
     } catch (err) {
       console.error("Failed to update status:", err);
-      setOrders(originalOrders); // Revert UI on error
-      alert("Failed to update order status."); // Replace with Snackbar
+      setOrders(originalOrders);
+      alert("Failed to update order status.");
     }
   };
 
-  // --- Loading State ---
   if (loading) {
     return (
       <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
-        {/* Main Content Skeleton */}
+        {}
         <div className="flex-grow space-y-8">
-          <SkeletonBase className="h-10 w-3/4 mb-4" /> {/* Title */}
-          <SkeletonBase className="h-10 w-full mb-6" /> {/* Tabs */}
-          {/* Table Skeleton */}
+          <SkeletonBase className="h-10 w-3/4 mb-4" /> {}
+          <SkeletonBase className="h-10 w-full mb-6" /> {}
+          {}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-96 animate-pulse" />
         </div>
-        {/* Sidebar Skeleton */}
+        {}
         <div className="lg:w-80 flex-shrink-0 space-y-6">
           <SkeletonSidebarCard />
         </div>
@@ -156,7 +143,6 @@ const MyOrdersPage = () => {
     );
   }
 
-  // --- Error State ---
   if (error) {
     return (
       <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
@@ -188,16 +174,16 @@ const MyOrdersPage = () => {
 
   const formatDate = (dateInput) => {
     if (!dateInput) {
-      return '---'; 
+      return "---";
     }
     let date;
-    if (typeof dateInput === 'object' && dateInput.seconds) {
+    if (typeof dateInput === "object" && dateInput.seconds) {
       date = new Date(dateInput.seconds * 1000);
     } else {
       date = new Date(dateInput);
     }
     if (isNaN(date.getTime())) {
-      return 'Invalid Date';
+      return "Invalid Date";
     }
     return date.toLocaleDateString("en-GB", {
       year: "numeric",
@@ -224,7 +210,7 @@ const MyOrdersPage = () => {
 
   return (
     <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
-      {/* --- Main Content Area (Pending / Bulk Orders) --- */}
+      {}
       <div className="flex-grow lg:w-2/3">
         <AnimatedSection className="mb-8 pt-8 text-center">
           <h1
@@ -241,10 +227,10 @@ const MyOrdersPage = () => {
           </p>
         </AnimatedSection>
 
-        {/* --- Tab Navigation --- */}
+        {}
         <div className="border-b border-gray-200 mb-8 sticky top-16 bg-white/80 backdrop-blur-sm z-30 -mx-6 md:-mx-8 px-6 md:px-8 pb-0">
           <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-            {/* Added counts to tab titles */}
+            {}
             <TabButton
               title={`Pending Orders (${pendingOrders.length})`}
               isActive={activeTab === "pending"}
@@ -259,13 +245,11 @@ const MyOrdersPage = () => {
         </div>
 
         <AnimatedSection>
-          {/* --- Pending Orders Tab Content --- */}
+          {}
           {activeTab === "pending" && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              {/* Optional Header inside card */}
-              {/* <div className="px-4 py-3 bg-gray-50/70 border-b border-gray-200">
-                                <h2 className="text-base font-medium text-gray-700">Pending Orders</h2>
-                            </div> */}
+              {}
+              {}
               {pendingOrders.length === 0 ? (
                 <div className="text-center py-16 px-6">
                   <div className="inline-flex items-center justify-center p-4 bg-green-100 rounded-full mb-4 text-green-500">
@@ -344,13 +328,11 @@ const MyOrdersPage = () => {
             </div>
           )}
 
-          {/* --- Bulk Orders Tab Content --- */}
+          {}
           {activeTab === "bulk" && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              {/* Optional Header inside card */}
-              {/* <div className="px-4 py-3 bg-gray-50/70 border-b border-gray-200">
-                                <h2 className="text-base font-medium text-gray-700">Bulk Orders</h2>
-                            </div> */}
+              {}
+              {}
               {bulkOrders.length === 0 ? (
                 <div className="text-center py-16 px-6">
                   <div className="inline-flex items-center justify-center p-4 bg-gray-100 rounded-full mb-4 text-gray-400">
@@ -365,10 +347,10 @@ const MyOrdersPage = () => {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  {/* You might want a different table structure for bulk orders */}
+                  {}
                   <table className="w-full text-left text-sm">
                     <thead className="bg-gray-50 border-b border-gray-200">
-                      {/* Example Thead for Bulk */}
+                      {}
                       <tr className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <th className="px-4 py-3">Order Details</th>
                         <th className="px-4 py-3 text-center">Total Items</th>
@@ -432,7 +414,7 @@ const MyOrdersPage = () => {
         </AnimatedSection>
       </div>
 
-      {/* --- Right Sidebar (Completed Orders) --- */}
+      {}
       <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4 lg:mt-0">
         <AnimatedSection>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -442,7 +424,7 @@ const MyOrdersPage = () => {
                 Completed Orders
               </h3>
             </div>
-            {/* List container with scroll */}
+            {}
             <div className="divide-y divide-gray-100 max-h-[60vh] overflow-y-auto">
               {completedOrders.length > 0 ? (
                 completedOrders.map((order) => (
@@ -465,7 +447,8 @@ const MyOrdersPage = () => {
                           "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {getOrderStatus(order).charAt(0).toUpperCase() + getOrderStatus(order).slice(1)}
+                        {getOrderStatus(order).charAt(0).toUpperCase() +
+                          getOrderStatus(order).slice(1)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center mt-2">
@@ -484,7 +467,7 @@ const MyOrdersPage = () => {
                 </p>
               )}
             </div>
-            {/* Footer Link */}
+            {}
             {completedOrders.length > 3 && (
               <div className="p-3 text-center bg-gray-50/70 rounded-b-xl border-t border-gray-100">
                 <Link

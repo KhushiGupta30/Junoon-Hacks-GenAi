@@ -354,7 +354,7 @@ const ProductPage = () => {
                           {review.comment}
                         </p>
 
-                        {/* --- THIS IS THE NEWLY ADDED REPLY BLOCK --- */}
+                        {}
                         {review.reply && (
                           <div className="mt-4 ml-5 bg-gray-50 p-4 rounded-lg border border-gray-200">
                             <p className="text-xs font-bold text-gray-700">
@@ -367,9 +367,9 @@ const ProductPage = () => {
                               <p className="text-xs text-gray-400 mt-1.5 text-right">
                                 Replied on{" "}
                                 {new Date(
-                                  review.reply.date.toDate // Check if it's a Firestore Timestamp object
+                                  review.reply.date.toDate
                                     ? review.reply.date.toDate()
-                                    : review.reply.date // Otherwise, assume it's a string or ISO string
+                                    : review.reply.date
                                 ).toLocaleDateString("en-GB", {
                                   day: "2-digit",
                                   month: "short",
@@ -378,7 +378,7 @@ const ProductPage = () => {
                             )}
                           </div>
                         )}
-                        {/* --- END OF NEW REPLY BLOCK --- */}
+                        {}
                       </div>
                     ))
                   ) : (

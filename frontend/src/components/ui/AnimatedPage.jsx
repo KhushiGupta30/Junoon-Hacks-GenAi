@@ -1,27 +1,25 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
 
-// --- Subtle Slide Animation Settings ---
 const pageVariants = {
   initial: {
     opacity: 0,
-    x: "30vw"  // Start 30% to the right
+    x: "30vw",
   },
   in: {
     opacity: 1,
-    x: 0         // Animate to center
+    x: 0,
   },
   out: {
     opacity: 0,
-    x: "-30vw" // Animate 30% to the left
-  }
+    x: "-30vw",
+  },
 };
 
-// --- Fast, Clean Transition ---
 const pageTransition = {
   type: "tween",
-  ease: "easeOut", // A simple, clean easing
-  duration: 0.2     // A fast duration (400ms)
+  ease: "easeOut",
+  duration: 0.2,
 };
 
 const AnimatedPage = ({ children }) => (

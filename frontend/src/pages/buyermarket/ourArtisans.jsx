@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { 
-  MapPin, 
-  ArrowRight, 
-  Users, 
+import { useState, useMemo, useEffect } from "react";
+import {
+  MapPin,
+  ArrowRight,
+  Users,
   Heart,
   Globe,
   Palette,
@@ -11,127 +11,130 @@ import {
   Store,
   X,
   Lightbulb,
-} from 'lucide-react';
+} from "lucide-react";
 import Footer from "../../components/layout/Footer";
-// --- Hardcoded Dummy Data ---
 
 const featuredArtisans = [
   {
-    id: 'a1',
-    name: 'Rina Devi',
-    craft: 'Master Weaver',
-    location: 'Varanasi, Uttar Pradesh',
-    story: "For Rina Devi, weaving is more than a craft; it's a conversation with her ancestors. 'Each thread,' she says, 'carries a story from my grandmother.'",
-    fullStory: "Born into a family of weavers, Rina Devi learned to weave before she could write. Her grandmother would tell her stories of the Ganges, and Rina would try to capture the river's ripples in her silk threads. For years, she struggled to find a market for her intricate silk sarees, nearly abandoning the art to support her family. 'I was weaving in the dark,' she recalls. 'My hands knew the patterns, but my heart was heavy.' Today, her work is celebrated for its blend of traditional motifs and modern minimalism, allowing her to not only support her family but also to teach a new generation of young women in her village, ensuring the loom's song never fades.",
-    imageUrl: 'https://placehold.co/800x600/3B82F6/FFFFFF?text=Rina+Devi&font=inter',
+    id: "a1",
+    name: "Rina Devi",
+    craft: "Master Weaver",
+    location: "Varanasi, Uttar Pradesh",
+    story:
+      "For Rina Devi, weaving is more than a craft; it's a conversation with her ancestors. 'Each thread,' she says, 'carries a story from my grandmother.'",
+    fullStory:
+      "Born into a family of weavers, Rina Devi learned to weave before she could write. Her grandmother would tell her stories of the Ganges, and Rina would try to capture the river's ripples in her silk threads. For years, she struggled to find a market for her intricate silk sarees, nearly abandoning the art to support her family. 'I was weaving in the dark,' she recalls. 'My hands knew the patterns, but my heart was heavy.' Today, her work is celebrated for its blend of traditional motifs and modern minimalism, allowing her to not only support her family but also to teach a new generation of young women in her village, ensuring the loom's song never fades.",
+    imageUrl:
+      "https://placehold.co/800x600/3B82F6/FFFFFF?text=Rina+Devi&font=inter",
   },
   {
-    id: 'a2',
-    name: 'Suresh Kumar',
-    craft: 'Potter & Sculptor',
-    location: 'Jaipur, Rajasthan',
-    story: "Suresh molds the earth of his homeland. 'When I work with clay,' he explains, 'I feel I am shaping the world and keeping my traditions alive.'",
-    fullStory: "Suresh Kumar's earliest memory is the cool, damp smell of river clay in his father's workshop. 'He would give me small lumps to play with, and I would make animals and tiny pots,' Suresh remembers. As he grew, his play transformed into a passion. He is a master of both the wheel and hand-sculpting, creating pieces that are both functional and deeply spiritual. He only uses local clays and natural glazes, believing that each piece should carry the essence of Rajasthan. 'When I work with clay,' he explains, 'I feel I am shaping the world and keeping my traditions alive for my children.'",
-    imageUrl: 'https://placehold.co/800x600/8B4513/FFFFFF?text=Suresh+K.&font=inter',
-  }
+    id: "a2",
+    name: "Suresh Kumar",
+    craft: "Potter & Sculptor",
+    location: "Jaipur, Rajasthan",
+    story:
+      "Suresh molds the earth of his homeland. 'When I work with clay,' he explains, 'I feel I am shaping the world and keeping my traditions alive.'",
+    fullStory:
+      "Suresh Kumar's earliest memory is the cool, damp smell of river clay in his father's workshop. 'He would give me small lumps to play with, and I would make animals and tiny pots,' Suresh remembers. As he grew, his play transformed into a passion. He is a master of both the wheel and hand-sculpting, creating pieces that are both functional and deeply spiritual. He only uses local clays and natural glazes, believing that each piece should carry the essence of Rajasthan. 'When I work with clay,' he explains, 'I feel I am shaping the world and keeping my traditions alive for my children.'",
+    imageUrl:
+      "https://placehold.co/800x600/8B4513/FFFFFF?text=Suresh+K.&font=inter",
+  },
 ];
 
 const allArtisans = [
   {
-    id: 'a2',
-    name: 'Suresh Kumar',
-    craft: 'Pottery',
-    location: 'Jaipur, Rajasthan',
-    bio: 'Suresh molds the earth of his homeland into earthy ceramic mugs and eco-friendly terracotta sculptures.',
-    imageUrl: 'https://placehold.co/600x400/8B4513/FFFFFF?text=Suresh+K.&font=inter',
+    id: "a2",
+    name: "Suresh Kumar",
+    craft: "Pottery",
+    location: "Jaipur, Rajasthan",
+    bio: "Suresh molds the earth of his homeland into earthy ceramic mugs and eco-friendly terracotta sculptures.",
+    imageUrl:
+      "https://placehold.co/600x400/8B4513/FFFFFF?text=Suresh+K.&font=inter",
   },
   {
-    id: 'a3',
-    name: 'Priya Singh',
-    craft: 'Painting',
-    location: 'Mumbai, Maharashtra',
-    bio: 'A contemporary artist whose abstract paintings are vibrant explosions of color inspired by city life.',
-    imageUrl: 'https://placehold.co/600x400/EF4444/FFFFFF?text=Priya+S.&font=inter',
+    id: "a3",
+    name: "Priya Singh",
+    craft: "Painting",
+    location: "Mumbai, Maharashtra",
+    bio: "A contemporary artist whose abstract paintings are vibrant explosions of color inspired by city life.",
+    imageUrl:
+      "https://placehold.co/600x400/EF4444/FFFFFF?text=Priya+S.&font=inter",
   },
   {
-    id: 'a4',
-    name: 'Anil Mehta',
-    craft: 'Woodwork',
-    location: 'Saharanpur, Uttar Pradesh',
-    bio: 'Anil practices the intricate art of teak wood carving, creating timeless pieces with floral motifs.',
-    imageUrl: 'https://placehold.co/600x400/A0522D/FFFFFF?text=Anil+M.&font=inter',
+    id: "a4",
+    name: "Anil Mehta",
+    craft: "Woodwork",
+    location: "Saharanpur, Uttar Pradesh",
+    bio: "Anil practices the intricate art of teak wood carving, creating timeless pieces with floral motifs.",
+    imageUrl:
+      "https://placehold.co/600x400/A0522D/FFFFFF?text=Anil+M.&font=inter",
   },
   {
-    id: 'a5',
-    name: 'Farida Khan',
-    craft: 'Metalwork',
-    location: 'Moradabad, Uttar Pradesh',
-    bio: 'Specializing in hand-beaten brass, Farida creates modern lighting and decor items with a sleek finish.',
-    imageUrl: 'https://placehold.co/600x400/F59E0B/FFFFFF?text=Farida+K.&font=inter',
+    id: "a5",
+    name: "Farida Khan",
+    craft: "Metalwork",
+    location: "Moradabad, Uttar Pradesh",
+    bio: "Specializing in hand-beaten brass, Farida creates modern lighting and decor items with a sleek finish.",
+    imageUrl:
+      "https://placehold.co/600x400/F59E0B/FFFFFF?text=Farida+K.&font=inter",
   },
   {
-    id: 'a6',
-    name: 'Meena Kumari',
-    craft: 'Jewelry',
-    location: 'Cuttack, Odisha',
+    id: "a6",
+    name: "Meena Kumari",
+    craft: "Jewelry",
+    location: "Cuttack, Odisha",
     bio: "Meena's delicate Tarakasi (filigree) work in silver is renowned. She creates lightweight, elegant jewelry.",
-    imageUrl: 'https://placehold.co/600x400/9CA3AF/FFFFFF?text=Meena+K.&font=inter',
+    imageUrl:
+      "https://placehold.co/600x400/9CA3AF/FFFFFF?text=Meena+K.&font=inter",
   },
   {
-    id: 'a7',
-    name: 'Kiran & Mohan',
-    craft: 'Textiles',
-    location: 'Sanganer, Rajasthan',
-    bio: 'This husband-and-wife duo uses natural dyes and hand-carved blocks to create stunning textiles.',
-    imageUrl: 'https://placehold.co/600x400/10B981/FFFFFF?text=Kiran+&+Mohan&font=inter',
-  }
+    id: "a7",
+    name: "Kiran & Mohan",
+    craft: "Textiles",
+    location: "Sanganer, Rajasthan",
+    bio: "This husband-and-wife duo uses natural dyes and hand-carved blocks to create stunning textiles.",
+    imageUrl:
+      "https://placehold.co/600x400/10B981/FFFFFF?text=Kiran+&+Mohan&font=inter",
+  },
 ];
 
-// --- Sub-Components ---
 
-/**
- * NEW: Hero Banner Component
- */
 const HeroBanner = () => {
   return (
-    // MODIFIED: Text is now corrected
-    <section 
+    <section
       className="relative bg-cover bg-center p-8 md:py-12 md:px-8 text-center mb-12 md:mb-16 rounded-2xl overflow-hidden"
-      style={{ backgroundImage: `url(/2.png)` }} // Path from public folder
+      style={{ backgroundImage: `url(/2.png)` }}
     >
-      {/* Overlay for text readability */}
+      {}
       <div className="absolute inset-0 bg-black/50 rounded-2xl"></div>
 
-      {/* Content */}
+      {}
       <div className="relative z-10">
         <Lightbulb className="w-10 h-10 text-google-yellow mx-auto mb-3" />
-        {/* CORRECTED TEXT BELOW */}
+        {}
         <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">
           Discover Our <span className="text-google-yellow">Artisans</span>
         </h1>
         <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto">
-          Explore authentic items with rich stories, direct from the artisans who craft them.
+          Explore authentic items with rich stories, direct from the artisans
+          who craft them.
         </p>
       </div>
     </section>
   );
 };
 
-
-/**
- * Card for the "All Artisans" grid
- */
 const ArtisanCard = ({ artisan }) => {
   const colors = {
-    'Textiles': 'text-google-blue',
-    'Pottery': 'text-google-green',
-    'Painting': 'text-google-red',
-    'Woodwork': 'text-yellow-700',
-    'Metalwork': 'text-google-yellow',
-    'Jewelry': 'text-gray-500',
-    'default': 'text-google-blue'
+    Textiles: "text-google-blue",
+    Pottery: "text-google-green",
+    Painting: "text-google-red",
+    Woodwork: "text-yellow-700",
+    Metalwork: "text-google-yellow",
+    Jewelry: "text-gray-500",
+    default: "text-google-blue",
   };
-  const craftColor = colors[artisan.craft.split(' ')[0]] || colors.default;
+  const craftColor = colors[artisan.craft.split(" ")[0]] || colors.default;
 
   return (
     <div className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg flex flex-col">
@@ -140,19 +143,28 @@ const ArtisanCard = ({ artisan }) => {
           src={artisan.imageUrl}
           alt={`Portrait of ${artisan.name}`}
           className="w-full h-full object-cover"
-          onError={(e) => { e.target.src = 'https://placehold.co/600x400/E2E8F0/AAAAAA?text=Image+Error'; }}
+          onError={(e) => {
+            e.target.src =
+              "https://placehold.co/600x400/E2E8F0/AAAAAA?text=Image+Error";
+          }}
         />
       </div>
       <div className="p-5 flex flex-col flex-grow">
-        <h3 className="text-lg font-semibold text-gray-800 mb-1">{artisan.name}</h3>
-        <p className={`text-sm font-medium ${craftColor} mb-2`}>{artisan.craft}</p>
+        <h3 className="text-lg font-semibold text-gray-800 mb-1">
+          {artisan.name}
+        </h3>
+        <p className={`text-sm font-medium ${craftColor} mb-2`}>
+          {artisan.craft}
+        </p>
         <div className="flex items-center space-x-1.5 text-sm text-gray-500 mb-3">
           <MapPin size={14} />
           <span>{artisan.location}</span>
         </div>
-        <p className="text-sm text-gray-600 mb-4 line-clamp-3 flex-grow">{artisan.bio || artisan.story}</p>
-        <a 
-          href="#" 
+        <p className="text-sm text-gray-600 mb-4 line-clamp-3 flex-grow">
+          {artisan.bio || artisan.story}
+        </p>
+        <a
+          href="#"
           onClick={(e) => e.preventDefault()}
           className="inline-flex items-center space-x-2 text-sm font-medium text-google-blue rounded-lg transition-colors group-hover:underline mt-auto"
         >
@@ -168,23 +180,30 @@ const FeaturedArtisanCard = ({ artisan, onStoryClick }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col md:flex-row border border-gray-100/50 group">
       <div className="md:w-1/3 w-full h-48 md:h-auto">
-        <img 
-          src={artisan.imageUrl} 
-          alt={`Featured artisan ${artisan.name}`} 
+        <img
+          src={artisan.imageUrl}
+          alt={`Featured artisan ${artisan.name}`}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          onError={(e) => { e.target.src = 'https://placehold.co/600x600/E2E8F0/AAAAAA?text=Image+Error'; }}
+          onError={(e) => {
+            e.target.src =
+              "https://placehold.co/600x600/E2E8F0/AAAAAA?text=Image+Error";
+          }}
         />
       </div>
       <div className="md:w-2/3 w-full p-6 flex flex-col justify-center">
-        <h3 className="text-2xl font-bold text-gray-800 mt-2 mb-1">{artisan.name}</h3>
+        <h3 className="text-2xl font-bold text-gray-800 mt-2 mb-1">
+          {artisan.name}
+        </h3>
         <div className="flex items-center space-x-2 text-base text-google-blue font-medium mb-3">
           <Award size={18} />
-          <span>{artisan.craft} from {artisan.location}</span>
+          <span>
+            {artisan.craft} from {artisan.location}
+          </span>
         </div>
         <p className="text-gray-700 leading-relaxed text-sm mb-5">
           {artisan.story}
         </p>
-        <button 
+        <button
           onClick={() => onStoryClick(artisan)}
           className="inline-flex items-center space-x-2 text-sm font-medium text-google-blue rounded-lg transition-colors group-hover:underline w-fit"
         >
@@ -194,7 +213,7 @@ const FeaturedArtisanCard = ({ artisan, onStoryClick }) => {
       </div>
     </div>
   );
-}
+};
 
 const StatCard = ({ icon, title, value, color }) => {
   const Icon = icon;
@@ -219,35 +238,45 @@ const StatCard = ({ icon, title, value, color }) => {
 
 const OurImpact = () => {
   const steps = [
-    { 
-      icon: Sparkles, 
-      title: 'Discover Stories', 
-      description: 'Connect with the rich heritage and personal journeys behind every unique piece.',
-      color: 'blue'
+    {
+      icon: Sparkles,
+      title: "Discover Stories",
+      description:
+        "Connect with the rich heritage and personal journeys behind every unique piece.",
+      color: "blue",
     },
-    { 
-      icon: Store, 
-      title: 'Shop Directly', 
-      description: 'Your purchases directly support artisans, their families, and their communities.',
-      color: 'green'
+    {
+      icon: Store,
+      title: "Shop Directly",
+      description:
+        "Your purchases directly support artisans, their families, and their communities.",
+      color: "green",
     },
-    { 
-      icon: Heart, 
-      title: 'Empower Heritage', 
-      description: 'Help preserve age-old techniques and cultural traditions for future generations.',
-      color: 'yellow'
+    {
+      icon: Heart,
+      title: "Empower Heritage",
+      description:
+        "Help preserve age-old techniques and cultural traditions for future generations.",
+      color: "yellow",
     },
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {steps.map((step, index) => (
-        <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex space-x-4">
-          <div className={`flex-shrink-0 rounded-full p-3 bg-google-${step.color}/10 text-google-${step.color}`}>
+        <div
+          key={index}
+          className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex space-x-4"
+        >
+          <div
+            className={`flex-shrink-0 rounded-full p-3 bg-google-${step.color}/10 text-google-${step.color}`}
+          >
             <step.icon size={24} />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-800 mb-1">{step.title}</h3>
+            <h3 className="text-base font-semibold text-gray-800 mb-1">
+              {step.title}
+            </h3>
             <p className="text-sm text-gray-600">{step.description}</p>
           </div>
         </div>
@@ -260,20 +289,20 @@ const ArtisanLocationMap = ({ artisanList }) => {
   const [userLocation, setUserLocation] = useState(null);
 
   const artisanCoords = {
-    'a1': { x: 800, y: 380, name: 'Varanasi' },
-    'a2': { x: 740, y: 400, name: 'Jaipur' },
-    'a3': { x: 700, y: 600, name: 'Mumbai' },
-    'a4': { x: 750, y: 300, name: 'Saharanpur' },
-    'a5': { x: 760, y: 330, name: 'Moradabad' },
-    'a6': { x: 840, y: 580, name: 'Cuttack' },
-    'a7': { x: 730, y: 410, name: 'Sanganer' },
+    a1: { x: 800, y: 380, name: "Varanasi" },
+    a2: { x: 740, y: 400, name: "Jaipur" },
+    a3: { x: 700, y: 600, name: "Mumbai" },
+    a4: { x: 750, y: 300, name: "Saharanpur" },
+    a5: { x: 760, y: 330, name: "Moradabad" },
+    a6: { x: 840, y: 580, name: "Cuttack" },
+    a7: { x: 730, y: 410, name: "Sanganer" },
   };
 
-  const artisanColors = ['#EF4444', '#F59E0B', '#10B981'];
+  const artisanColors = ["#EF4444", "#F59E0B", "#10B981"];
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setUserLocation({ x: 750, y: 340, name: "Delhi" }); 
+      setUserLocation({ x: 750, y: 340, name: "Delhi" });
     }, 1500);
     return () => clearTimeout(timer);
   }, []);
@@ -306,7 +335,9 @@ const ArtisanLocationMap = ({ artisanList }) => {
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden p-6 md:p-8 border border-gray-100">
       <style>{styleTag}</style>
-      <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">Artisans Across India</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+        Artisans Across India
+      </h2>
       <p className="text-gray-600 text-center mb-6 max-w-2xl mx-auto">
         Discover our creators, from their workshops to your home.
       </p>
@@ -398,27 +429,29 @@ const ArtisanLocationMap = ({ artisanList }) => {
       </div>
     </div>
   );
-}
+};
 
-// --- Artisan Story Modal Component ---
 const ArtisanStoryModal = ({ artisan, onClose }) => {
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative">
-          <img 
-            src={artisan.imageUrl} 
-            alt={artisan.name} 
+          <img
+            src={artisan.imageUrl}
+            alt={artisan.name}
             className="w-full h-56 object-cover"
-            onError={(e) => { e.target.src = 'https://placehold.co/800x400/E2E8F0/AAAAAA?text=Image+Error'; }}
+            onError={(e) => {
+              e.target.src =
+                "https://placehold.co/800x400/E2E8F0/AAAAAA?text=Image+Error";
+            }}
           />
-          <button 
+          <button
             onClick={onClose}
             className="absolute top-4 right-4 bg-white/70 p-1.5 rounded-full text-gray-700 hover:bg-white hover:scale-110 transition-all"
             aria-label="Close modal"
@@ -427,10 +460,14 @@ const ArtisanStoryModal = ({ artisan, onClose }) => {
           </button>
         </div>
         <div className="p-6 md:p-8 overflow-y-auto">
-          <h2 className="text-3xl font-extrabold text-gray-800 mb-2">{artisan.name}</h2>
+          <h2 className="text-3xl font-extrabold text-gray-800 mb-2">
+            {artisan.name}
+          </h2>
           <div className="flex items-center space-x-2 text-base text-google-blue font-medium mb-6">
             <Award size={18} />
-            <span>{artisan.craft} from {artisan.location}</span>
+            <span>
+              {artisan.craft} from {artisan.location}
+            </span>
           </div>
           <div className="prose prose-sm sm:prose-base max-w-none text-gray-700">
             <p>{artisan.fullStory}</p>
@@ -441,21 +478,21 @@ const ArtisanStoryModal = ({ artisan, onClose }) => {
   );
 };
 
-
-// --- Main Page Component ---
 export default function OurArtisansPage() {
   const [selectedArtisan, setSelectedArtisan] = useState(null);
 
   const uniqueArtisans = useMemo(() => {
     const all = [...featuredArtisans, ...allArtisans];
     const uniqueMap = new Map();
-    all.forEach(artisan => uniqueMap.set(artisan.id, artisan));
+    all.forEach((artisan) => uniqueMap.set(artisan.id, artisan));
     return Array.from(uniqueMap.values());
   }, []);
 
   const stats = useMemo(() => {
-    const states = new Set(uniqueArtisans.map(a => a.location.split(', ')[1]));
-    const crafts = new Set(uniqueArtisans.map(a => a.craft.split(' ')[0]));
+    const states = new Set(
+      uniqueArtisans.map((a) => a.location.split(", ")[1])
+    );
+    const crafts = new Set(uniqueArtisans.map((a) => a.craft.split(" ")[0]));
     return {
       totalArtisans: uniqueArtisans.length,
       totalStates: states.size,
@@ -473,18 +510,18 @@ export default function OurArtisansPage() {
 
   return (
     <div className="font-sans bg-slate-50 min-h-screen text-gray-900">
-      
       <main className="px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-
         <HeroBanner />
 
         <section className="mb-12 md:mb-16">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Featured Artisans</h2>
+          <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+            Featured Artisans
+          </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
             {featuredArtisans.map((artisan) => (
-              <FeaturedArtisanCard 
-                key={artisan.id} 
-                artisan={artisan} 
+              <FeaturedArtisanCard
+                key={artisan.id}
+                artisan={artisan}
                 onStoryClick={handleStoryClick}
               />
             ))}
@@ -493,9 +530,24 @@ export default function OurArtisansPage() {
 
         <section className="mb-12 md:mb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard icon={Users} title="Total Artisans" value={stats.totalArtisans} color="blue" />
-            <StatCard icon={Globe} title="States Represented" value={stats.totalStates} color="green" />
-            <StatCard icon={Palette} title="Crafts Featured" value={stats.totalCrafts} color="yellow" />
+            <StatCard
+              icon={Users}
+              title="Total Artisans"
+              value={stats.totalArtisans}
+              color="blue"
+            />
+            <StatCard
+              icon={Globe}
+              title="States Represented"
+              value={stats.totalStates}
+              color="green"
+            />
+            <StatCard
+              icon={Palette}
+              title="Crafts Featured"
+              value={stats.totalCrafts}
+              color="yellow"
+            />
           </div>
         </section>
 
@@ -508,21 +560,22 @@ export default function OurArtisansPage() {
         </section>
 
         <section>
-          <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Meet Our Artisans</h2>
-          
+          <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+            Meet Our Artisans
+          </h2>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {uniqueArtisans.map((artisan) => (
               <ArtisanCard key={artisan.id} artisan={artisan} />
             ))}
           </div>
         </section>
-
       </main>
 
       {selectedArtisan && (
-        <ArtisanStoryModal 
-          artisan={selectedArtisan} 
-          onClose={handleCloseModal} 
+        <ArtisanStoryModal
+          artisan={selectedArtisan}
+          onClose={handleCloseModal}
         />
       )}
       <Footer />

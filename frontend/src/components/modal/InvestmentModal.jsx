@@ -38,15 +38,15 @@ const InvestmentModal = ({ isOpen, onClose, artisanId, artisanName, onSuccess })
 
   return (
     <>
-      {/* 1. The Overlay: now with backdrop-blur */}
+      {}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-gray-800/20 backdrop-blur-sm z-40" // Changed background and added backdrop-blur
+        className="fixed inset-0 bg-gray-800/20 backdrop-blur-sm z-40"
       />
 
-      {/* 2. The Modal Content Wrapper: has a higher z-index */}
+      {}
       <div className="fixed inset-0 z-50 flex justify-center items-center">
-        {/* Stop propagation to prevent clicks inside the modal from closing it */}
+        {}
         <div
           onClick={(e) => e.stopPropagation()}
           className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4"

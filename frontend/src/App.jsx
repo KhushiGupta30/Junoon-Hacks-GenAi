@@ -1,12 +1,11 @@
-import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   useLocation,
 } from "react-router-dom";
-import { AnimatePresence } from 'framer-motion'; // <-- 1. IMPORT
-import AnimatedPage from './components/ui/AnimatedPage'; // <-- 2. IMPORT
+import { AnimatePresence } from "framer-motion";
+import AnimatedPage from "./components/ui/AnimatedPage";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -51,32 +50,57 @@ import RawMaterialsPage from "./pages/artisan/RawMaterialsPage.jsx";
 import MaterialsCatalogPage from "./pages/artisan/MaterialsCatalogPage.jsx";
 import BuyerLayout from "./components/layout/BuyerLayout.jsx";
 
-import GoogleTranslateWidget from "./components/ui/GoogleTranslateWidget.jsx"; 
+import GoogleTranslateWidget from "./components/ui/GoogleTranslateWidget.jsx";
 
 const AppLayout = () => {
   const location = useLocation();
-  const hideFor = ["/artisan", "/ambassador","/investor","/buyer"];
+  const hideFor = ["/artisan", "/ambassador", "/investor", "/buyer"];
   const shouldHide = hideFor.some((path) => location.pathname.startsWith(path));
 
-  
   return (
     <>
-      {!shouldHide && <Header />}   
+      {!shouldHide && <Header />}
       <GoogleTranslateWidget />
       <main>
-        {/* --- 3. WRAP YOUR ROUTES --- */}
+        {}
         <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}> {/* 4. ADD LOCATION & KEY */}
-            
-            {/* --- 5. WRAP ALL PAGE ELEMENTS --- */}
+          <Routes location={location} key={location.pathname}>
+            {" "}
+            {}
+            {}
             <Route path="/" element={<LandingPage />} />
-            <Route path="/ambassador-page" element={<AnimatedPage><AmbassadorPage /></AnimatedPage>} />
-            <Route path="/artisan-page" element={<AnimatedPage><ArtisanPage /></AnimatedPage>} />
-            
-           
-            <Route path="/seller/:artisanId" element={<AnimatedPage><SellerPage /></AnimatedPage>} />
-            <Route path="/product/:id" element={<AnimatedPage><ProductPage /></AnimatedPage>} />
-
+            <Route
+              path="/ambassador-page"
+              element={
+                <AnimatedPage>
+                  <AmbassadorPage />
+                </AnimatedPage>
+              }
+            />
+            <Route
+              path="/artisan-page"
+              element={
+                <AnimatedPage>
+                  <ArtisanPage />
+                </AnimatedPage>
+              }
+            />
+            <Route
+              path="/seller/:artisanId"
+              element={
+                <AnimatedPage>
+                  <SellerPage />
+                </AnimatedPage>
+              }
+            />
+            <Route
+              path="/product/:id"
+              element={
+                <AnimatedPage>
+                  <ProductPage />
+                </AnimatedPage>
+              }
+            />
             <Route
               path="/artisan/*"
               element={
@@ -85,24 +109,128 @@ const AppLayout = () => {
                 </ProtectedRoute>
               }
             >
-              <Route path="dashboard" element={<AnimatedPage><ArtisanDashboard /></AnimatedPage>} />
-              <Route path="products" element={<AnimatedPage><MyProductsPage /></AnimatedPage>} />
-              <Route path="products/new" element={<AnimatedPage><ProductEditPage /></AnimatedPage>} />
-              <Route path="orders" element={<AnimatedPage><MyOrdersPage /></AnimatedPage>} />
-              <Route path="ideas/new" element={<AnimatedPage><IdeaSubmissionPage /></AnimatedPage>} />
-              <Route path="grant" element={<AnimatedPage><GrantsPage /></AnimatedPage>} />
-              <Route path="trends" element={<AnimatedPage><AITrendsPage /></AnimatedPage>} />
-              <Route path="community" element={<AnimatedPage><CommunityPage /></AnimatedPage>} />
-              <Route path="discussions" element={<AnimatedPage><DiscussionPage /></AnimatedPage>} />
-              <Route path="discussions/:id" element={<AnimatedPage><DiscussionThreadPage /></AnimatedPage>} />
-              <Route path="logistics" element={<AnimatedPage><LogiPage /></AnimatedPage>} />
-              <Route path="profile" element={<AnimatedPage><ArtisanProfilePage /></AnimatedPage>} />
-              <Route path="reviews" element={<AnimatedPage><ReviewsPage /></AnimatedPage>} />
-              <Route path="raw-materials" element={<AnimatedPage><RawMaterialsPage /></AnimatedPage>} />
-              <Route path="materials-catalog" element={<AnimatedPage><MaterialsCatalogPage /></AnimatedPage>} />
+              <Route
+                path="dashboard"
+                element={
+                  <AnimatedPage>
+                    <ArtisanDashboard />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="products"
+                element={
+                  <AnimatedPage>
+                    <MyProductsPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="products/new"
+                element={
+                  <AnimatedPage>
+                    <ProductEditPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="orders"
+                element={
+                  <AnimatedPage>
+                    <MyOrdersPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="ideas/new"
+                element={
+                  <AnimatedPage>
+                    <IdeaSubmissionPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="grant"
+                element={
+                  <AnimatedPage>
+                    <GrantsPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="trends"
+                element={
+                  <AnimatedPage>
+                    <AITrendsPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="community"
+                element={
+                  <AnimatedPage>
+                    <CommunityPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="discussions"
+                element={
+                  <AnimatedPage>
+                    <DiscussionPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="discussions/:id"
+                element={
+                  <AnimatedPage>
+                    <DiscussionThreadPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="logistics"
+                element={
+                  <AnimatedPage>
+                    <LogiPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="profile"
+                element={
+                  <AnimatedPage>
+                    <ArtisanProfilePage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="reviews"
+                element={
+                  <AnimatedPage>
+                    <ReviewsPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="raw-materials"
+                element={
+                  <AnimatedPage>
+                    <RawMaterialsPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="materials-catalog"
+                element={
+                  <AnimatedPage>
+                    <MaterialsCatalogPage />
+                  </AnimatedPage>
+                }
+              />
             </Route>
-
-             <Route
+            <Route
               path="/buyer/*"
               element={
                 <ProtectedRoute role="buyer">
@@ -110,16 +238,63 @@ const AppLayout = () => {
                 </ProtectedRoute>
               }
             >
-              
-              <Route path="market" element={<AnimatedPage><BuyerMarket/></AnimatedPage>} />
-               <Route path="cart" element={<AnimatedPage><CartPage /></AnimatedPage>} />
-              <Route path="products" element={<AnimatedPage><MyProductsPage /></AnimatedPage>} />
-              <Route path="product/:id" element={<AnimatedPage><ProductPage /></AnimatedPage>} />
-              <Route path="seller/:artisanId" element={<AnimatedPage><SellerPage /></AnimatedPage>} />
-             <Route path="new-ideas" element={<AnimatedPage><NewIdeasPage /></AnimatedPage>} />
-              <Route path="our-artisans" element={<AnimatedPage><OurArtisansPage /></AnimatedPage>} />
+              <Route
+                path="market"
+                element={
+                  <AnimatedPage>
+                    <BuyerMarket />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="cart"
+                element={
+                  <AnimatedPage>
+                    <CartPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="products"
+                element={
+                  <AnimatedPage>
+                    <MyProductsPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="product/:id"
+                element={
+                  <AnimatedPage>
+                    <ProductPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="seller/:artisanId"
+                element={
+                  <AnimatedPage>
+                    <SellerPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="new-ideas"
+                element={
+                  <AnimatedPage>
+                    <NewIdeasPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="our-artisans"
+                element={
+                  <AnimatedPage>
+                    <OurArtisansPage />
+                  </AnimatedPage>
+                }
+              />
             </Route>
-
             <Route
               path="/ambassador/*"
               element={
@@ -128,11 +303,46 @@ const AppLayout = () => {
                 </ProtectedRoute>
               }
             >
-              <Route path="dashboard" element={<AnimatedPage><AmbassadorDashboard /></AnimatedPage>} />
-              <Route path="artisans" element={<AnimatedPage><MyArtisans /></AnimatedPage>} />
-              <Route path="community" element={<AnimatedPage><CommunityHub /></AnimatedPage>} />
-              <Route path="profile" element={<AnimatedPage><Profile /></AnimatedPage>} />
-              <Route path="find-artisans" element={<AnimatedPage><FindArtisans /></AnimatedPage>} />
+              <Route
+                path="dashboard"
+                element={
+                  <AnimatedPage>
+                    <AmbassadorDashboard />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="artisans"
+                element={
+                  <AnimatedPage>
+                    <MyArtisans />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="community"
+                element={
+                  <AnimatedPage>
+                    <CommunityHub />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="profile"
+                element={
+                  <AnimatedPage>
+                    <Profile />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="find-artisans"
+                element={
+                  <AnimatedPage>
+                    <FindArtisans />
+                  </AnimatedPage>
+                }
+              />
             </Route>
             <Route
               path="/investor/*"
@@ -142,12 +352,54 @@ const AppLayout = () => {
                 </ProtectedRoute>
               }
             >
-              <Route path="dashboard" element={<AnimatedPage><InvestorDashboard /></AnimatedPage>} />
-              <Route path="browse-artisans" element={<AnimatedPage><BrowseArtisans /></AnimatedPage>} />
-              <Route path="portfolio" element={<AnimatedPage><InvestmentPortfolio /></AnimatedPage>} />
-              <Route path="seller/:artisanId" element={<AnimatedPage><SellerPage /></AnimatedPage>} />
-              <Route path ="profile" element={<AnimatedPage><InvestorProfile/></AnimatedPage>}/>
-              <Route path="product/:id" element={<AnimatedPage><ProductPage /></AnimatedPage>} />
+              <Route
+                path="dashboard"
+                element={
+                  <AnimatedPage>
+                    <InvestorDashboard />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="browse-artisans"
+                element={
+                  <AnimatedPage>
+                    <BrowseArtisans />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="portfolio"
+                element={
+                  <AnimatedPage>
+                    <InvestmentPortfolio />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="seller/:artisanId"
+                element={
+                  <AnimatedPage>
+                    <SellerPage />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="profile"
+                element={
+                  <AnimatedPage>
+                    <InvestorProfile />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="product/:id"
+                element={
+                  <AnimatedPage>
+                    <ProductPage />
+                  </AnimatedPage>
+                }
+              />
             </Route>
           </Routes>
         </AnimatePresence>

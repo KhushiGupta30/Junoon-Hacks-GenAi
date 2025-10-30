@@ -19,7 +19,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import AnimatedPage from "../../components/ui/AnimatedPage";
-import api from "../../api/axiosConfig"; 
+import api from "../../api/axiosConfig";
 import SkeletonStat from "../../components/ui/SkeletonStat";
 import SkeletonListItem from "../../components/ui/SkeletonListItem";
 
@@ -98,7 +98,7 @@ const Dashboard = () => {
           Ambassador Dashboard
         </h1>
 
-        {/* Stats Grid */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {loading
             ? Array(4)
@@ -126,9 +126,9 @@ const Dashboard = () => {
               ))}
         </div>
 
-        {/* Charts and Lists */}
+        {}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Artisan Onboarding Chart */}
+          {}
           <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">
               Onboarding Analytics
@@ -142,7 +142,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Recent Activity */}
+          {}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">
               Recent Activity
@@ -171,7 +171,7 @@ const Dashboard = () => {
             </ul>
           </div>
 
-          {/* Top Artisans */}
+          {}
           <div className="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">
               Top Performing Artisans
