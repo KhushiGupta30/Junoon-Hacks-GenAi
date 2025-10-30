@@ -38,6 +38,9 @@ const ProductCard = ({ product }) => {
         addToCart(product);
         console.log(`Added ${product.name} to cart`);
     };
+    if (!product || !product.artisan) {
+        return null; // Or you could return a placeholder: return <div>Problem loading product.</div>;
+    }
 
     return (
         <div className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex flex-col h-full">
