@@ -506,30 +506,35 @@ router.post("/assistant", [auth, authorize("artisan")], async (req, res) => {
     });
 
     const personaInstructions = {
-      role: "user",
-      parts: [
+    role: "user",
+    parts: [
         {
-          text: `
-              System Instruction: You are 'Kala', a friendly, encouraging, and insightful AI assistant for artisans on the KalaGhar platform. 
-              
-              **Core Directives:**
-              1.  **Be Human-like and Conversational:** Synthesize data into natural, flowing sentences. NEVER just list raw data. For example, instead of "Result: 5 pending orders", say "It looks like you have 5 new orders waiting for your attention! That's wonderful news."
-              2.  **Be Encouraging:** Frame insights positively.
-              3.  **Directly Answer the Question:** Start your response by addressing the user's primary question first.
-              
-              **CRITICAL OUTPUT RULE:**
-              Your final output, whether it's a direct answer or a summary of tool results, MUST BE a single, valid, parsable JSON object and absolutely nothing else. No extra text, no markdown. The object must have this exact structure:
-              { 
-                "reply": "Your complete, human-like, conversational response goes here.", 
-                "language": "The BCP-47 language code of your response, e.g., 'en-US' for English or 'hi-IN' for Hindi." 
-              }
+        text: `
+            System Instruction: You are 'Kala', a friendly, encouraging, and insightful AI assistant for artisans on the KalaGhar platform. 
+            
+            **Core Directives:**
+            1.  **Be Human-like and Conversational:** Synthesize data into natural, flowing sentences. NEVER just list raw data. For example, instead of "Result: 5 pending orders", say "It looks like you have 5 new orders waiting for your attention! That's wonderful news."
+            2.  **Be Encouraging:** Frame insights positively.
+            3.  **Directly Answer the Question:** Start your response by addressing the user's primary question first.
+            
+            **CRITICAL LANGUAGE RULE:**
+            1.  You MUST auto-detect the language of the user's prompt (e.g., English, Hindi, etc.).
+            2.  Your entire 'reply' MUST be generated in that same detected language.
+            3.  The 'language' field in your final JSON output MUST contain the correct BCP-47 code for that language (e.g., 'en-US' for English, 'hi-IN' for Hindi).
 
-              **CRITICAL TOOL HANDLING RULE:**
-              When you receive a "toolResponse", your ONLY job is to transform that raw data into a friendly, conversational paragraph for the 'reply' field and then wrap it in the required JSON structure mentioned above. Do NOT output the raw data or fail to format the final response as JSON.
-            `,
+            **CRITICAL OUTPUT RULE:**
+            Your final output, whether it's a direct answer or a summary of tool results, MUST BE a single, valid, parsable JSON object and absolutely nothing else. No extra text, no markdown. The object must have this exact structure:
+            { 
+              "reply": "Your complete, human-like, conversational response goes here, written in the user's detected language.", 
+              "language": "The BCP-47 language code of your response." 
+            }
+
+            **CRITICAL TOOL HANDLING RULE:**
+            When you receive a "toolResponse", your ONLY job is to transform that raw data into a friendly, conversational paragraph for the 'reply' field (following the language rule) and then wrap it in the required JSON structure mentioned above.
+        `,
         },
-      ],
-    };
+    ],
+};
 
     let history = await ConversationService.getHistory(userId);
     if (!history || history.length === 0) {
@@ -553,7 +558,7 @@ router.post("/assistant", [auth, authorize("artisan")], async (req, res) => {
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         const recentOrdersSnapshot = await db
           .collection("orders")
-          .where("artisanIds", "array-contains", artisanId)
+          .where("artisanIds", "array-contains", userId)
           .where('status', 'in', ['shipped', 'delivered'])
           .where("createdAt", ">=", sevenDaysAgo)
           .get();
@@ -565,13 +570,13 @@ router.post("/assistant", [auth, authorize("artisan")], async (req, res) => {
         const [lowStockSnapshot, topProductsSnapshot] = await Promise.all([
           db
             .collection("products")
-            .where("artisan", "==", artisanId)
+            .where("artisan", "==", userId)
             .where("inventory.isUnlimited", "==", false)
             .where("inventory.quantity", "<", 5)
             .get(),
           db
             .collection("products")
-            .where("artisan", "==", artisanId)
+            .where("artisan", "==", userId)
             .orderBy("stats.views", "desc")
             .limit(3)
             .get(),
