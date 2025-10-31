@@ -2,6 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axiosConfig";
 
+// --- START OF CHANGES ---
+// 1. Import NavLink for proper routing
+import { NavLink } from "react-router-dom"; 
+// --- END OF CHANGES ---
+
+
 const AnimatedSection = ({ children, className = "" }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
@@ -292,6 +298,9 @@ const PlanEventModal = ({ onClose }) => (
   </div>
 );
 
+
+// --- START OF CHANGES ---
+
 const AmbassadorHeader = ({ user, logout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -307,20 +316,17 @@ const AmbassadorHeader = ({ user, logout }) => {
   }, []);
 
   const navLinks = [
-    { name: "Dashboard", href: "#/ambassador/dashboard" },
-    { name: "My Artisans", href: "#/ambassador/artisans" },
-    { name: "Events", href: "#/ambassador/events" },
-    { name: "Resources", href: "#/ambassador/resources" },
+    { name: "Dashboard", href: "/ambassador/dashboard" },
+    { name: "My Artisans", href: "/ambassador/artisans" },
+    { name: "Find Artisans", href: "/ambassador/find-artisans" },
+    { name: "Community Hub", href: "/ambassador/community" },
   ];
-
-  const activeLinkStyle = "text-google-blue border-b-2 border-google-blue pb-1";
-  const inactiveLinkStyle = "hover:text-google-blue transition";
 
   return (
     <header className="sticky top-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <a
-          href="#/ambassador/dashboard"
+        <NavLink
+          to="/ambassador/dashboard"
           className="flex items-center space-x-3"
         >
           <img
@@ -334,17 +340,19 @@ const AmbassadorHeader = ({ user, logout }) => {
               Ambassador Hub
             </span>
           </h1>
-        </a>
+        </NavLink>
 
         <nav className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">
-          {navLinks.map((link, index) => (
-            <a
+          {navLinks.map((link) => (
+            <NavLink
               key={link.name}
-              href={link.href}
-              className={index === 0 ? activeLinkStyle : inactiveLinkStyle}
+              to={link.href}
+              className={({ isActive }) =>
+                `transition-colors ${isActive ? "text-google-blue" : "hover:text-google-blue"}`
+              }
             >
               {link.name}
-            </a>
+            </NavLink>
           ))}
         </nav>
 
@@ -406,14 +414,16 @@ const AmbassadorHeader = ({ user, logout }) => {
             </div>
             <nav className="flex flex-col space-y-4">
               {navLinks.map((link) => (
-                <a
+                <NavLink
                   key={link.name}
-                  href={link.href}
+                  to={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`px-3 py-2 rounded-md font-medium text-gray-700 hover:bg-gray-100`}
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-md font-medium ${isActive ? "bg-gray-100 text-google-blue" : "text-gray-700 hover:bg-gray-100"}`
+                  }
                 >
                   {link.name}
-                </a>
+                </NavLink>
               ))}
             </nav>
           </div>
@@ -423,114 +433,121 @@ const AmbassadorHeader = ({ user, logout }) => {
   );
 };
 
+// --- END OF CHANGES ---
+
+
 const Footer = () => (
-  <footer className="bg-google-blue text-white">
-    <div className="container mx-auto px-6 py-12">
-      <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
-        &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.
-      </div>
-    </div>
-  </footer>
+    <footer className="bg-google-blue text-white">
+        <div className="container mx-auto px-6 py-12">
+            <div className="border-t border-white/30 mt-8 pt-8 text-center text-white/70 text-sm">
+                &copy; {new Date().getFullYear()} KalaGhar. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
 );
 
+
 const AmbassadorDashboardPage = () => {
-  const { user, logout } = useAuth();
-  const [stats, setStats] = useState(null);
-  const [myArtisans, setMyArtisans] = useState([]);
-  const [nearbyAmbassadors, setNearbyAmbassadors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-  const [selectedArtisan, setSelectedArtisan] = useState(null);
+    const { user, logout } = useAuth();
+    const [stats, setStats] = useState(null);
+    const [myArtisans, setMyArtisans] = useState([]);
+    const [nearbyAmbassadors, setNearbyAmbassadors] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+    const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+    const [selectedArtisan, setSelectedArtisan] = useState(null);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const { data } = await api.get("/dashboard/ambassador-stats");
-        setStats(data.stats);
-        setMyArtisans(data.myArtisans);
-        setNearbyAmbassadors(data.nearbyAmbassadors);
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
-        setError(
-          "Could not load dashboard information. Please try refreshing the page."
-        );
-      } finally {
-        setLoading(false);
-      }
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                // This endpoint needs to be created in your backend
+                const { data } = await api.get("/ambassador/dashboard-summary");
+                setStats(data.stats);
+                setMyArtisans(data.artisans); // Assuming the API returns this
+                setNearbyAmbassadors(data.nearbyAmbassadors); // Assuming the API returns this
+            } catch (error) {
+                console.error("Failed to fetch dashboard data:", error);
+                setError("Could not load dashboard information. Please try refreshing the page.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDashboardData();
+    }, []);
+
+    const openProgressModal = (artisan) => {
+        setSelectedArtisan(artisan);
+        setIsProgressModalOpen(true);
     };
-    fetchDashboardData();
-  }, []);
 
-  const openProgressModal = (artisan) => {
-    setSelectedArtisan(artisan);
-    setIsProgressModalOpen(true);
-  };
+    const statsData = [
+        {
+            label: "Artisans Mentored",
+            value: myArtisans?.length ?? 0,
+            icon: <UsersIcon />,
+            color: "google-blue",
+            borderColor: "border-google-blue",
+            link: "/ambassador/artisans",
+            description: "View your artisan network",
+        },
+        {
+            label: "Events Hosted",
+            value: stats?.eventsHosted ?? 0,
+            icon: <CalendarIcon />,
+            color: "google-green",
+            borderColor: "border-google-green",
+            link: "/ambassador/community",
+            description: "Manage and plan events",
+        },
+        {
+            label: "Your Impact Score",
+            value: stats?.impactScore ?? 0,
+            icon: <SparklesIcon />,
+            color: "google-yellow",
+            borderColor: "border-google-yellow",
+            link: "#",
+            description: "See the difference you're making",
+        },
+    ];
 
-  const statsData = [
-    {
-      label: "Artisans Mentored",
-      value: stats?.mentored ?? 0,
-      icon: <UsersIcon />,
-      color: "google-blue",
-      borderColor: "border-google-blue",
-      bgColor: "bg-google-blue",
-      link: "#/ambassador/artisans",
-      description: "View your artisan network",
-    },
-    {
-      label: "Events Hosted",
-      value: stats?.events ?? 0,
-      icon: <CalendarIcon />,
-      color: "google-green",
-      borderColor: "border-google-green",
-      bgColor: "bg-google-green",
-      link: "#/ambassador/events",
-      description: "Manage and plan events",
-    },
-    {
-      label: "Your Impact Score",
-      value: stats?.impactScore.toLocaleString() ?? 0,
-      icon: <SparklesIcon />,
-      color: "google-yellow",
-      borderColor: "border-google-yellow",
-      bgColor: "bg-google-yellow",
-      link: "#",
-      description: "See the difference you're making",
-    },
-  ];
+    if (loading || !user) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-gray-100">
+                <div className="text-google-blue text-xl font-semibold">Loading Dashboard...</div>
+            </div>
+        );
+    }
 
-  if (loading || !user) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <div className="text-google-blue text-xl font-semibold">
-          Loading Dashboard...
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100 text-center p-4">
-        <p className="text-red-600 font-semibold">{error}</p>
-      </div>
-    );
-  }
-
+    if (error) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-gray-100 text-center p-4">
+                <p className="text-red-600 font-semibold">{error}</p>
+            </div>
+        );
+    }
+    
   return (
     <>
       <style>{`
-        .bg-google-blue { background-color:
-        .bg-google-red { background-color:
-        .bg-google-yellow { background-color:
-        .bg-google-green { background-color:
-        .main-bg { background-color:
+        .bg-google-blue { background-color: #4285F4; }
+        .text-google-blue { color: #4285F4; }
+        .border-google-blue { border-color: #4285F4; }
+        .bg-google-red { background-color: #DB4437; }
+        .text-google-red { color: #DB4437; }
+        .bg-google-yellow { background-color: #F4B400; }
+        .text-google-yellow { color: #F4B400; }
+        .border-google-yellow { border-color: #F4B400; }
+        .bg-google-green { background-color: #0F9D58; }
+        .text-google-green { color: #0F9D58; }
+        .border-google-green { border-color: #0F9D58; }
+        .main-bg { background-color: #F8F9FA; }
         @keyframes fade-in-scale { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .animate-fade-in-scale { animation: fade-in-scale 0.3s ease-out forwards; }
+        @keyframes fade-in-down { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-down { animation: fade-in-down 0.2s ease-out forwards; }
       `}</style>
 
       <div className="main-bg min-h-screen font-sans flex flex-col justify-between">
@@ -572,7 +589,8 @@ const AmbassadorDashboardPage = () => {
                         My Artisan Network
                       </h3>
                       <div className="space-y-4">
-                        {myArtisans.map((artisan) => (
+                        {myArtisans && myArtisans.length > 0 ? (
+                           myArtisans.map((artisan) => (
                           <div
                             key={artisan.name}
                             className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
@@ -599,7 +617,10 @@ const AmbassadorDashboardPage = () => {
                               View Progress
                             </button>
                           </div>
-                        ))}
+                        ))
+                        ) : (
+                            <p className="text-center text-gray-500 py-6">You are not mentoring any artisans yet.</p>
+                        )}
                       </div>
                     </div>
                   </AnimatedSection>
@@ -632,7 +653,7 @@ const AmbassadorDashboardPage = () => {
                         {statsData.map((stat) => (
                           <div
                             key={stat.label}
-                            className={` p-4 rounded-lg flex items-center space-x-4 border-l-4 ${stat.borderColor} bg-gray-50`}
+                            className={`p-4 rounded-lg flex items-center space-x-4 border-l-4 ${stat.borderColor} bg-gray-50`}
                           >
                             <div className={`text-${stat.color}`}>
                               {stat.icon}
@@ -657,7 +678,8 @@ const AmbassadorDashboardPage = () => {
                         Ambassadors Near Me
                       </h3>
                       <div className="space-y-3">
-                        {nearbyAmbassadors.map((ambassador) => (
+                        {nearbyAmbassadors && nearbyAmbassadors.length > 0 ? (
+                            nearbyAmbassadors.map((ambassador) => (
                           <div
                             key={ambassador.name}
                             className="flex items-center text-sm"
@@ -670,7 +692,10 @@ const AmbassadorDashboardPage = () => {
                               {ambassador.distance}
                             </p>
                           </div>
-                        ))}
+                        ))
+                        ) : (
+                            <p className="text-center text-gray-500 text-sm">No other ambassadors found in your area.</p>
+                        )}
                       </div>
                     </div>
                   </AnimatedSection>

@@ -8,11 +8,6 @@ class AmbassadorService extends BaseService {
     this.userService = UserService;
   }
 
-  /**
-   * Creates a new ambassador application record.
-   * @param {object} applicationData - The data from the application form.
-   * @returns {Promise<object>} The newly created application object.
-   */
   async createApplication(applicationData) {
     const dataToSave = {
       ...applicationData,
@@ -24,10 +19,14 @@ class AmbassadorService extends BaseService {
 
   async getDashboardSummary(ambassadorId) {
     try {
-      const mentorships = await MentorshipService.findArtisansByAmbassador(
-        ambassadorId
-      );
-      const artisanIds = mentorships.map((m) => m.artisanId);
+      // --- START OF FIX ---
+
+      // 1. Fetch ACTIVE mentorships to calculate onboarded artisans and earnings (This part is correct)
+      const activeMentorships = await MentorshipService.findMany({
+        ambassadorId: ambassadorId,
+        status: "active",
+      });
+      const artisanIds = activeMentorships.map((m) => m.artisanId);
 
       let artisans = [];
       if (artisanIds.length > 0) {
@@ -36,9 +35,18 @@ class AmbassadorService extends BaseService {
 
       const artisansOnboarded = artisans.length;
 
-      const pendingApprovals = artisans.filter(
-        (a) => a.status === "pending"
-      ).length;
+      // 2. THIS IS THE NEW, CORRECT LOGIC FOR PENDING APPROVALS
+      // Directly query the mentorships collection for requests sent by this ambassador that are still pending.
+      const pendingRequests = await MentorshipService.findMany({
+        ambassadorId: ambassadorId,
+        status: "pending",
+      });
+      const pendingApprovals = pendingRequests.length;
+
+      // 3. THE OLD, INCORRECT LOGIC IS REMOVED.
+      // We are no longer filtering the 'artisans' array by status.
+
+      // --- END OF FIX ---
 
       const totalArtisanEarnings = artisans.reduce(
         (sum, artisan) => sum + (artisan.sales || 0) * 150,
