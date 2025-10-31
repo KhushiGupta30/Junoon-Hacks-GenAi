@@ -244,7 +244,7 @@ const BuyerHeader = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm z-50 shadow-sm border-b border-gray-200 overflow-visible">
+    <header className="main-app-header fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm z-50 shadow-sm border-b border-gray-200 overflow-visible">
       <div className="w-full h-16 px-4 sm:px-6 md:px-8">
         <div className="h-full flex items-center justify-between space-x-4 relative">
           {}

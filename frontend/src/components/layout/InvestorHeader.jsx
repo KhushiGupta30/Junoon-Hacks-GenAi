@@ -56,7 +56,7 @@ const InvestorHeader = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm z-50 shadow-sm border-b border-gray-200">
+    <header className="main-app-header fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm z-50 shadow-sm border-b border-gray-200">
       <div className="w-full">
         <div className="h-16 flex items-center justify-between px-4 sm:px-6 md:px-8">
           <div className="flex items-center h-16">

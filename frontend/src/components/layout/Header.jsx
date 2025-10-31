@@ -6,7 +6,7 @@ const Header = ({ onLoginClick }) => {
   const { isAuthenticated, user, logout } = useAuth();
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
+    <header className="main-app-header fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-md">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         <Link to="/" className="flex items-center space-x-3">
           <img

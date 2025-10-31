@@ -79,3 +79,15 @@ body {
 body {
   top: 0 !important;
 }
+
+
+html.translated-ltr .main-app-header,
+html.translated-rtl .main-app-header {
+  top: 40px;
+}
+
+html.translated-ltr .main-page-content,
+html.translated-rtl .main-page-content {
+  /
+  padding-top: calc(4rem + 40px);
+}

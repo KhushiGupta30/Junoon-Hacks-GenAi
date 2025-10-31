@@ -15,7 +15,7 @@ const ArtisanLayout = () => {
         <ArtisanHeader user={user} logout={logout} />
 
         {}
-        <main className="pt-4">
+        <main className="main-page-content flex-1 overflow-y-auto pt-4 pb-8">
           {}
           <Outlet />
         </main>

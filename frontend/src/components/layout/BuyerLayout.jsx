@@ -6,7 +6,7 @@ const BuyerLayout = () => {
   return (
     <div className="font-sans bg-gray-50 min-h-screen">
       <BuyerHeader />
-      {}
+      <main className="main-page-content flex-1 overflow-y-auto pt-4 pb-8"></main>
       <Outlet />
       {}
     </div>
