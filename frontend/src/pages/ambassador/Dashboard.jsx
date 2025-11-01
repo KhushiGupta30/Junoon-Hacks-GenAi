@@ -92,7 +92,7 @@ const Dashboard = () => {
   }
 
   return (
-    <AnimatedPage>
+    <AnimatedPage className="pb=0">
       <div className="bg-gray-50 min-h-screen">
         <h1 className="text-3xl font-bold text-gray-800 mb-8">
           Ambassador Dashboard
