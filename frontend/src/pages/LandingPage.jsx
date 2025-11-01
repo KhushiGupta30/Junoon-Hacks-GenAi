@@ -87,8 +87,6 @@ export default function LandingPage() {
         <AboutUs />
       </main>
 
-      <Footer />
-
       <LoginModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
