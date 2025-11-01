@@ -7,9 +7,10 @@ const router = express.Router();
 
 const getOrderStatus = (order) => {
   if (Array.isArray(order.timeline) && order.timeline.length > 0) {
-    return order.timeline[order.timeline.length - 1].status || "unknown";
+    // Prioritize the most recent status from the timeline
+    return order.timeline[order.timeline.length - 1].status || order.status || "unknown";
   }
-  return "unknown";
+  return order.status || "unknown";
 };
 
 router.get("/", [auth, authorize("artisan")], async (req, res) => {

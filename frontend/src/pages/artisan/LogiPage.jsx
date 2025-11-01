@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axiosConfig";
 import { useAuth } from "../../context/AuthContext";
@@ -85,6 +85,28 @@ const LogisticsPage = () => {
       icon: <TagIcon className="w-5 h-5 text-gray-400" />,
     },
   ];
+
+  const hasUsedCatalog = !!user?.hasUsedMaterialsCatalog;
+  const catalogLink = hasUsedCatalog
+    ? "/artisan/materials-catalog"
+    : "/artisan/raw-materials";
+
+  const fetchLogisticsData = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await api.get("/logistics");
+      setOrdersAwaitingShipment(response.data.ordersAwaitingShipment || []);
+    } catch (err) {
+      setError(
+        "Failed to load logistics information. Please try again later."
+      );
+      console.error("Fetch logistics error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const handleSelectAndShip = async (orderId, partner) => {
     try {
       await api.put(`/orders/${orderId}/ship`, {
@@ -97,30 +119,10 @@ const LogisticsPage = () => {
       console.error("Ship order error:", err);
     }
   };
-  const hasUsedCatalog = !!user?.hasUsedMaterialsCatalog;
-
-  const catalogLink = hasUsedCatalog
-    ? "/artisan/materials-catalog"
-    : "/artisan/raw-materials";
 
   useEffect(() => {
-    const fetchLogisticsData = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const response = await api.get("/logistics");
-        setOrdersAwaitingShipment(response.data.ordersAwaitingShipment || []);
-      } catch (err) {
-        setError(
-          "Failed to load logistics information. Please try again later."
-        );
-        console.error("Fetch logistics error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchLogisticsData();
-  }, []);
+  }, [fetchLogisticsData]);
 
   if (loading) {
     return (
