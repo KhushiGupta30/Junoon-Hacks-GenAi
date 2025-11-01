@@ -8,6 +8,55 @@ import FindYourPlace from "../components/landing/FindYourPlace";
 import ExplainerCarousel from "../components/landing/ExplainerCarousel";
 import Roles from "../components/landing/Roles";
 
+function AboutUs() {
+  const team = [
+    {
+      name: "Aarav Mehta",
+      image: "/images/team/aarav.jpg",
+      contribution: "Frontend Developer — built the landing page and UI components.",
+    },
+    {
+      name: "Diya Kapoor",
+      image: "/images/team/diya.jpg",
+      contribution: "UX Designer — designed the overall user experience and layouts.",
+    },
+    {
+      name: "Rohan Singh",
+      image: "/images/team/rohan.jpg",
+      contribution: "Backend Engineer — handled APIs and authentication logic.",
+    },
+    {
+      name: "Mira Patel",
+      image: "/images/team/mira.jpg",
+      contribution: "Project Manager — coordinated tasks and maintained timelines.",
+    },
+  ];
+
+  return (
+    <section className="bg-gray-50 py-16" id="about-us">
+      <div className="max-w-7xl mx-auto px-6 text-center">
+        <h2 className="text-4xl font-bold mb-10 text-gray-900">About Us</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
+          {team.map((member, index) => (
+            <div
+              key={index}
+              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+            >
+              <img
+                src={member.image}
+                alt={member.name}
+                className="w-32 h-32 mx-auto rounded-full object-cover mb-4"
+              />
+              <h3 className="text-xl font-semibold text-gray-800">{member.name}</h3>
+              <p className="mt-2 text-gray-600 text-sm">{member.contribution}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function LandingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
@@ -35,7 +84,10 @@ export default function LandingPage() {
         <FindYourPlace />
         <ExplainerCarousel />
         <Roles onRoleSelect={handleRoleSelect} />
+        <AboutUs />
       </main>
+
+      <Footer />
 
       <LoginModal
         isOpen={isModalOpen}

@@ -158,7 +158,7 @@ const InvestorDashboard = () => {
       setError(null);
 
       try {
-        const response = await api.get("/investor/stats");
+        const response = await api.get("/investor/dashboard-data");
         setStats(response.data);
 
         setJobsCreated(getMockJobsCreated());
