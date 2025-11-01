@@ -99,7 +99,7 @@ const IdeaCard = ({ idea }) => {
       <div className="relative block aspect-[4/3] w-full overflow-hidden bg-gray-100">
         <img
           src={
-            idea.images?.[0]?.url ||
+            idea.imageUrl ||
             "https://placehold.co/600x400/E2E8F0/AAAAAA?text=Idea"
           }
           alt={idea.title}

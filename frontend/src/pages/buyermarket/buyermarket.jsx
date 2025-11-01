@@ -187,7 +187,7 @@ const IdeaCard = ({ idea }) => {
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col min-w-[320px] snap-start border-2 border-transparent hover:border-google-yellow transition-all duration-300">
       <img
-        src={idea.images[0]?.url || "/placeholder.png"}
+        src={idea.imageUrl || "/placeholder.png"}
         alt={idea.title}
         className="w-full h-48 object-cover"
       />

@@ -107,6 +107,7 @@ const IdeaSubmissionFormFields = ({ onSubmit }) => {
       const payload = {
         ...formData,
         imageUrl: generatedImageUrl, 
+        status: "published",
       };
       await onSubmit(payload);
     } catch (err) {
