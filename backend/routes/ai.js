@@ -244,7 +244,7 @@ router.post(
         throw new Error("The AI returned an invalid format. Please try again.");
       }
 
-      const suggestion = JSON.parse(jsonString);
+      // const suggestion = JSON.parse(jsonString);
       res.json(jsonString);
     } catch (error) {
       console.error("AI price suggestion error:", error);
@@ -329,7 +329,7 @@ router.post(
         );
       }
 
-      const report = JSON.parse(jsonString);
+      // const report = JSON.parse(jsonString);
       await AIReportService.saveReport("funding", jsonString, userId);
       res.json(jsonString);
     } catch (error) {
@@ -442,7 +442,7 @@ router.post(
         throw new Error("The AI returned an invalid format.");
       }
 
-      const insights = JSON.parse(jsonString);
+      // const insights = JSON.parse(jsonString);
       await AIReportService.saveReport("insights", jsonString, userId);
       res.json(jsonString);
     } catch (error) {
