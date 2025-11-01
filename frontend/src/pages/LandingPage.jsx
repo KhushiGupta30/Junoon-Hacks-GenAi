@@ -11,24 +11,24 @@ import Roles from "../components/landing/Roles";
 function AboutUs() {
   const team = [
     {
-      name: "Aarav Mehta",
-      image: "/images/team/aarav.jpg",
-      contribution: "Frontend Developer — built the landing page and UI components.",
+      name: "Eugene Samuel",
+      image: "/eugene.jpg",
+      contribution: "Backend Engineer handled APIs, authentication logic, Database logic and Backend Integration",
     },
     {
-      name: "Diya Kapoor",
-      image: "/images/team/diya.jpg",
-      contribution: "UX Designer — designed the overall user experience and layouts.",
+      name: "Vijwal Manocha",
+      image: "/vijwal.jpg",
+      contribution: "Backend Engineer handled AI Integration, Hosting and Backend Integration",
     },
     {
-      name: "Rohan Singh",
-      image: "/images/team/rohan.jpg",
-      contribution: "Backend Engineer — handled APIs and authentication logic.",
+      name: "Khushi Gupta",
+      image: "/khushi.jpg",
+      contribution: "Frontend Engineer designed and built the UI components and pages",
     },
     {
-      name: "Mira Patel",
-      image: "/images/team/mira.jpg",
-      contribution: "Project Manager — coordinated tasks and maintained timelines.",
+      name: "Bhoomi Agarwal",
+      image: "/bhoomi.jpg",
+      contribution: "Frontend Engineer designed and built the UI components and pages",
     },
   ];
 
