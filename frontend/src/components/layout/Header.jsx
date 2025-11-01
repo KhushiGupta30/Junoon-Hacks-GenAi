@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useMobileSidebar } from "../../context/MobileSidebarContext";
+import { Menu } from "lucide-react";
 
 const Header = ({ onLoginClick }) => {
   const { isAuthenticated, user, logout } = useAuth();

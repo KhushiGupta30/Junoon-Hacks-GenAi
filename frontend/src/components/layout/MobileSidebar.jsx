@@ -1,4 +1,4 @@
-// src/components/layout/MobileSidebar.jsx
+
 
 import React from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
@@ -6,13 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { useMobileSidebar } from "../../context/MobileSidebarContext";
 
-// Framer Motion variants for the backdrop
+
 const backdropVariants = {
   visible: { opacity: 1 },
   hidden: { opacity: 0 },
 };
 
-// Framer Motion variants for the sidebar panel
+
 const panelVariants = {
   visible: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
   hidden: { x: "-100%", transition: { type: "easeOut", duration: 0.2 } },
@@ -22,16 +22,13 @@ export const MobileSidebar = () => {
   const { isSidebarOpen, closeSidebar } = useMobileSidebar();
   const location = useLocation();
 
-  // 1. REMOVE THE USE-EFFECT HOOK
-  // React.useEffect(() => {
-  //   closeSidebar();
-  // }, [location.pathname, closeSidebar]);
+  
 
   return (
     <AnimatePresence>
       {isSidebarOpen && (
         <>
-          {/* 1. The Backdrop */}
+         
           <motion.div
             variants={backdropVariants}
             initial="hidden"
@@ -41,7 +38,7 @@ export const MobileSidebar = () => {
             className="fixed inset-0 bg-black/50 z-[60]"
           />
 
-          {/* 2. The Sidebar Panel */}
+         
           <motion.div
             variants={panelVariants}
             initial="hidden"
@@ -54,7 +51,7 @@ export const MobileSidebar = () => {
               <div className="flex items-center justify-between p-4 border-b">
                 <h2 className="font-bold text-lg">Menu</h2>
                 <button
-                  onClick={closeSidebar} // This is correct
+                  onClick={closeSidebar} 
                   className="p-2 rounded-full hover:bg-gray-100"
                 >
                   <X className="h-6 w-6 text-gray-700" />
@@ -73,7 +70,7 @@ export const MobileSidebar = () => {
                         : "text-gray-700 hover:bg-gray-100"
                     }`
                   }
-                  // 2. ADD ONCLICK HERE
+               
                   onClick={closeSidebar}
                 >
                   Shop
@@ -87,7 +84,7 @@ export const MobileSidebar = () => {
                         : "text-gray-700 hover:bg-gray-100"
                     }`
                   }
-                  // 3. ADD ONCLICK HERE
+                  
                   onClick={closeSidebar}
                 >
                   New Ideas
@@ -101,7 +98,7 @@ export const MobileSidebar = () => {
                         : "text-gray-700 hover:bg-gray-100"
                     }`
                   }
-                  // 4. ADD ONCLICK HERE
+                
                   onClick={closeSidebar}
                 >
                   Our Artisans

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { LogOut, User, Bell } from "lucide-react";
+import { LogOut, User, Bell ,Menu} from "lucide-react";
 import { useMobileSidebar } from "../../context/MobileSidebarContext";
 
 const NavItem = ({ to, children }) => (
