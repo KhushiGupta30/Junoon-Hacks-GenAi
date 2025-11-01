@@ -66,7 +66,7 @@ const getAITrends = async () => {
   if (!jsonString) {
     throw new Error("Failed to get valid JSON trend data from AI.");
   }
-  return JSON.parse(jsonString);
+  return jsonString
 };
 
 router.get("/trends", auth, async (req, res) => {
@@ -245,7 +245,7 @@ router.post(
       }
 
       const suggestion = JSON.parse(jsonString);
-      res.json(suggestion);
+      res.json(jsonString);
     } catch (error) {
       console.error("AI price suggestion error:", error);
       res.status(500).json({
@@ -330,8 +330,8 @@ router.post(
       }
 
       const report = JSON.parse(jsonString);
-      await AIReportService.saveReport("funding", report, userId);
-      res.json(report);
+      await AIReportService.saveReport("funding", jsonString, userId);
+      res.json(jsonString);
     } catch (error) {
       console.error("AI funding report error:", error);
       res
@@ -443,8 +443,8 @@ router.post(
       }
 
       const insights = JSON.parse(jsonString);
-      await AIReportService.saveReport("insights", insights, userId);
-      res.json(insights);
+      await AIReportService.saveReport("insights", jsonString, userId);
+      res.json(jsonString);
     } catch (error) {
       console.error("AI personal insights error:", error);
       res.status(500).json({

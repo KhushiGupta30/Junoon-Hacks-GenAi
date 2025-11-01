@@ -118,7 +118,7 @@ const LoginModal = ({ isOpen, onClose, selectedRole }) => {
             setPassword('');
             setState('');
             setCity('');
-            setLanguage('en');
+            // setLanguage('en');
             setLanguage('en-IN');
             setAvailableCities([]);
         }
