@@ -51,6 +51,8 @@ import MaterialsCatalogPage from "./pages/artisan/MaterialsCatalogPage.jsx";
 import BuyerLayout from "./components/layout/BuyerLayout.jsx";
 
 import GoogleTranslateWidget from "./components/ui/GoogleTranslateWidget.jsx";
+import { MobileSidebarProvider } from "./context/MobileSidebarContext"; // <-- Import Provider
+import { MobileSidebar } from "./components/layout/MobileSidebar"; // <-- Import Sidebar
 
 const AppLayout = () => {
   const location = useLocation();
@@ -61,6 +63,7 @@ const AppLayout = () => {
     <>
       {!shouldHide && <Header />}
       <GoogleTranslateWidget />
+      <MobileSidebar />
       <main>
         {}
         <AnimatePresence mode="wait">
@@ -414,8 +417,10 @@ function App() {
     <Router>
       <AuthProvider>
         <CartProvider>
+          <MobileSidebarProvider>
           <ScrollToTop />
           <AppLayout />
+          </MobileSidebarProvider>
         </CartProvider>
       </AuthProvider>
     </Router>
