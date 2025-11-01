@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "../../api/axiosConfig";
+import { useAuth } from "../../context/AuthContext";
 import {
   ThumbsUpIcon,
   LightbulbIcon,
@@ -14,113 +16,6 @@ import {
   Users,
 } from "lucide-react";
 import Footer from "../../components/layout/Footer";
-
-const dummyIdeas = [
-  {
-    id: "1",
-    title: "Hand-Woven Blue Silk Scarf",
-    description:
-      "A beautiful silk scarf woven with traditional techniques, featuring a modern geometric pattern in shades of blue and silver.",
-    category: "Textiles",
-    artisan: { id: "a1", name: "Rina Devi" },
-    images: [
-      { url: "https://placehold.co/600x400/3B82F6/FFFFFF?text=Silk+Scarf" },
-    ],
-    votes: { upvotes: 120 },
-    createdAt: "2025-10-27T10:00:00Z",
-  },
-  {
-    id: "2",
-    title: "Ceramic Mugs (Set of 2)",
-    description:
-      "Earthy ceramic mugs, hand-thrown and glazed with a unique speckled finish. Perfect for morning coffee.",
-    category: "Pottery",
-    artisan: { id: "a2", name: "Suresh Kumar" },
-    images: [
-      { url: "https://placehold.co/600x400/8B4513/FFFFFF?text=Ceramic+Mugs" },
-    ],
-    votes: { upvotes: 85 },
-    createdAt: "2025-10-26T14:30:00Z",
-  },
-  {
-    id: "3",
-    title: 'Abstract "Jaipur" Canvas Painting',
-    description:
-      "A vibrant abstract painting inspired by the colors of Jaipur. Acrylic on canvas, 24x36 inches.",
-    category: "Painting",
-    artisan: { id: "a3", name: "Priya Singh" },
-    images: [
-      { url: "https://placehold.co/600x400/EF4444/FFFFFF?text=Abstract+Art" },
-    ],
-    votes: { upvotes: 210 },
-    createdAt: "2025-10-28T09:15:00Z",
-  },
-  {
-    id: "4",
-    title: "Hand-Carved Teak Wood Box",
-    description:
-      "Intricate floral carvings on a solid teak wood box. Ideal for storing jewelry or as a decorative piece.",
-    category: "Woodwork",
-    artisan: { id: "a4", name: "Anil Mehta" },
-    images: [
-      { url: "https://placehold.co/600x400/A0522D/FFFFFF?text=Wood+Box" },
-    ],
-    votes: { upvotes: 95 },
-    createdAt: "2025-10-25T11:00:00Z",
-  },
-  {
-    id: "5",
-    title: "Modern Brass Wall Sconce",
-    description:
-      "A sleek and modern wall sconce made from hand-beaten brass, casting a warm, indirect light.",
-    category: "Metalwork",
-    artisan: { id: "a5", name: "Farida Khan" },
-    images: [
-      { url: "https://placehold.co/600x400/F59E0B/FFFFFF?text=Brass+Sconce" },
-    ],
-    votes: { upvotes: 150 },
-    createdAt: "2025-10-28T11:00:00Z",
-  },
-  {
-    id: "6",
-    title: "Terracotta Ganesha Idol",
-    description:
-      "A miniature Ganesha idol sculpted from river clay, perfect for a desk or small nook. Eco-friendly and unpainted.",
-    category: "Sculpture",
-    artisan: { id: "a2", name: "Suresh Kumar" },
-    images: [
-      { url: "https://placehold.co/600x400/F97316/FFFFFF?text=Ganesha+Idol" },
-    ],
-    votes: { upvotes: 75 },
-    createdAt: "2025-10-24T17:00:00Z",
-  },
-  {
-    id: "7",
-    title: "Silver Jhumka Earrings",
-    description:
-      "Traditional silver jhumka earrings with delicate filigree work and pearl accents. Lightweight and elegant.",
-    category: "Jewelry",
-    artisan: { id: "a6", name: "Meena Kumari" },
-    images: [
-      { url: "https://placehold.co/600x400/9CA3AF/FFFFFF?text=Silver+Jhumka" },
-    ],
-    votes: { upvotes: 180 },
-    createdAt: "2025-10-27T16:00:00Z",
-  },
-  {
-    id: "8",
-    title: "Block-Printed Cotton Table Runner",
-    description:
-      "A hand block-printed table runner using natural dyes. Features a repeating paisley motif on soft cotton.",
-    category: "Textiles",
-    artisan: { id: "a1", name: "Rina Devi" },
-    images: [
-      { url: "https://placehold.co/600x400/10B981/FFFFFF?text=Table+Runner" },
-    ],
-    votes: { upvotes: 110 },
-    createdAt: "2025-10-26T08:00:00Z",
-  },
-];
 
 const SkeletonIdeaCard = () => (
   <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-pulse">
@@ -139,6 +34,7 @@ const SkeletonIdeaCard = () => (
 );
 
 const IdeaCard = ({ idea }) => {
+  const { token } = useAuth();
   const [voteStatus, setVoteStatus] = useState(null);
   const [currentUpvotes, setCurrentUpvotes] = useState(
     idea.votes?.upvotes || 0
@@ -149,17 +45,38 @@ const IdeaCard = ({ idea }) => {
   const handleVote = useCallback(async () => {
     if (voteStatus === "up" || isVoting) return;
 
+    if (!token) {
+      setVoteError("You must be logged in to vote.");
+      return;
+    }
+
     setIsVoting(true);
     setVoteStatus("pending");
     setVoteError(null);
 
-    setTimeout(() => {
-      setCurrentUpvotes((prevUpvotes) => prevUpvotes + 1);
-      setVoteStatus("up");
-      setIsVoting(false);
+    try {
+      const response = await api.post(
+        `/ideas/${idea._id}/vote`,
+        { vote: "up" },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    }, 700);
-  }, [idea.id, voteStatus, isVoting]);
+      setCurrentUpvotes(response.data.votes.upvotes);
+      setVoteStatus("up");
+    } catch (err) {
+      console.error("Failed to vote:", err);
+      const message =
+        err.response?.data?.message || "An error occurred while voting.";
+      setVoteError(message);
+      setVoteStatus(null); 
+    } finally {
+      setIsVoting(false);
+    }
+  }, [idea._id, voteStatus, isVoting, token]);
 
   const cardVariants = {
     initial: { opacity: 0, y: 20 },
@@ -344,59 +261,59 @@ const NewIdeasPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filterCategory, setFilterCategory] = useState("All");
-  const [sortBy, setSortBy] = useState("votes");
+  const [sortBy, setSortBy] = useState("votes.upvotes");
   const [sortOrder, setSortOrder] = useState("desc");
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalIdeas: 0,
+  });
 
   const stats = useMemo(() => {
-    const totalVotes = dummyIdeas.reduce(
+    const totalVotesOnPage = ideas.reduce(
       (acc, idea) => acc + (idea.votes?.upvotes || 0),
       0
     );
-    const categories = new Set(dummyIdeas.map((idea) => idea.category));
+    const categoriesOnPage = new Set(ideas.map((idea) => idea.category));
     return {
-      totalIdeas: dummyIdeas.length,
-      totalVotes,
-      totalCategories: categories.size,
+      totalIdeas: pagination.totalIdeas,
+      totalVotes: totalVotesOnPage,
+      totalCategories: categoriesOnPage.size,
     };
-  }, [dummyIdeas]);
+  }, [ideas, pagination.totalIdeas]);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    const fetchIdeas = async () => {
+      setLoading(true);
+      setError(null);
 
-    setTimeout(() => {
       try {
-        let filteredIdeas = dummyIdeas;
+        const params = {
+          page: pagination.currentPage,
+          limit: 12,
+          sortBy: sortBy,
+          sortOrder: sortOrder,
+        };
+
         if (filterCategory !== "All") {
-          filteredIdeas = dummyIdeas.filter(
-            (idea) => idea.category === filterCategory
-          );
+          params.category = filterCategory;
         }
 
-        const sortedIdeas = [...filteredIdeas].sort((a, b) => {
-          let valA, valB;
+        const response = await api.get("/ideas", { params });
 
-          if (sortBy === "votes") {
-            valA = a.votes.upvotes;
-            valB = b.votes.upvotes;
-          } else {
-            valA = new Date(a.createdAt);
-            valB = new Date(b.createdAt);
-          }
-
-          return sortOrder === "desc" ? valB - valA : valA - valB;
-        });
-
-        setIdeas(sortedIdeas);
+        setIdeas(response.data.ideas);
+        setPagination(response.data.pagination);
       } catch (err) {
-        console.error("Failed to process dummy data:", err);
+        console.error("Failed to fetch ideas:", err);
         setError("Could not load ideas. Please try refreshing.");
         setIdeas([]);
       } finally {
         setLoading(false);
       }
-    }, 1000);
-  }, [filterCategory, sortBy, sortOrder]);
+    };
+
+    fetchIdeas();
+  }, [filterCategory, sortBy, sortOrder, pagination.currentPage]);
 
   const handleSortToggle = () => {
     setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
@@ -547,8 +464,8 @@ const NewIdeasPage = () => {
                 className="text-sm border border-gray-200 rounded-md px-3 py-1.5 bg-gray-50 focus:ring-1 focus:ring-google-blue focus:border-google-blue"
                 aria-label="Sort by"
               >
-                <option value="votes">Most Votes</option>
-                <option value="date">Newest First</option>
+                <option value="votes.upvotes">Most Votes</option>
+                <option value="createdAt">Newest First</option>
               </select>
               <button
                 onClick={handleSortToggle}
@@ -607,7 +524,7 @@ const NewIdeasPage = () => {
                 animate="animate"
               >
                 {ideas.map((idea) => (
-                  <IdeaCard idea={idea} key={idea.id || idea._id} />
+                  <IdeaCard idea={idea} key={idea._id} />
                 ))}
               </motion.div>
             )}

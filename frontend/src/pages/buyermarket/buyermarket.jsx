@@ -170,7 +170,7 @@ const IdeaCard = ({ idea }) => {
 
   const handleVote = useCallback(async () => {
     try {
-      const response = await api.post(`/ideas/${idea._id}/vote`, {
+      const response = await api.post(`/ideas/${idea.id}/vote`, {
         vote: "up",
       });
 
@@ -182,7 +182,7 @@ const IdeaCard = ({ idea }) => {
 
       alert("You need to be logged in to vote.");
     }
-  }, [idea._id]);
+  }, [idea.id]);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col min-w-[320px] snap-start border-2 border-transparent hover:border-google-yellow transition-all duration-300">
@@ -378,7 +378,7 @@ export default function BuyerMarketplace() {
 
               {!loading &&
                 !error &&
-                ideas.map((idea) => <IdeaCard key={idea._id} idea={idea} />)}
+                ideas.map((idea) => <IdeaCard key={idea.id} idea={idea} />)}
             </div>
           </div>
         </section>
