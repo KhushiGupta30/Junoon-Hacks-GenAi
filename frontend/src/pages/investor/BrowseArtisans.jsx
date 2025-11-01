@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axiosConfig";
 import AnimatedSection from "../../components/ui/AnimatedSection";
@@ -54,9 +54,7 @@ const SparklesIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-const LocationMarkerIcon = (
-  { className = "w-3 h-3" }
-) => (
+const LocationMarkerIcon = ({ className = "w-3 h-3" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className={className}
@@ -95,45 +93,67 @@ const SkeletonArtisanCard = () => (
   </div>
 );
 
-const ArtisanCard = ({ artisan }) => (
-  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-google-blue/50 transition-all duration-200 flex flex-col h-full">
-    <div className="flex items-center gap-4">
-      <img
-        src={
-          artisan.profile?.avatar ||
-          `https:
-            " ",
-            "+"
-          )}&background=random`
-        }
-        alt={artisan.name}
-        className="w-16 h-16 rounded-full object-cover flex-shrink-0 border-2 border-gray-100"
-      />
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-base text-gray-800 truncate">
-          {artisan.name}
-        </h3>
-        <p className="text-xs text-gray-500 truncate">
-          {artisan.artisanProfile?.craftSpecialty?.join(", ") || "Craftsman"}
-        </p>
-        {artisan.artisanProfile?.location && (
-          <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-            <LocationMarkerIcon className="w-3 h-3 text-gray-400" />{" "}
-            {artisan.artisanProfile.location}
+const placeholderColors = [
+  { bg: "E8F0FE", text: "4285F4" },
+  { bg: "E6F4EA", text: "34A853" },
+  { bg: "FCE8E6", text: "EA4335" },
+  { bg: "FEF7E0", text: "FBBC05" },
+  { bg: "F3E8FD", text: "8E24AA" },
+  { bg: "E0F7FA", text: "00796B" },
+];
+
+const getPlaceholderUrl = (name) => {
+  const firstName = name?.split(" ")[0] || "A";
+  let hash = 0;
+  for (let i = 0; i < name?.length; i++) {
+    hash += name.charCodeAt(i);
+  }
+  const colorIndex = hash % placeholderColors.length;
+  const selected = placeholderColors[colorIndex];
+  return `https://placehold.co/600x600/${selected.bg}/${
+    selected.text
+  }?text=${firstName.charAt(0).toUpperCase()}&font=roboto`;
+};
+
+const ArtisanCard = ({ artisan }) => {
+  const avatarUrl = artisan.profile?.avatar || getPlaceholderUrl(artisan.name);
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-google-blue/50 transition-all duration-200 flex flex-col h-full">
+      <div className="flex items-center gap-4">
+        <img
+          src={avatarUrl}
+          alt={artisan.name}
+          className="w-16 h-16 rounded-full object-cover flex-shrink-0 border-2 border-gray-100"
+          onError={(e) => {
+            e.target.src = getPlaceholderUrl(artisan.name);
+          }}
+        />
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-base text-gray-800 truncate">
+            {artisan.name}
+          </h3>
+          <p className="text-xs text-gray-500 truncate">
+            {artisan.artisanProfile?.craftSpecialty?.join(", ") || "Craftsman"}
           </p>
-        )}
+          {artisan.artisanProfile?.location && (
+            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+              <LocationMarkerIcon className="w-3 h-3 text-gray-400" />{" "}
+              {artisan.artisanProfile.location}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="mt-auto pt-4">
+        <Link
+          to={`../seller/${artisan.id}`}
+          className="block w-full text-center bg-google-blue text-white font-medium py-2 px-4 rounded-lg text-sm hover:bg-opacity-90 transition-colors shadow-sm"
+        >
+          View Profile & Invest
+        </Link>
       </div>
     </div>
-    <div className="mt-auto pt-4">
-      <Link
-        to={`../seller/${artisan.id}`}
-        className="block w-full text-center bg-google-blue text-white font-medium py-2 px-4 rounded-lg text-sm hover:bg-opacity-90 transition-colors shadow-sm"
-      >
-        View Profile & Invest
-      </Link>
-    </div>
-  </div>
-);
+  );
+};
 
 const BrowseArtisans = () => {
   const [artisans, setArtisans] = useState([]);
@@ -198,8 +218,7 @@ const BrowseArtisans = () => {
     return (
       <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
         <div className="flex-grow space-y-8">
-          <SkeletonBase className="h-32 w-full mb-4" />{" "}
-          {}
+          <SkeletonBase className="h-32 w-full mb-4" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <SkeletonArtisanCard key={i} />
@@ -226,9 +245,8 @@ const BrowseArtisans = () => {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-10 px-6  bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
-      {}
-      <div className=" pt-20 flex-grow lg:w-2/3">
+    <div className="flex flex-col lg:flex-row gap-10 pb-8 px-6 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
+      <div className="pt-20 flex-grow lg:w-2/3">
         <AnimatedSection className="mb-8 text-center">
           <h1
             className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
@@ -245,10 +263,8 @@ const BrowseArtisans = () => {
           </p>
         </AnimatedSection>
 
-        {}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-8 space-y-4">
           <div className="relative">
-            {}
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
               <SearchIcon className="w-5 h-5" />
             </div>
@@ -274,7 +290,14 @@ const BrowseArtisans = () => {
                 onChange={(e) => setFilterCraft(e.target.value)}
                 className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-google-blue focus:border-google-blue"
               >
-                {craftOptions.map((opt) => (
+                {[
+                  "All",
+                  "Pottery",
+                  "Textiles",
+                  "Woodwork",
+                  "Painting",
+                  "Metalwork",
+                ].map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}
                   </option>
@@ -294,7 +317,7 @@ const BrowseArtisans = () => {
                 onChange={(e) => setFilterLocation(e.target.value)}
                 className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-google-blue focus:border-google-blue"
               >
-                {locationOptions.map((opt) => (
+                {["All", "Delhi", "Mumbai", "Jaipur", "Kolkata"].map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}
                   </option>
@@ -304,12 +327,9 @@ const BrowseArtisans = () => {
           </div>
         </div>
 
-        {}
         <AnimatedSection>
           {filteredArtisans.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {" "}
-              {}
               {filteredArtisans.map((artisan) => (
                 <ArtisanCard key={artisan.id} artisan={artisan} />
               ))}
@@ -330,9 +350,7 @@ const BrowseArtisans = () => {
         </AnimatedSection>
       </div>
 
-      {}
       <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start lg:mt-0">
-        {}
         <AnimatedSection>
           <div className="bg-blue-50/60 p-5 rounded-xl border border-blue-200/80">
             <div className="flex items-center gap-2.5 mb-3">
@@ -357,13 +375,13 @@ const BrowseArtisans = () => {
                       <img
                         src={
                           artisan.profile?.avatar ||
-                          `https:
-                            " ",
-                            "+"
-                          )}`
+                          getPlaceholderUrl(artisan.name)
                         }
                         alt={artisan.name}
                         className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                        onError={(e) => {
+                          e.target.src = getPlaceholderUrl(artisan.name);
+                        }}
                       />
                       <div className="min-w-0">
                         <p className="font-semibold text-sm text-gray-800 truncate">

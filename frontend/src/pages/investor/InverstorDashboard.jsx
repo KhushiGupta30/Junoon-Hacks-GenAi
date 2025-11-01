@@ -263,7 +263,7 @@ const InvestorDashboard = () => {
   }
 
   return (
-    <div className="py-8">
+    <div className="pb-8">
       <AnimatedSection className="mb-10 pt-8 md:mb-12">
         <div
           className="relative p-8 md:p-10  shadow-xl overflow-hidden text-white"
@@ -289,7 +289,7 @@ const InvestorDashboard = () => {
         </div>
       </AnimatedSection>
 
-      <AnimatedSection className="mb-10 md:mb-12">
+      <AnimatedSection className="mb-10 md:mb-12 px-8">
         {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {statsData.map((stat, index) =>
@@ -302,7 +302,7 @@ const InvestorDashboard = () => {
         </div>
       </AnimatedSection>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-8">
         <AnimatedSection className="lg:col-span-2">
           {portfolioChartData && (
             <MiniLineChart

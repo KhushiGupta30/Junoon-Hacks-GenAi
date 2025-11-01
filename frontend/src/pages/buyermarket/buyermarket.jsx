@@ -289,7 +289,7 @@ export default function BuyerMarketplace() {
     <div className="font-sans bg-gray-50">
       <BuyerHeader />
 
-      <main className="pt-16">
+      <main>
         <section id="marketplace">
           <div
             className="py-8 bg-cover bg-[center_bottom_30%] relative"

@@ -378,7 +378,7 @@ const InvestmentPortfolio = () => {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-10 px-6  bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
+    <div className="flex flex-col lg:flex-row gap-10 px-6 pb-8 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
       {}
       <div className="flex-grow lg:w-2/3">
         {" "}

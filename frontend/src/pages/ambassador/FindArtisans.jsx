@@ -166,7 +166,7 @@ const FindArtisans = () => {
         strokeWeight: 2,
       };
     }
-    return undefined; // Use default marker
+    return undefined;
   };
 
   return (

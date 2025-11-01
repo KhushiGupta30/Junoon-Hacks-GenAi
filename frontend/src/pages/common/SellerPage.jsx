@@ -59,7 +59,6 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
 };
 
-
 const SellerPage = () => {
   const { user } = useAuth();
   const { artisanId } = useParams();
@@ -100,7 +99,6 @@ const SellerPage = () => {
   if (loading) {
     return (
       <div className="pt-24 pb-12 text-center container mx-auto px-6">
-        {}
         <div className="flex justify-center items-center mt-4">
           <svg
             className="animate-spin h-8 w-8 text-google-blue"
@@ -133,7 +131,6 @@ const SellerPage = () => {
   if (error || !artisan) {
     return (
       <div className="pt-24 pb-12 text-center container mx-auto px-6">
-        {}
         <div className="bg-white p-8 rounded-lg shadow-md max-w-lg mx-auto">
           <h2 className="text-3xl font-bold text-red-600">Artisan Not Found</h2>
           <p className="text-gray-600 mt-2">
@@ -152,8 +149,6 @@ const SellerPage = () => {
 
   return (
     <>
-      {}
-      {}
       <div
         className="relative z-0 h-80 md:h-96 bg-cover bg-center"
         style={{ backgroundImage: "url('/2.png')" }}
@@ -171,7 +166,6 @@ const SellerPage = () => {
               }}
               className="flex flex-col sm:flex-row items-center justify-between gap-6"
             >
-              {}
               <motion.div
                 initial={{ opacity: 0, x: 50, scale: 0.9 }}
                 animate={{ opacity: 1, x: -1, scale: 1 }}
@@ -182,13 +176,12 @@ const SellerPage = () => {
                   layoutId={`artisan-avatar-${artisanId}`}
                   src={
                     artisan.profile?.avatar ||
-                    `https:
-                      /\s/g,
-                      "+"
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      artisan.name?.charAt(0)?.toUpperCase() || "A"
                     )}&background=E8F0FE&color=4285F4&bold=true`
                   }
                   alt={artisan.name}
-                  className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl bg-white"
+                  className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl bg-white object-cover"
                 />
                 <div className="text-white">
                   <h1 className="text-3xl md:text-4xl font-bold">
@@ -206,7 +199,6 @@ const SellerPage = () => {
                 </div>
               </motion.div>
 
-              {}
               <motion.div
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: -90 }}
@@ -222,7 +214,6 @@ const SellerPage = () => {
                 )}
               </motion.div>
 
-              {}
               {user?.role === "investor" && user.id !== artisanId && (
                 <motion.button
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -239,8 +230,6 @@ const SellerPage = () => {
         </div>
       </div>
 
-      {}
-      {}
       <motion.div
         className="relative z-10 -mt-16 pb-16 bg-gray-50 rounded-t-3xl shadow-lg"
         variants={containerVariants}
@@ -248,7 +237,6 @@ const SellerPage = () => {
         animate="visible"
       >
         <div className="container mx-auto px-6 pt-12">
-          {}
           <motion.div variants={itemVariants} className="mb-6">
             <h2 className="text-2xl font-bold text-gray-800">
               Products by {artisan.name}
@@ -274,9 +262,7 @@ const SellerPage = () => {
           )}
         </div>
       </motion.div>
-      {}
 
-      {}
       <InvestmentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
