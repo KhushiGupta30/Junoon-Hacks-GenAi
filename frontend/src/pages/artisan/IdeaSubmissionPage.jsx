@@ -20,15 +20,13 @@ import {
   XIcon,
   ChatAltIcon,
   PlusCircleIcon,
+  SparklesIcon, 
 } from "../../components/common/Icons";
 import IdeaDetailModal from "../../components/modal/IdeaDetailModal";
 
-const SkeletonBase = ({ className = "" }) => (
-  <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>
-);
+const SkeletonBase = ({ className = "" }) => <div className={`bg-gray-200 rounded-lg animate-pulse ${className}`}></div>;
 const SkeletonSidebarCard = () => <SkeletonBase className="h-64" />;
 const SkeletonForm = () => <SkeletonBase className="h-[40rem]" />;
-
 const timeAgo = (date) => {
   if (!date) return "someday ago";
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -44,40 +42,19 @@ const timeAgo = (date) => {
   if (interval > 1) return Math.floor(interval) + "min ago";
   return "Just now";
 };
-
 const FormInput = ({ label, id, ...props }) => (
   <div>
-    <label
-      htmlFor={id}
-      className="block text-sm font-medium text-gray-700 mb-1"
-    >
-      {label}
-    </label>
-    <input
-      id={id}
-      {...props}
-      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm"
-    />
+    <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <input id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm" />
+  </div>
+);
+const FormSelect = ({ label, id, children, ...props }) => (
+  <div>
+    <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <select id={id} {...props} className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm">{children}</select>
   </div>
 );
 
-const FormSelect = ({ label, id, children, ...props }) => (
-  <div>
-    <label
-      htmlFor={id}
-      className="block text-sm font-medium text-gray-700 mb-1"
-    >
-      {label}
-    </label>
-    <select
-      id={id}
-      {...props}
-      className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-google-blue focus:border-google-blue sm:text-sm"
-    >
-      {children}
-    </select>
-  </div>
-);
 
 const IdeaSubmissionFormFields = ({ onSubmit }) => {
   const navigate = useNavigate();
@@ -89,28 +66,49 @@ const IdeaSubmissionFormFields = ({ onSubmit }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState('');
+  const [imageGenError, setImageGenError] = useState('');
+
   const categories = [
-    "Pottery",
-    "Textiles",
-    "Painting",
-    "Woodwork",
-    "Metalwork",
-    "Sculpture",
-    "Jewelry",
-    "Other",
+    "Pottery", "Textiles", "Painting", "Woodwork", "Metalwork", "Sculpture", "Jewelry", "Other",
   ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+  const handleGenerateImage = async () => {
+    if (!formData.title || !formData.description) {
+      setImageGenError("Please provide a title and description first.");
+      return;
+    }
+    setIsGeneratingImage(true);
+    setImageGenError('');
+    setGeneratedImageUrl('');
 
+    try {
+      const detailedPrompt = `High-quality e-commerce product photo of a handmade ${formData.category} item: ${formData.title}. ${formData.description}. Neutral background, studio lighting.`;
+      const response = await api.post('/ai/generate-image-native', { prompt: detailedPrompt });
+      setGeneratedImageUrl(response.data.imageUrl);
+
+    } catch (err) {
+      console.error("AI Image Generation Error:", err);
+      setImageGenError(err.response?.data?.message || "Failed to generate image. Please try again.");
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      await onSubmit(formData);
+      const payload = {
+        ...formData,
+        imageUrl: generatedImageUrl, 
+      };
+      await onSubmit(payload);
     } catch (err) {
       setError(err.message || "An unexpected error occurred.");
     } finally {
@@ -176,13 +174,48 @@ const IdeaSubmissionFormFields = ({ onSubmit }) => {
         </FormSelect>
       </div>
 
+      {/* --- START: NEW IMAGE GENERATION UI --- */}
+      <div className="space-y-4 pt-6 border-t border-gray-100">
+        <h3 className="text-lg font-medium text-gray-800">Generate a Concept Image (Optional)</h3>
+        <p className="text-xs text-gray-500">Based on your title and description, our AI can create a visual concept to help get votes. This can take up to 30 seconds.</p>
+        <button
+          type="button"
+          onClick={handleGenerateImage}
+          disabled={isGeneratingImage}
+          className="flex items-center gap-2 text-sm font-semibold text-white bg-google-blue px-4 py-2 rounded-lg hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-wait transition-colors"
+        >
+          <SparklesIcon className={`w-5 h-5 ${isGeneratingImage ? 'animate-spin' : ''}`} />
+          {isGeneratingImage ? 'Generating Image...' : 'Generate with AI'}
+        </button>
+
+        {imageGenError && <p className="text-red-600 text-sm mt-2">{imageGenError}</p>}
+
+        {isGeneratingImage && (
+          <div className="mt-4 flex flex-col items-center justify-center w-48 h-48 bg-gray-100 rounded-lg border-2 border-dashed">
+            <p className="text-sm text-gray-500">Creating...</p>
+          </div>
+        )}
+
+        {generatedImageUrl && (
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-700 mb-2">AI Generated Preview:</p>
+            <img
+              src={generatedImageUrl}
+              alt="AI generated concept"
+              className="w-48 h-48 object-cover rounded-lg border-2 border-google-blue shadow-md"
+            />
+          </div>
+        )}
+      </div>
+      {/* --- END: NEW IMAGE GENERATION UI --- */}
+
       <div className="flex justify-end items-center gap-3 pt-4 border-t border-gray-100">
         <button
           type="button"
           onClick={() => navigate("/artisan/dashboard")}
           className="bg-white text-gray-700 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 border border-gray-300 transition-colors text-sm flex items-center gap-1.5"
         >
-          {} Cancel
+          Cancel
         </button>
         <button
           type="submit"
@@ -218,7 +251,7 @@ const IdeaSubmissionFormFields = ({ onSubmit }) => {
   );
 };
 
-const IdeaSubmissionPage = () => {
+const IdeaSubmissionPage = ({ }) => {
   const navigate = useNavigate();
   const [recentIdeas, setRecentIdeas] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -228,17 +261,8 @@ const IdeaSubmissionPage = () => {
   const [filterCategory, setFilterCategory] = useState("All");
   const [selectedIdea, setSelectedIdea] = useState(null);
 
-
   const categoriesForFilter = [
-    "All",
-    "Pottery",
-    "Textiles",
-    "Painting",
-    "Woodwork",
-    "Metalwork",
-    "Sculpture",
-    "Jewelry",
-    "Other",
+    "All", "Pottery", "Textiles", "Painting", "Woodwork", "Metalwork", "Sculpture", "Jewelry", "Other",
   ];
 
   useEffect(() => {
@@ -247,14 +271,10 @@ const IdeaSubmissionPage = () => {
       setError("");
       try {
         const response = await api.get("/ideas");
-
         const ideasFromApi = response.data.ideas;
-
         const formattedIdeas = ideasFromApi.map((idea) => {
           const submittedAtDate = new Date(idea.submittedAt || idea.createdAt);
-
           const votes = idea.votes ? idea.votes.upvotes || 0 : 0;
-
           return {
             ...idea,
             submittedAt: submittedAtDate,
@@ -263,7 +283,6 @@ const IdeaSubmissionPage = () => {
             link: "#",
           };
         });
-
         setRecentIdeas(formattedIdeas);
       } catch (err) {
         console.error("Failed to fetch recent ideas:", err);
@@ -294,10 +313,7 @@ const IdeaSubmissionPage = () => {
   const handleFormSubmit = async (formData) => {
     try {
       const response = await api.post("/ideas", formData);
-
-
       const createdIdea = response.data.idea;
-
       const newIdea = {
         id: createdIdea.id,
         title: createdIdea.title,
@@ -364,17 +380,10 @@ const IdeaSubmissionPage = () => {
 
   return (
     <>
-      {
-}
       <div className="flex flex-col lg:flex-row gap-10 px-6 md:px-8 py-8 md:py-10 bg-gradient-to-br from-[#F8F9FA] via-[#F1F3F4] to-[#E8F0FE] min-h-screen">
-        {}
         <div className="flex-grow lg:w-2/3">
-          {
-}
           <AnimatedSection>
             <div className="text-center mb-8 pt-8">
-              {" "}
-              {}
               <h1
                 className="inline-block text-3xl font-semibold px-6 py-3 rounded-xl shadow-md"
                 style={{
@@ -389,17 +398,13 @@ const IdeaSubmissionPage = () => {
               </p>
             </div>
           </AnimatedSection>
-
           <AnimatedSection>
             <IdeaSubmissionFormFields onSubmit={handleFormSubmit} />
           </AnimatedSection>
         </div>
-
-        {}
         <aside className="lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 self-start mt-4 lg:mt-0">
           <AnimatedSection>
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              {}
               <div className="flex flex-col sm:flex-row justify-between items-start gap-3 p-4 border-b border-gray-100">
                 <div className="flex items-center gap-3 flex-shrink-0">
                   <HistoryIcon className="h-6 w-6 text-gray-500" />
@@ -434,9 +439,8 @@ const IdeaSubmissionPage = () => {
                       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
                     }
                     className="p-1 rounded hover:bg-gray-100 text-gray-500"
-                    aria-label={`Sort ${
-                      sortOrder === "asc" ? "descending" : "ascending"
-                    }`}
+                    aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"
+                      }`}
                   >
                     {sortOrder === "asc" ? (
                       <SortAscendingIcon className="w-4 h-4" />
@@ -446,13 +450,6 @@ const IdeaSubmissionPage = () => {
                   </button>
                 </div>
               </div>
-
-              {}
-              {error && (
-                <p className="p-4 text-xs text-red-600 bg-red-50">{error}</p>
-              )}
-
-              {}
               <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
                 {loading && !recentIdeas ? (
                   <div className="p-4 text-center text-xs text-gray-500">
@@ -492,8 +489,6 @@ const IdeaSubmissionPage = () => {
                   )
                 )}
               </div>
-
-              {}
               {recentIdeas && recentIdeas.length > 0 && (
                 <div className="p-3 text-center bg-gray-50/70 rounded-b-xl border-t border-gray-100">
                   <Link
@@ -508,8 +503,6 @@ const IdeaSubmissionPage = () => {
           </AnimatedSection>
         </aside>
       </div>
-
-      {}
       {selectedIdea && (
         <IdeaDetailModal
           idea={selectedIdea}

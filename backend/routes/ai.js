@@ -13,6 +13,8 @@ const GoogleEventsService = require("../services/GoogleEventsService");
 const GoogleSchemesService = require("../services/GovernmentSchemesService");
 const { TranslationServiceClient } = require('@google-cloud/translate').v3;
 const router = express.Router();
+const { bucket } = require("../gcsClient");
+const { v4: uuidv4 } = require("uuid");
 
 const textToSpeech = require("@google-cloud/text-to-speech");
 const fs = require("fs");
@@ -92,6 +94,79 @@ router.get("/trends", auth, async (req, res) => {
   }
 });
 
+router.post("/generate-image-native", [auth, authorize("artisan")], async (req, res) => {
+  const { prompt } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ message: "A prompt is required to generate an image." });
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash-preview-image-generation",
+    });
+
+    console.log("Generating image with Gemini native image generation...");
+
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseModalities: ["image", "text"],
+      },
+    });
+
+    const response = result.response;
+    let imageBase64 = null;
+
+    if (
+      response &&
+      response.candidates &&
+      response.candidates[0].content &&
+      response.candidates[0].content.parts
+    ) {
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData && part.inlineData.data) {
+          imageBase64 = part.inlineData.data;
+          break;
+        }
+      }
+    }
+
+    if (!imageBase64) {
+      throw new Error("No image data returned from AI model.");
+    }
+
+    console.log("Image generated, now uploading to Google Cloud Storage...");
+    const imageBuffer = Buffer.from(imageBase64, "base64");
+    const uniqueFilename = `${uuidv4()}.png`;
+    const blob = bucket.file(`generated_images/${uniqueFilename}`);
+
+    const blobStream = blob.createWriteStream({
+      resumable: false,
+      contentType: "image/png",
+    });
+
+    blobStream.on("error", (err) => {
+      console.error("GCS Upload Error:", err);
+      res.status(500).json({ message: "Could not upload generated image." });
+    });
+
+    blobStream.on("finish", async () => {
+      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+      console.log(`✅ Image uploaded to ${publicUrl}`);
+      res.status(200).json({ imageUrl: publicUrl });
+    });
+
+    blobStream.end(imageBuffer);
+  } catch (error) {
+    console.error("AI Native Image Generation Error:", error.message);
+    res.status(500).json({
+      message:
+        "Failed to generate image. The AI service may be busy, out of quota, or the prompt was invalid.",
+      error: error.message,
+    });
+  }
+});
 router.post(
   "/generate-description",
   [auth, authorize("artisan")],
