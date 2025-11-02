@@ -69,4 +69,4 @@ The community champion. Volunteers who mentor artisans, foster local communities
 
 ## Website
 
-[https://junoon-hacks-gen-ai.vercel.app](https://junoon-hacks-gen-ai.vercel.app)
+[https://junoon-hacks-gen-ai.vercel.app](https://kala-ghar.vercel.app/)
